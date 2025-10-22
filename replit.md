@@ -30,10 +30,37 @@ Preferred communication style: Simple, everyday language.
 
 **Routing Structure:**
 - `/` - Home page with hero, value propositions, product tour modal, pricing table, testimonials, and FAQ
-- `/recruiters` - Dedicated page for recruiting professionals
+- `/recruiters` - Dedicated page for recruiting professionals with job posting functionality
 - `/businesses` - SME-focused hiring solutions
-- `/individuals` - Job seeker profile and application flow
+- `/individuals` - Job seeker profile with job search, filtering, and CV builder wizard
 - 404 handling for unmatched routes
+
+**Key Features:**
+
+**Recruiters Page:**
+- Job posting form with validation
+- Numeric salary range inputs (min/max with validation)
+- WhatsApp contact integration
+- Employment type and industry categorization
+
+**Individuals Page:**
+- Job search and filtering system
+  - Dynamic filters generated from actual job data (location, industry, employment type)
+  - Real-time search across job titles, companies, and descriptions
+  - Clear filters functionality
+  - Job count display
+- Multi-step CV builder wizard (7 steps)
+  - Step 1: Personal Information (name, contact, demographics)
+  - Step 2: Work Experience (positions, responsibilities, embedded references)
+  - Step 3: Skills (soft skills, technical skills, languages)
+  - Step 4: Education (qualifications, institutions, periods)
+  - Step 5: Professional References (standalone references with contact details)
+  - Step 6: About Me (professional summary)
+  - Step 7: Preview (professional formatted CV preview)
+- All forms use react-hook-form with Zod validation
+- Required field enforcement at schema level
+- Professional CV preview matching South African CV format standards
+- Toggle between CV builder and job browsing
 
 **State Management:**
 - React Query for API calls and caching
@@ -50,6 +77,11 @@ Preferred communication style: Simple, everyday language.
 **API Endpoints:**
 - `POST /api/subscribe` - Email subscription for early access waitlist
 - `GET /api/subscribers` - Retrieve all subscribers (admin endpoint)
+- `POST /api/jobs` - Create new job posting (recruiter endpoint)
+- `GET /api/jobs` - Retrieve all job postings with count
+- `POST /api/cvs` - Create new CV (job seeker endpoint)
+- `GET /api/cvs/:id` - Retrieve specific CV by ID
+- `PUT /api/cvs/:id` - Update existing CV
 
 **Request/Response Flow:**
 - JSON body parsing with raw body preservation for webhook support
@@ -69,11 +101,14 @@ Preferred communication style: Simple, everyday language.
 
 **Schema Design (Drizzle ORM):**
 - PostgreSQL dialect configuration
-- Two primary tables:
+- Five primary tables:
   - `users`: Basic authentication (id, username, password)
   - `subscribers`: Email waitlist (id, email, createdAt)
+  - `jobs`: Job postings (id, title, company, location, salaryMin, salaryMax, description, requirements, whatsappContact, employmentType, industry, createdAt)
+  - `cvs`: CV/Resume data (id, userId, personalInfo, workExperience, skills, education, references, aboutMe, createdAt, updatedAt)
 - UUID primary keys with database-level generation
-- Zod schema validation for type-safe inserts
+- Zod schema validation for type-safe inserts with required field enforcement
+- Complex nested JSON structures for CV sections (work experience, skills, education, references)
 
 **Future Database Integration:**
 - Configured for PostgreSQL via Drizzle ORM
