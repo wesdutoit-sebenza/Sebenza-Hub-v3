@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertSubscriberSchema } from "@shared/schema";
+import { insertSubscriberSchema, insertJobSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/subscribe", async (req, res) => {
@@ -52,6 +52,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Error fetching subscribers.",
+      });
+    }
+  });
+
+  app.post("/api/jobs", async (req, res) => {
+    try {
+      const validatedData = insertJobSchema.parse(req.body);
+      const job = await storage.createJob(validatedData);
+      
+      console.log(`New job posted: ${job.title} at ${job.company}`);
+      
+      res.json({
+        success: true,
+        message: "Job posted successfully!",
+        job,
+      });
+    } catch (error: any) {
+      console.error("Job posting error:", error);
+      res.status(400).json({
+        success: false,
+        message: error.errors ? "Invalid job data." : "Error posting job.",
+      });
+    }
+  });
+
+  app.get("/api/jobs", async (_req, res) => {
+    try {
+      const jobs = await storage.getAllJobs();
+      res.json({
+        success: true,
+        count: jobs.length,
+        jobs,
+      });
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching jobs.",
       });
     }
   });

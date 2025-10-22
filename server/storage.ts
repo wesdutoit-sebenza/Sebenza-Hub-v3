@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Subscriber, type InsertSubscriber } from "@shared/schema";
+import { type User, type InsertUser, type Subscriber, type InsertSubscriber, type Job, type InsertJob } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -8,15 +8,20 @@ export interface IStorage {
   createSubscriber(subscriber: InsertSubscriber): Promise<Subscriber>;
   getSubscriberByEmail(email: string): Promise<Subscriber | undefined>;
   getAllSubscribers(): Promise<Subscriber[]>;
+  createJob(job: InsertJob): Promise<Job>;
+  getAllJobs(): Promise<Job[]>;
+  getJobById(id: string): Promise<Job | undefined>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private subscribers: Map<string, Subscriber>;
+  private jobs: Map<string, Job>;
 
   constructor() {
     this.users = new Map();
     this.subscribers = new Map();
+    this.jobs = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -60,6 +65,27 @@ export class MemStorage implements IStorage {
 
   async getAllSubscribers(): Promise<Subscriber[]> {
     return Array.from(this.subscribers.values());
+  }
+
+  async createJob(insertJob: InsertJob): Promise<Job> {
+    const id = randomUUID();
+    const job: Job = {
+      ...insertJob,
+      id,
+      createdAt: new Date(),
+    };
+    this.jobs.set(id, job);
+    return job;
+  }
+
+  async getAllJobs(): Promise<Job[]> {
+    return Array.from(this.jobs.values()).sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    );
+  }
+
+  async getJobById(id: string): Promise<Job | undefined> {
+    return this.jobs.get(id);
   }
 }
 
