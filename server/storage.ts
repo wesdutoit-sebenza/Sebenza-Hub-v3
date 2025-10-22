@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Subscriber, type InsertSubscriber, type Job, type InsertJob } from "@shared/schema";
+import { type User, type InsertUser, type Subscriber, type InsertSubscriber, type Job, type InsertJob, type CV, type InsertCV } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -11,17 +11,24 @@ export interface IStorage {
   createJob(job: InsertJob): Promise<Job>;
   getAllJobs(): Promise<Job[]>;
   getJobById(id: string): Promise<Job | undefined>;
+  createCV(cv: InsertCV): Promise<CV>;
+  getCV(id: string): Promise<CV | undefined>;
+  updateCV(id: string, cv: Partial<InsertCV>): Promise<CV | undefined>;
+  getAllCVs(): Promise<CV[]>;
+  getCVByUserId(userId: string): Promise<CV | undefined>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
   private subscribers: Map<string, Subscriber>;
   private jobs: Map<string, Job>;
+  private cvs: Map<string, CV>;
 
   constructor() {
     this.users = new Map();
     this.subscribers = new Map();
     this.jobs = new Map();
+    this.cvs = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -86,6 +93,63 @@ export class MemStorage implements IStorage {
 
   async getJobById(id: string): Promise<Job | undefined> {
     return this.jobs.get(id);
+  }
+
+  async createCV(insertCV: InsertCV): Promise<CV> {
+    const id = randomUUID();
+    const now = new Date();
+    const cv: CV = {
+      ...insertCV,
+      id,
+      userId: insertCV.userId || null,
+      personalInfo: insertCV.personalInfo as any,
+      workExperience: insertCV.workExperience as any,
+      skills: insertCV.skills as any,
+      education: insertCV.education as any,
+      aboutMe: insertCV.aboutMe || null,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.cvs.set(id, cv);
+    return cv;
+  }
+
+  async getCV(id: string): Promise<CV | undefined> {
+    return this.cvs.get(id);
+  }
+
+  async updateCV(id: string, updates: Partial<InsertCV>): Promise<CV | undefined> {
+    const existing = this.cvs.get(id);
+    if (!existing) {
+      return undefined;
+    }
+
+    const updated: CV = {
+      ...existing,
+      ...updates,
+      id: existing.id,
+      createdAt: existing.createdAt,
+      updatedAt: new Date(),
+      personalInfo: updates.personalInfo ? (updates.personalInfo as any) : existing.personalInfo,
+      workExperience: updates.workExperience ? (updates.workExperience as any) : existing.workExperience,
+      skills: updates.skills ? (updates.skills as any) : existing.skills,
+      education: updates.education ? (updates.education as any) : existing.education,
+    };
+
+    this.cvs.set(id, updated);
+    return updated;
+  }
+
+  async getAllCVs(): Promise<CV[]> {
+    return Array.from(this.cvs.values()).sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    );
+  }
+
+  async getCVByUserId(userId: string): Promise<CV | undefined> {
+    return Array.from(this.cvs.values()).find(
+      (cv) => cv.userId === userId
+    );
   }
 }
 

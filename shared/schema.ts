@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
@@ -58,3 +58,85 @@ export const insertJobSchema = createInsertSchema(jobs).omit({
 
 export type InsertJob = z.infer<typeof insertJobSchema>;
 export type Job = typeof jobs.$inferSelect;
+
+// CV Schema with Zod types for validation
+export const cvPersonalInfoSchema = z.object({
+  fullName: z.string().min(1, "Full name is required"),
+  physicalAddress: z.string().optional(),
+  contactPhone: z.string().min(1, "Contact phone is required"),
+  contactEmail: z.string().email("Valid email is required"),
+  legalName: z.string().optional(),
+  age: z.number().optional(),
+  gender: z.string().optional(),
+  driversLicense: z.string().optional(),
+});
+
+export const cvReferenceSchema = z.object({
+  name: z.string(),
+  title: z.string(),
+  phone: z.string(),
+  email: z.string().optional(),
+});
+
+export const cvWorkExperienceSchema = z.object({
+  period: z.string(),
+  company: z.string(),
+  position: z.string(),
+  type: z.string(),
+  industry: z.string(),
+  clientele: z.string().optional(),
+  responsibilities: z.array(z.object({
+    title: z.string().optional(),
+    items: z.array(z.string()),
+  })),
+  references: z.array(cvReferenceSchema).optional(),
+});
+
+export const cvSkillsSchema = z.object({
+  softSkills: z.array(z.object({
+    category: z.string(),
+    items: z.array(z.string()),
+  })).optional(),
+  technicalSkills: z.array(z.object({
+    category: z.string(),
+    items: z.array(z.string()),
+  })).optional(),
+  languages: z.array(z.string()).optional(),
+});
+
+export const cvEducationSchema = z.object({
+  level: z.string(),
+  institution: z.string(),
+  period: z.string(),
+  location: z.string(),
+  details: z.string().optional(),
+});
+
+export const cvs = pgTable("cvs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id"),
+  personalInfo: jsonb("personal_info").notNull(),
+  workExperience: jsonb("work_experience").notNull(),
+  skills: jsonb("skills").notNull(),
+  education: jsonb("education").notNull(),
+  aboutMe: text("about_me"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertCVSchema = z.object({
+  userId: z.string().optional(),
+  personalInfo: cvPersonalInfoSchema,
+  workExperience: z.array(cvWorkExperienceSchema),
+  skills: cvSkillsSchema,
+  education: z.array(cvEducationSchema),
+  aboutMe: z.string().optional(),
+});
+
+export type InsertCV = z.infer<typeof insertCVSchema>;
+export type CV = typeof cvs.$inferSelect;
+export type CVPersonalInfo = z.infer<typeof cvPersonalInfoSchema>;
+export type CVWorkExperience = z.infer<typeof cvWorkExperienceSchema>;
+export type CVSkills = z.infer<typeof cvSkillsSchema>;
+export type CVEducation = z.infer<typeof cvEducationSchema>;
+export type CVReference = z.infer<typeof cvReferenceSchema>;
