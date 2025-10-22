@@ -72,43 +72,43 @@ export const cvPersonalInfoSchema = z.object({
 });
 
 export const cvReferenceSchema = z.object({
-  name: z.string(),
-  title: z.string(),
-  phone: z.string(),
+  name: z.string().min(1, "Reference name is required"),
+  title: z.string().min(1, "Reference title is required"),
+  phone: z.string().min(1, "Reference phone is required"),
   email: z.string().optional(),
 });
 
 export const cvWorkExperienceSchema = z.object({
-  period: z.string(),
-  company: z.string(),
-  position: z.string(),
-  type: z.string(),
-  industry: z.string(),
+  period: z.string().min(1, "Period is required"),
+  company: z.string().min(1, "Company is required"),
+  position: z.string().min(1, "Position is required"),
+  type: z.string().min(1, "Employment type is required"),
+  industry: z.string().min(1, "Industry is required"),
   clientele: z.string().optional(),
   responsibilities: z.array(z.object({
     title: z.string().optional(),
-    items: z.array(z.string()),
+    items: z.array(z.string().min(1, "Responsibility item cannot be empty")).min(1, "At least one responsibility is required"),
   })),
   references: z.array(cvReferenceSchema).optional(),
 });
 
 export const cvSkillsSchema = z.object({
   softSkills: z.array(z.object({
-    category: z.string(),
-    items: z.array(z.string()),
+    category: z.string().min(1, "Category is required"),
+    items: z.array(z.string().min(1, "Skill item cannot be empty")).min(1, "At least one skill item is required"),
   })).optional(),
   technicalSkills: z.array(z.object({
-    category: z.string(),
-    items: z.array(z.string()),
+    category: z.string().min(1, "Category is required"),
+    items: z.array(z.string().min(1, "Skill item cannot be empty")).min(1, "At least one skill item is required"),
   })).optional(),
   languages: z.array(z.string()).optional(),
 });
 
 export const cvEducationSchema = z.object({
-  level: z.string(),
-  institution: z.string(),
-  period: z.string(),
-  location: z.string(),
+  level: z.string().min(1, "Education level is required"),
+  institution: z.string().min(1, "Institution is required"),
+  period: z.string().min(1, "Period is required"),
+  location: z.string().min(1, "Location is required"),
   details: z.string().optional(),
 });
 
@@ -119,6 +119,7 @@ export const cvs = pgTable("cvs", {
   workExperience: jsonb("work_experience").notNull(),
   skills: jsonb("skills").notNull(),
   education: jsonb("education").notNull(),
+  references: jsonb("references"),
   aboutMe: text("about_me"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -130,6 +131,7 @@ export const insertCVSchema = z.object({
   workExperience: z.array(cvWorkExperienceSchema),
   skills: cvSkillsSchema,
   education: z.array(cvEducationSchema),
+  references: z.array(cvReferenceSchema).optional(),
   aboutMe: z.string().optional(),
 });
 

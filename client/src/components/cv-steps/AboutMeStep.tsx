@@ -1,6 +1,22 @@
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { z } from "zod";
+
+const aboutMeSchema = z.object({
+  aboutMe: z.string().optional(),
+});
+
+type AboutMeForm = z.infer<typeof aboutMeSchema>;
 
 interface Props {
   data: any;
@@ -9,10 +25,15 @@ interface Props {
 }
 
 export default function AboutMeStep({ data, updateData, onNext }: Props) {
-  const [aboutMe, setAboutMe] = useState(data.aboutMe || "");
+  const form = useForm<AboutMeForm>({
+    resolver: zodResolver(aboutMeSchema),
+    defaultValues: {
+      aboutMe: data.aboutMe || "",
+    },
+  });
 
-  const handleContinue = () => {
-    updateData("aboutMe", aboutMe);
+  const onSubmit = (formData: AboutMeForm) => {
+    updateData("aboutMe", formData.aboutMe);
     onNext();
   };
 
@@ -23,21 +44,36 @@ export default function AboutMeStep({ data, updateData, onNext }: Props) {
         Write a brief professional summary or personal statement
       </p>
 
-      <Textarea
-        placeholder="Describe your professional background, goals, and what makes you unique..."
-        value={aboutMe}
-        onChange={(e) => setAboutMe(e.target.value)}
-        className="min-h-48"
-        data-testid="textarea-about-me"
-      />
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="aboutMe"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Professional Summary</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Describe your professional background, goals, and what makes you unique..."
+                    className="min-h-48"
+                    data-testid="textarea-about-me"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-      <p className="text-sm text-muted-foreground mt-2">
-        This section is optional but recommended. Share your career story, passions, and what drives you.
-      </p>
+          <p className="text-sm text-muted-foreground">
+            This section is optional but recommended. Share your career story, passions, and what drives you.
+          </p>
 
-      <Button onClick={handleContinue} className="w-full mt-6" data-testid="button-continue">
-        Continue to Preview
-      </Button>
+          <Button type="submit" className="w-full" data-testid="button-continue">
+            Continue to Preview
+          </Button>
+        </form>
+      </Form>
     </div>
   );
 }

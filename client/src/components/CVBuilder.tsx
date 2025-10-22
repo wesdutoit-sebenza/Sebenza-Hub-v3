@@ -7,20 +7,22 @@ import PersonalInfoStep from "./cv-steps/PersonalInfoStep";
 import WorkExperienceStep from "./cv-steps/WorkExperienceStep";
 import SkillsStep from "./cv-steps/SkillsStep";
 import EducationStep from "./cv-steps/EducationStep";
+import ReferencesStep from "./cv-steps/ReferencesStep";
 import AboutMeStep from "./cv-steps/AboutMeStep";
 import CVPreview from "./CVPreview";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { InsertCV, CVPersonalInfo, CVWorkExperience, CVSkills, CVEducation } from "@shared/schema";
+import type { InsertCV, CVPersonalInfo, CVWorkExperience, CVSkills, CVEducation, CVReference } from "@shared/schema";
 
 const steps = [
   { id: 1, name: "Personal Info", component: PersonalInfoStep },
   { id: 2, name: "Work Experience", component: WorkExperienceStep },
   { id: 3, name: "Skills", component: SkillsStep },
   { id: 4, name: "Education", component: EducationStep },
-  { id: 5, name: "About Me", component: AboutMeStep },
-  { id: 6, name: "Preview", component: CVPreview },
+  { id: 5, name: "References", component: ReferencesStep },
+  { id: 6, name: "About Me", component: AboutMeStep },
+  { id: 7, name: "Preview", component: CVPreview },
 ];
 
 export default function CVBuilder({ onComplete }: { onComplete?: () => void }) {
@@ -31,6 +33,7 @@ export default function CVBuilder({ onComplete }: { onComplete?: () => void }) {
     workExperience: [] as CVWorkExperience[],
     skills: {} as CVSkills,
     education: [] as CVEducation[],
+    references: [] as CVReference[],
     aboutMe: "",
   });
 

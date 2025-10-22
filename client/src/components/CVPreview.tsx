@@ -182,6 +182,25 @@ export default function CVPreview({ data }: Props) {
             </div>
           )}
 
+          {/* References */}
+          {data.references && data.references.length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold border-b-2 border-black pb-2 mb-4">
+                REFERENCES
+              </h2>
+              {data.references.map((ref, index) => (
+                <div key={index} className="mb-3">
+                  <p className="font-semibold text-sm">{ref.name}</p>
+                  <div className="ml-6 text-sm">
+                    <p>{ref.title}</p>
+                    <p>{ref.phone}</p>
+                    {ref.email && <p>{ref.email}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* About Me */}
           {aboutMe && (
             <div>
