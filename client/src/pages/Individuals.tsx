@@ -14,7 +14,8 @@ import {
 import PageHeader from "@/components/PageHeader";
 import Section from "@/components/Section";
 import FAQAccordion from "@/components/FAQAccordion";
-import { User, Clock, Video, Upload, Award, Shield, Briefcase, MapPin, DollarSign, MessageCircle, Search, Filter } from "lucide-react";
+import CVBuilder from "@/components/CVBuilder";
+import { User, Clock, Video, Upload, Award, Shield, Briefcase, MapPin, DollarSign, MessageCircle, Search, Filter, FileText } from "lucide-react";
 import { type Job } from "@shared/schema";
 
 export default function Individuals() {
@@ -22,6 +23,7 @@ export default function Individuals() {
   const [locationFilter, setLocationFilter] = useState("all");
   const [industryFilter, setIndustryFilter] = useState("all");
   const [employmentTypeFilter, setEmploymentTypeFilter] = useState("all");
+  const [showCVBuilder, setShowCVBuilder] = useState(false);
 
   useEffect(() => {
     document.title = "For Individuals | One profile. Verified skills. Transparent pay.";
@@ -178,14 +180,22 @@ export default function Individuals() {
           <Button
             size="lg"
             data-testid="button-create-profile"
-            onClick={() => console.log("Create profile clicked")}
+            onClick={() => setShowCVBuilder(!showCVBuilder)}
           >
-            Create your profile
+            <FileText size={20} className="mr-2" />
+            {showCVBuilder ? "Back to Profile" : "Create Your CV"}
           </Button>
         </div>
       </Section>
 
-      <Section className="bg-card" id="jobs">
+      {showCVBuilder && (
+        <Section>
+          <CVBuilder onComplete={() => setShowCVBuilder(false)} />
+        </Section>
+      )}
+
+      {!showCVBuilder && (<>
+        <Section className="bg-card" id="jobs">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-serif font-semibold mb-4" data-testid="text-jobs-title">
@@ -366,7 +376,7 @@ export default function Individuals() {
           )}
         </div>
       </Section>
-
+      
       <Section id="faq">
         <h2 className="text-3xl font-serif font-semibold text-center mb-12" data-testid="text-faq-title">
           Individual FAQs
@@ -375,6 +385,7 @@ export default function Individuals() {
           <FAQAccordion audience="individuals" />
         </div>
       </Section>
+      </>)}
     </main>
   );
 }
