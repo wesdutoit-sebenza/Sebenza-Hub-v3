@@ -1,13 +1,60 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { insertSubscriberSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // put application routes here
-  // prefix all routes with /api
+  app.post("/api/subscribe", async (req, res) => {
+    try {
+      const validatedData = insertSubscriberSchema.parse(req.body);
+      const subscriber = await storage.createSubscriber(validatedData);
+      
+      console.log(`New subscriber: ${subscriber.email} at ${subscriber.createdAt}`);
+      
+      res.json({
+        success: true,
+        message: "Successfully subscribed to early access!",
+        subscriber: {
+          id: subscriber.id,
+          email: subscriber.email,
+        },
+      });
+    } catch (error: any) {
+      if (error.message === "Email already subscribed") {
+        res.status(400).json({
+          success: false,
+          message: "This email is already on the waitlist.",
+        });
+      } else {
+        console.error("Subscription error:", error);
+        res.status(400).json({
+          success: false,
+          message: "Invalid email address.",
+        });
+      }
+    }
+  });
 
-  // use storage to perform CRUD operations on the storage interface
-  // e.g. storage.insertUser(user) or storage.getUserByUsername(username)
+  app.get("/api/subscribers", async (_req, res) => {
+    try {
+      const subscribers = await storage.getAllSubscribers();
+      res.json({
+        success: true,
+        count: subscribers.length,
+        subscribers: subscribers.map(s => ({
+          id: s.id,
+          email: s.email,
+          createdAt: s.createdAt,
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching subscribers:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching subscribers.",
+      });
+    }
+  });
 
   const httpServer = createServer(app);
 

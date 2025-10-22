@@ -11,19 +11,49 @@ import PricingTable from "@/components/PricingTable";
 import FAQAccordion from "@/components/FAQAccordion";
 import TourSlides from "@/components/TourSlides";
 import { testimonials, valueProps } from "@/data";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Home() {
   const [showTourModal, setShowTourModal] = useState(false);
   const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     document.title = "HireMove | SA recruiting platform—trust layer, WhatsApp-first, compliance";
   }, []);
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Email submitted:", email);
-    setEmail("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await apiRequest("POST", "/api/subscribe", { email });
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: "Success!",
+          description: data.message,
+        });
+        setEmail("");
+      } else {
+        toast({
+          title: "Oops!",
+          description: data.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const iconMap = {
@@ -48,7 +78,7 @@ export default function Home() {
             <Button
               size="lg"
               data-testid="button-hero-access"
-              onClick={() => console.log("Get early access clicked")}
+              onClick={() => document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' })}
             >
               Get early access
             </Button>
@@ -207,9 +237,10 @@ export default function Home() {
               data-testid="input-email"
               className="flex-1 px-4 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
               required
+              disabled={isSubmitting}
             />
-            <Button type="submit" data-testid="button-subscribe">
-              Get early access
+            <Button type="submit" data-testid="button-subscribe" disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Get early access"}
             </Button>
           </form>
         </div>

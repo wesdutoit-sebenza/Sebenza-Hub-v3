@@ -1,0 +1,157 @@
+# HireMove - South African Recruiting Platform
+
+## Overview
+
+HireMove is a marketing website for a South African recruiting platform that emphasizes transparency, compliance, and WhatsApp-first hiring workflows. The platform serves three distinct audiences: recruiters, businesses, and job seekers (individuals). It features a modern, minimal design with strategic color accents, built with a focus on performance, accessibility, and mobile-first responsiveness.
+
+The application is a full-stack TypeScript solution with a React frontend and Express backend, designed to capture early-access subscribers and showcase the platform's value propositions through distinct landing pages for each user segment.
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+## System Architecture
+
+### Frontend Architecture
+
+**Framework & Tooling:**
+- Vite-powered React application with TypeScript
+- Wouter for client-side routing (lightweight React Router alternative)
+- TanStack React Query for server state management
+- shadcn/ui component library built on Radix UI primitives
+- Tailwind CSS for styling with custom design system
+
+**Design System:**
+- Color palette: Base colors (ink `#0B1220`, off-white `#F8FAFC`) with strategic accent colors (violet, cyan, green, amber)
+- Typography: Inter for UI/body text, Newsreader for headlines (Google Fonts)
+- Component-driven architecture using shadcn/ui with custom theming
+- Mobile-first responsive design targeting Lighthouse 95+ scores
+- Custom CSS variables for theming with light/dark mode support
+
+**Routing Structure:**
+- `/` - Home page with hero, value propositions, product tour modal, pricing table, testimonials, and FAQ
+- `/recruiters` - Dedicated page for recruiting professionals
+- `/businesses` - SME-focused hiring solutions
+- `/individuals` - Job seeker profile and application flow
+- 404 handling for unmatched routes
+
+**State Management:**
+- React Query for API calls and caching
+- Local component state with React hooks
+- Toast notifications for user feedback
+
+### Backend Architecture
+
+**Server Framework:**
+- Express.js with TypeScript
+- Custom Vite middleware integration for development
+- Static file serving for production builds
+
+**API Endpoints:**
+- `POST /api/subscribe` - Email subscription for early access waitlist
+- `GET /api/subscribers` - Retrieve all subscribers (admin endpoint)
+
+**Request/Response Flow:**
+- JSON body parsing with raw body preservation for webhook support
+- Custom logging middleware for API request tracking
+- Error handling with structured JSON responses
+
+**Development vs Production:**
+- Development: Vite dev server with HMR, middleware mode
+- Production: Pre-built static assets served by Express
+- Replit-specific plugins for runtime error overlay and development banners
+
+### Data Storage
+
+**Current Implementation:**
+- In-memory storage (`MemStorage` class) for development/demo purposes
+- Interface-based storage abstraction (`IStorage`) for future database integration
+
+**Schema Design (Drizzle ORM):**
+- PostgreSQL dialect configuration
+- Two primary tables:
+  - `users`: Basic authentication (id, username, password)
+  - `subscribers`: Email waitlist (id, email, createdAt)
+- UUID primary keys with database-level generation
+- Zod schema validation for type-safe inserts
+
+**Future Database Integration:**
+- Configured for PostgreSQL via Drizzle ORM
+- Neon Database serverless driver specified in dependencies
+- Migration directory: `./migrations`
+- Ready for `drizzle-kit push` deployment
+
+### Authentication & Authorization
+
+**Current State:**
+- User schema defined but authentication not yet implemented
+- Subscriber endpoints are publicly accessible
+- No session management or auth middleware currently active
+
+**Prepared Infrastructure:**
+- `connect-pg-simple` included for PostgreSQL session storage
+- User password storage schema ready (note: hashing should be implemented before production)
+
+### External Dependencies
+
+**UI Component Library:**
+- Radix UI primitives for accessible, unstyled components
+- shadcn/ui configuration for component theming
+- Lucide React for iconography
+
+**Styling & Design:**
+- Tailwind CSS with custom configuration
+- PostCSS with autoprefixer
+- Google Fonts API (Inter, Newsreader)
+
+**Development Tools:**
+- Replit-specific plugins:
+  - `@replit/vite-plugin-runtime-error-modal` - Error overlay
+  - `@replit/vite-plugin-cartographer` - Code navigation
+  - `@replit/vite-plugin-dev-banner` - Development indicator
+- ESBuild for server-side bundling in production
+
+**Form Handling:**
+- React Hook Form with Zod resolvers for type-safe validation
+- Integration with shadcn/ui form components
+
+**Database (Configured but not connected):**
+- Drizzle ORM for type-safe database queries
+- @neondatabase/serverless for serverless PostgreSQL
+- Environment variable `DATABASE_URL` required for activation
+
+**Utilities:**
+- date-fns for date manipulation
+- clsx and tailwind-merge for conditional className handling
+- class-variance-authority for variant-based component styling
+
+### Key Architectural Decisions
+
+**Monorepo Structure:**
+- `client/` - Frontend React application
+- `server/` - Express backend
+- `shared/` - Shared TypeScript types and schemas
+- Path aliases configured: `@/` (client), `@shared/` (shared), `@assets/` (static assets)
+
+**Build Strategy:**
+- Client: Vite builds to `dist/public`
+- Server: ESBuild bundles to `dist/index.js` with external packages
+- Single production startup command runs bundled server
+
+**Accessibility Focus:**
+- Skip-to-content link on all pages
+- ARIA labels and semantic HTML
+- Keyboard navigation support in modals and interactive components
+- Focus management in dialogs and overlays
+
+**Performance Optimizations:**
+- Code splitting via Vite
+- Lazy loading for routes
+- Optimized font loading with preconnect
+- Static asset caching strategy
+
+**South African Context:**
+- POPIA (Protection of Personal Information Act) compliance features
+- Employment Equity (EE) reporting capabilities
+- Integration placeholders for SA job boards (Pnet, CareerJunction, Adzuna)
+- WhatsApp-first application workflow
