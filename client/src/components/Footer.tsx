@@ -9,24 +9,30 @@ export default function Footer() {
             <h3 className="font-semibold mb-4" data-testid="text-footer-product">Product</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/recruiters">
-                  <a data-testid="link-footer-recruiters" className="text-sm text-muted-foreground hover:text-foreground hover-elevate px-2 py-1 rounded-md inline-block">
-                    For Recruiters
-                  </a>
+                <Link 
+                  href="/recruiters"
+                  data-testid="link-footer-recruiters" 
+                  className="text-sm text-muted-foreground hover:text-foreground hover-elevate px-2 py-1 rounded-md inline-block"
+                >
+                  For Recruiters
                 </Link>
               </li>
               <li>
-                <Link href="/businesses">
-                  <a data-testid="link-footer-businesses" className="text-sm text-muted-foreground hover:text-foreground hover-elevate px-2 py-1 rounded-md inline-block">
-                    For Businesses
-                  </a>
+                <Link 
+                  href="/businesses"
+                  data-testid="link-footer-businesses" 
+                  className="text-sm text-muted-foreground hover:text-foreground hover-elevate px-2 py-1 rounded-md inline-block"
+                >
+                  For Businesses
                 </Link>
               </li>
               <li>
-                <Link href="/individuals">
-                  <a data-testid="link-footer-individuals" className="text-sm text-muted-foreground hover:text-foreground hover-elevate px-2 py-1 rounded-md inline-block">
-                    For Individuals
-                  </a>
+                <Link 
+                  href="/individuals"
+                  data-testid="link-footer-individuals" 
+                  className="text-sm text-muted-foreground hover:text-foreground hover-elevate px-2 py-1 rounded-md inline-block"
+                >
+                  For Individuals
                 </Link>
               </li>
             </ul>
