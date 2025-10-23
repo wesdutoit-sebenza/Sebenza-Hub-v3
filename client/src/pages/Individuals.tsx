@@ -306,6 +306,12 @@ export default function Individuals() {
             
             <Dialog open={showInterviewCoach} onOpenChange={setShowInterviewCoach}>
               <DialogContent className="max-w-4xl h-[80vh]">
+                <DialogHeader className="sr-only">
+                  <DialogTitle>AI Interview Coach</DialogTitle>
+                  <DialogDescription>
+                    Practice for your next interview with personalized questions and real-time feedback
+                  </DialogDescription>
+                </DialogHeader>
                 {!user ? (
                   <div className="flex flex-col items-center justify-center h-full p-8 text-center">
                     <MessageCircle className="h-16 w-16 text-amber mb-6" />
