@@ -1540,6 +1540,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`[ATS] Successfully created candidate: ${newCandidate.fullName} (${candidateId})`);
 
+      // Generate embeddings asynchronously (non-blocking)
+      const { indexCandidate, isEmbeddingsConfigured } = await import("./embeddings");
+      if (isEmbeddingsConfigured()) {
+        indexCandidate(candidateId).catch(err => {
+          console.error(`[ATS] Failed to generate embedding for candidate ${candidateId}:`, err);
+        });
+      } else {
+        console.log(`[ATS] Embeddings not configured, skipping embedding generation`);
+      }
+
       res.json({
         success: true,
         message: "Resume uploaded and parsed successfully",
@@ -1730,6 +1740,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
               })
               .onConflictDoNothing();
           }
+        }
+
+        // Generate embeddings asynchronously (non-blocking)
+        const { indexCandidate, isEmbeddingsConfigured } = await import("./embeddings");
+        if (isEmbeddingsConfigured()) {
+          indexCandidate(candidateId).catch(err => {
+            console.error(`[ATS] Failed to generate embedding for candidate ${candidateId}:`, err);
+          });
         }
 
         res.json({
