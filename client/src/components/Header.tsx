@@ -112,16 +112,20 @@ export default function Header() {
               </DropdownMenu>
             ) : (
               <>
-                <Link href="/login">
-                  <Button data-testid="button-sign-in" variant="ghost">
-                    Sign In
-                  </Button>
-                </Link>
-                <Link href="/login">
-                  <Button data-testid="button-get-access" variant="default">
-                    Get Started
-                  </Button>
-                </Link>
+                <Button 
+                  data-testid="button-sign-in" 
+                  variant="ghost"
+                  onClick={() => setLocation('/login')}
+                >
+                  Sign In
+                </Button>
+                <Button 
+                  data-testid="button-get-access" 
+                  variant="default"
+                  onClick={() => setLocation('/login')}
+                >
+                  Get Started
+                </Button>
               </>
             )}
           </div>
@@ -174,16 +178,27 @@ export default function Header() {
                 </>
               ) : (
                 <>
-                  <Link href="/login">
-                    <Button data-testid="button-mobile-sign-in" className="mt-2" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link href="/login">
-                    <Button data-testid="button-mobile-access" variant="default" onClick={() => setMobileMenuOpen(false)}>
-                      Get Started
-                    </Button>
-                  </Link>
+                  <Button 
+                    data-testid="button-mobile-sign-in" 
+                    className="mt-2" 
+                    variant="ghost" 
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setLocation('/login');
+                    }}
+                  >
+                    Sign In
+                  </Button>
+                  <Button 
+                    data-testid="button-mobile-access" 
+                    variant="default" 
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setLocation('/login');
+                    }}
+                  >
+                    Get Started
+                  </Button>
                 </>
               )}
             </div>
