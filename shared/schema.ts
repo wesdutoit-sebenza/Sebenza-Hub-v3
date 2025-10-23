@@ -3,19 +3,126 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
 
+// Users table - single source of truth for all accounts
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  roles: text("roles").array().notNull().default(sql`'{}'::text[]`), // 'individual', 'business', 'recruiter'
+  onboardingComplete: jsonb("onboarding_complete").notNull().default(sql`'{}'::jsonb`), // { individual: true, business: false }
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// Magic link tokens for passwordless auth
+export const magicTokens = pgTable("magic_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  token: text("token").notNull().unique(),
+  email: text("email").notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertMagicTokenSchema = createInsertSchema(magicTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertMagicToken = z.infer<typeof insertMagicTokenSchema>;
+export type MagicToken = typeof magicTokens.$inferSelect;
+
+// Organizations - for businesses and recruiting agencies
+export const organizations = pgTable("organizations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // 'employer' or 'agency'
+  website: text("website"),
+  province: text("province"),
+  city: text("city"),
+  industry: text("industry"),
+  size: text("size"), // '1-10', '11-50', '51-200', '201-500', '500+'
+  logoUrl: text("logo_url"),
+  isVerified: integer("is_verified").notNull().default(0), // 0 = pending, 1 = verified
+  plan: text("plan").notNull().default('free'), // 'free' or 'pro'
+  jobPostLimit: integer("job_post_limit").notNull().default(3),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertOrganizationSchema = createInsertSchema(organizations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+export type Organization = typeof organizations.$inferSelect;
+
+// Memberships - links users to organizations with roles
+export const memberships = pgTable("memberships", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  organizationId: varchar("organization_id").notNull(),
+  role: text("role").notNull(), // 'owner', 'admin', 'poster', 'viewer'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertMembershipSchema = createInsertSchema(memberships).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertMembership = z.infer<typeof insertMembershipSchema>;
+export type Membership = typeof memberships.$inferSelect;
+
+// Candidate profiles for job seekers
+export const candidateProfiles = pgTable("candidate_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  fullName: text("full_name").notNull(),
+  province: text("province").notNull(),
+  city: text("city").notNull(),
+  jobTitle: text("job_title").notNull(),
+  experienceLevel: text("experience_level").notNull(), // 'entry', 'intermediate', 'senior', 'executive'
+  skills: text("skills").array().notNull().default(sql`'{}'::text[]`),
+  cvUrl: text("cv_url"),
+  isPublic: integer("is_public").notNull().default(1), // 0 = private, 1 = public
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertCandidateProfileSchema = createInsertSchema(candidateProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertCandidateProfile = z.infer<typeof insertCandidateProfileSchema>;
+export type CandidateProfile = typeof candidateProfiles.$inferSelect;
+
+// Recruiter profiles for agencies
+export const recruiterProfiles = pgTable("recruiter_profiles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  sectors: text("sectors").array().notNull().default(sql`'{}'::text[]`),
+  proofUrl: text("proof_url"), // LinkedIn or company page
+  verificationStatus: text("verification_status").notNull().default('pending'), // 'pending', 'approved', 'rejected'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertRecruiterProfileSchema = createInsertSchema(recruiterProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertRecruiterProfile = z.infer<typeof insertRecruiterProfileSchema>;
+export type RecruiterProfile = typeof recruiterProfiles.$inferSelect;
 
 export const subscribers = pgTable("subscribers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -32,8 +139,10 @@ export type Subscriber = typeof subscribers.$inferSelect;
 
 export const jobs = pgTable("jobs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id"), // null for jobs posted before auth was added
+  postedByUserId: varchar("posted_by_user_id"), // null for jobs posted before auth was added
   title: text("title").notNull(),
-  company: text("company").notNull(),
+  company: text("company").notNull(), // kept for backwards compatibility
   location: text("location").notNull(),
   salaryMin: integer("salary_min").notNull(),
   salaryMax: integer("salary_max").notNull(),
