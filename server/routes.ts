@@ -9,7 +9,7 @@ import { randomBytes } from "crypto";
 import { sendMagicLinkEmail } from "./resend";
 import { requireAuth, requireRole, optionalAuth, generateToken, type AuthRequest } from "./auth";
 import { z } from "zod";
-import { parseCVWithAI, evaluateCandidateWithAI } from "./ai-screening";
+import { parseCVWithAI, evaluateCandidateWithAI, isAIConfigured } from "./ai-screening";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/subscribe", async (req, res) => {
@@ -539,6 +539,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload and process CVs for a screening job
   app.post("/api/screening/jobs/:id/process", requireAuth, async (req: AuthRequest, res) => {
     try {
+      // Check if AI integration is configured
+      if (!isAIConfigured()) {
+        return res.status(503).json({
+          success: false,
+          message: "AI screening service is not configured. Please contact support.",
+          error: "OpenAI integration not set up",
+        });
+      }
+
       const jobId = req.params.id;
       const { cvTexts } = req.body as { cvTexts: string[] };
 

@@ -9,6 +9,7 @@ import Home from "@/pages/Home";
 import Recruiters from "@/pages/Recruiters";
 import Businesses from "@/pages/Businesses";
 import Individuals from "@/pages/Individuals";
+import Screening from "@/pages/screening";
 import Login from "@/pages/login";
 import Onboarding from "@/pages/onboarding";
 import OnboardingIndividual from "@/pages/onboarding-individual";
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/recruiters" component={Recruiters} />
       <Route path="/businesses" component={Businesses} />
       <Route path="/individuals" component={Individuals} />
+      <Route path="/screening" component={Screening} />
       <Route component={NotFound} />
     </Switch>
   );

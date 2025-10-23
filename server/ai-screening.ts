@@ -1,11 +1,28 @@
 import OpenAI from "openai";
 
+// Check if OpenAI integration is properly configured
+export function isAIConfigured(): boolean {
+  return !!(process.env.AI_INTEGRATIONS_OPENAI_BASE_URL && process.env.AI_INTEGRATIONS_OPENAI_API_KEY);
+}
+
 // This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-const openai = new OpenAI({
-  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
-});
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!isAIConfigured()) {
+    throw new Error("OpenAI integration not configured. Please set up the javascript_openai_ai_integrations connector.");
+  }
+  
+  if (!openai) {
+    openai = new OpenAI({
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+    });
+  }
+  
+  return openai;
+}
 
 interface ParsedCandidate {
   full_name: string;
@@ -106,6 +123,10 @@ interface CandidateEvaluation {
 }
 
 export async function parseCVWithAI(cvText: string): Promise<ParsedCandidate> {
+  if (!cvText || cvText.trim().length === 0) {
+    throw new Error("CV text is empty");
+  }
+
   const prompt = `You are a CV parsing AI. Extract structured data from the following CV/resume text.
 
 IMPORTANT INSTRUCTIONS:
@@ -134,28 +155,34 @@ Return JSON matching this schema:
   "availability": ""
 }`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-5",
-    messages: [
-      {
-        role: "system",
-        content: "You are a precise CV parsing AI. Extract structured candidate data from resumes. Return only valid JSON."
-      },
-      {
-        role: "user",
-        content: prompt
-      }
-    ],
-    response_format: { type: "json_object" },
-    max_completion_tokens: 8192,
-  });
+  try {
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
+      model: "gpt-5",
+      messages: [
+        {
+          role: "system",
+          content: "You are a precise CV parsing AI. Extract structured candidate data from resumes. Return only valid JSON."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_completion_tokens: 8192,
+    });
 
-  const content = response.choices[0]?.message?.content;
-  if (!content) {
-    throw new Error("No response from AI");
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error("No response from AI");
+    }
+
+    return JSON.parse(content);
+  } catch (error: any) {
+    console.error("CV parsing error:", error);
+    throw new Error(`Failed to parse CV: ${error.message}`);
   }
-
-  return JSON.parse(content);
 }
 
 export async function evaluateCandidateWithAI(
@@ -203,26 +230,32 @@ Return JSON matching this schema:
   "flags": {"red": [], "yellow": []}
 }`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-5",
-    messages: [
-      {
-        role: "system",
-        content: "You are a fair, precise candidate evaluation AI. Score candidates 0-100 based on job fit. Provide transparent reasoning."
-      },
-      {
-        role: "user",
-        content: prompt
-      }
-    ],
-    response_format: { type: "json_object" },
-    max_completion_tokens: 8192,
-  });
+  try {
+    const client = getOpenAIClient();
+    const response = await client.chat.completions.create({
+      model: "gpt-5",
+      messages: [
+        {
+          role: "system",
+          content: "You are a fair, precise candidate evaluation AI. Score candidates 0-100 based on job fit. Provide transparent reasoning."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      response_format: { type: "json_object" },
+      max_completion_tokens: 8192,
+    });
 
-  const content = response.choices[0]?.message?.content;
-  if (!content) {
-    throw new Error("No response from AI");
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      throw new Error("No response from AI");
+    }
+
+    return JSON.parse(content);
+  } catch (error: any) {
+    console.error("Candidate evaluation error:", error);
+    throw new Error(`Failed to evaluate candidate: ${error.message}`);
   }
-
-  return JSON.parse(content);
 }
