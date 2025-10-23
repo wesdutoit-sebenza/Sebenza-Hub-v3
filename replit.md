@@ -17,10 +17,12 @@ Preferred communication style: Simple, everyday language.
     - **CV Screening Page**: AI-powered candidate evaluation using OpenAI GPT-5. Includes job creation with configurable scoring weights, text file CV processing, and detailed results display with ranking, AI reasoning, and knockout warnings. Supports Draft, Processing, and Completed/Failed states.
     - **ATS (Applicant Tracking System)**: Comprehensive candidate management system with normalized database, AI-powered resume parsing, and full candidate lifecycle management. Features include:
         - Candidate database with search and filtering
-        - AI resume ingestion from text files (uses OpenAI GPT-4o)
+        - **File Upload Support**: Resume upload via multer middleware supporting PDF, DOCX, DOC, and TXT formats (max 10MB)
+        - **Dual Upload Methods**: File upload with FormData or text paste for flexibility
+        - AI resume ingestion using OpenAI GPT-4o with automatic data extraction
         - Full candidate profiles with experiences, education, skills, certifications, projects, and awards
         - Normalized data model for efficient querying
-        - Resume upload with automatic data extraction
+        - **Security**: Strict MIME type validation, file size limits, automatic file cleanup after processing
         - Semantic search capabilities via pgvector embeddings (infrastructure in place)
 
 ### Backend
@@ -54,7 +56,8 @@ Preferred communication style: Simple, everyday language.
 - **UI & Styling**: Radix UI, shadcn/ui, Lucide React (icons), Tailwind CSS, PostCSS, Google Fonts.
 - **Form Handling**: React Hook Form, Zod.
 - **Database**: Drizzle ORM, @neondatabase/serverless.
+- **File Upload**: Multer (multipart/form-data middleware with file validation).
 - **Utilities**: date-fns, clsx, tailwind-merge, class-variance-authority.
-- **AI**: OpenAI GPT-5 (for CV screening).
+- **AI**: OpenAI GPT-4o (for ATS resume parsing), OpenAI GPT-5 (for CV screening).
 - **Email**: Resend (for magic link delivery).
 - **Replit Plugins**: `@replit/vite-plugin-runtime-error-modal`, `@replit/vite-plugin-cartographer`, `@replit/vite-plugin-dev-banner`.
