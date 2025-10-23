@@ -338,6 +338,60 @@ export type ScreeningEvaluation = typeof screeningEvaluations.$inferSelect;
 // ATS (Applicant Tracking System) Tables - Standalone Candidate Database
 // ============================================================================
 
+// New integrated roles table - jobs/roles that reference ATS candidates directly
+export const roles = pgTable("roles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  companyId: varchar("company_id"), // optional company association
+  jobTitle: text("job_title").notNull(),
+  jobDescription: text("job_description").notNull(),
+  seniority: text("seniority"), // 'junior', 'mid', 'senior', 'lead'
+  employmentType: text("employment_type"), // 'permanent', 'contract', etc.
+  locationCity: text("location_city"),
+  locationCountry: text("location_country").default('South Africa'),
+  workType: text("work_type"), // 'remote', 'hybrid', 'on-site'
+  mustHaveSkills: text("must_have_skills").array().notNull().default(sql`'{}'::text[]`),
+  niceToHaveSkills: text("nice_to_have_skills").array().notNull().default(sql`'{}'::text[]`),
+  salaryMin: integer("salary_min"),
+  salaryMax: integer("salary_max"),
+  salaryCurrency: text("salary_currency").default('ZAR'),
+  knockouts: text("knockouts").array().notNull().default(sql`'{}'::text[]`),
+  weights: jsonb("weights").default(sql`'{"skills":35,"experience":25,"achievements":15,"education":10,"location_auth":10,"salary_availability":5}'::jsonb`),
+  createdBy: varchar("created_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  isActive: integer("is_active").notNull().default(1), // 0 = inactive, 1 = active
+});
+
+export const insertRoleSchema = createInsertSchema(roles).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertRole = z.infer<typeof insertRoleSchema>;
+export type Role = typeof roles.$inferSelect;
+
+// Screenings - evaluation results linking roles to ATS candidates
+export const screenings = pgTable("screenings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  roleId: varchar("role_id").notNull(),
+  candidateId: varchar("candidate_id").notNull(),
+  scoreTotal: integer("score_total"),
+  scoreBreakdown: jsonb("score_breakdown"), // { skills, experience, achievements, education, location_auth, salary_availability }
+  mustHavesSatisfied: text("must_haves_satisfied").array().notNull().default(sql`'{}'::text[]`),
+  missingMustHaves: text("missing_must_haves").array().notNull().default(sql`'{}'::text[]`),
+  knockout: jsonb("knockout"), // { is_ko: boolean, reasons: [] }
+  reasons: text("reasons").array().notNull().default(sql`'{}'::text[]`), // 3-6 brief reasoning bullets
+  flags: jsonb("flags"), // { red: [], yellow: [] }
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertScreeningSchema = createInsertSchema(screenings).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertScreening = z.infer<typeof insertScreeningSchema>;
+export type Screening = typeof screenings.$inferSelect;
+
 // Core candidate table
 export const candidates = pgTable("candidates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
