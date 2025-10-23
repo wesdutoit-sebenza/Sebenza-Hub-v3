@@ -79,7 +79,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p data-testid="text-footer-copyright">&copy; {new Date().getFullYear()} HireMove. All rights reserved.</p>
+          <p data-testid="text-footer-copyright">&copy; {new Date().getFullYear()} Sebenza Hub. All rights reserved.</p>
         </div>
       </div>
     </footer>

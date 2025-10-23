@@ -1,4 +1,4 @@
-# Design Guidelines: HireMove - South African Recruiting Platform
+# Design Guidelines: Sebenza Hub - South African Recruiting Platform
 
 ## Design Approach
 **Warm & Professional**: Earthy brown palette with Montserrat typography creates a sophisticated, grounded aesthetic that reflects South African professionalism. Minimal layout with generous whitespace and warm accent tones.
@@ -185,7 +185,7 @@
 
 ## SEO & Meta
 **Per-Route Titles:**
-- Home: "HireMove—SA Recruiting Platform with POPIA/EE Compliance"
+- Home: "Sebenza Hub—SA Recruiting Platform with POPIA/EE Compliance"
 - Recruiters: "Reduce Noise. Faster Shortlists."
 - Businesses: "SME-Friendly Hiring with POPIA/EE Compliance"
 - Individuals: "One Profile. Verified Skills. Transparent Pay."

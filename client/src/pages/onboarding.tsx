@@ -71,7 +71,7 @@ export default function Onboarding() {
       <div className="max-w-4xl w-full">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2" data-testid="text-onboarding-title">
-            Welcome to HireMove
+            Welcome to Sebenza Hub
           </h1>
           <p className="text-muted-foreground" data-testid="text-onboarding-description">
             How will you use the platform?

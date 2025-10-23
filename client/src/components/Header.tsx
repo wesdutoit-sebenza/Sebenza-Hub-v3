@@ -66,7 +66,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           <Link href="/" data-testid="link-home" className="font-serif font-semibold text-xl hover-elevate px-2 py-1 rounded-md">
-            HireMove
+            Sebenza Hub
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">

@@ -21,7 +21,7 @@ export default function Home() {
   const { toast } = useToast();
 
   useEffect(() => {
-    document.title = "HireMove | SA recruiting platform—trust layer, WhatsApp-first, compliance";
+    document.title = "Sebenza Hub | SA recruiting platform—trust layer, WhatsApp-first, compliance";
   }, []);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {

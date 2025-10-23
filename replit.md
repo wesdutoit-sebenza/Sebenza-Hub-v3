@@ -1,8 +1,8 @@
-# HireMove - South African Recruiting Platform
+# Sebenza Hub - South African Recruiting Platform
 
 ## Overview
 
-HireMove is a marketing website for a South African recruiting platform that emphasizes transparency, compliance, and WhatsApp-first hiring workflows. The platform serves three distinct audiences: recruiters, businesses, and job seekers (individuals). It features a modern, minimal design with strategic color accents, built with a focus on performance, accessibility, and mobile-first responsiveness.
+Sebenza Hub is a marketing website for a South African recruiting platform that emphasizes transparency, compliance, and WhatsApp-first hiring workflows. The platform serves three distinct audiences: recruiters, businesses, and job seekers (individuals). It features a modern, minimal design with strategic color accents, built with a focus on performance, accessibility, and mobile-first responsiveness.
 
 The application is a full-stack TypeScript solution with a React frontend and Express backend, designed to capture early-access subscribers and showcase the platform's value propositions through distinct landing pages for each user segment.
 

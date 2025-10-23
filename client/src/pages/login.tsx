@@ -74,7 +74,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="max-w-md w-full">
         <CardHeader className="text-center">
-          <CardTitle data-testid="text-login-title">Sign in to HireMove</CardTitle>
+          <CardTitle data-testid="text-login-title">Sign in to Sebenza Hub</CardTitle>
           <CardDescription data-testid="text-login-description">
             Enter your email to receive a magic link
           </CardDescription>

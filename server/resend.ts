@@ -58,10 +58,10 @@ export async function sendMagicLinkEmail(email: string, token: string) {
   const { data, error } = await client.emails.send({
     from: fromEmail,
     to: email,
-    subject: 'Sign in to HireMove',
+    subject: 'Sign in to Sebenza Hub',
     html: `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #79583a;">Sign in to HireMove</h2>
+        <h2 style="color: #79583a;">Sign in to Sebenza Hub</h2>
         <p>Click the link below to sign in to your account:</p>
         <a href="${magicLink}" style="display: inline-block; background-color: #79583a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 16px 0;">
           Sign In

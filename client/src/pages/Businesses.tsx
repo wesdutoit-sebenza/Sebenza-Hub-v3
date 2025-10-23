@@ -71,7 +71,7 @@ export default function Businesses() {
                 Case Study
               </Badge>
               <p className="font-serif text-lg italic mb-2" data-testid="text-case-quote">
-                "Since switching to HireMove, our JHB retail stores reduced candidate no-shows by 28%. WhatsApp-first apply is a game-changer."
+                "Since switching to Sebenza Hub, our JHB retail stores reduced candidate no-shows by 28%. WhatsApp-first apply is a game-changer."
               </p>
               <p className="text-sm text-muted-foreground" data-testid="text-case-author">
                 — Cape Town Retail Co, 150 employees
