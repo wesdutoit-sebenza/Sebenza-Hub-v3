@@ -104,10 +104,7 @@ setInterval(() => {
 }, 30 * 60 * 1000); // Run every 30 minutes
 
 function isAIConfigured(): boolean {
-  return !!(
-    process.env.AI_INTEGRATIONS_OPENAI_API_KEY &&
-    process.env.AI_INTEGRATIONS_OPENAI_BASE_URL
-  );
+  return !!process.env.AI_INTEGRATIONS_OPENAI_API_KEY;
 }
 
 function buildInitialMessage(config: InterviewConfig, context: CandidateContext): string {
@@ -148,7 +145,7 @@ export async function startInterviewSession(
 
   const openai = new OpenAI({
     apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || undefined,
   });
 
   try {
@@ -205,7 +202,7 @@ export async function sendMessage(
 
   const openai = new OpenAI({
     apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
-    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+    baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL || undefined,
   });
 
   try {

@@ -17,6 +17,7 @@ import Section from "@/components/Section";
 import FAQAccordion from "@/components/FAQAccordion";
 import CVBuilder from "@/components/CVBuilder";
 import ResumeUpload from "@/components/ResumeUpload";
+import InterviewCoach from "@/components/InterviewCoach";
 import { User, Clock, Video, Upload, Award, Shield, Briefcase, MapPin, DollarSign, MessageCircle, Search, Filter, FileText } from "lucide-react";
 import { type Job, type User as UserType } from "@shared/schema";
 
@@ -28,6 +29,7 @@ export default function Individuals() {
   const [employmentTypeFilter, setEmploymentTypeFilter] = useState("all");
   const [showCVBuilder, setShowCVBuilder] = useState(false);
   const [showResumeUpload, setShowResumeUpload] = useState(false);
+  const [showInterviewCoach, setShowInterviewCoach] = useState(false);
 
   useEffect(() => {
     document.title = "For Individuals | One profile. Verified skills. Transparent pay.";
@@ -267,6 +269,56 @@ export default function Individuals() {
       {showCVBuilder && (
         <Section>
           <CVBuilder onComplete={() => setShowCVBuilder(false)} />
+        </Section>
+      )}
+
+      {/* Interview Coach Section */}
+      {!showCVBuilder && !showResumeUpload && (
+        <Section className="bg-graphite">
+          <div className="max-w-6xl mx-auto text-center">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <MessageCircle className="text-amber" size={40} />
+              <h2 className="text-3xl font-serif font-semibold text-white-brand">
+                AI Interview Coach
+              </h2>
+            </div>
+            <p className="text-slate max-w-2xl mx-auto mb-6">
+              Practice for your next interview with Jabu, our AI coach. Get personalized questions, 
+              real-time feedback, and improve your interview skills.
+            </p>
+            
+            {!showInterviewCoach ? (
+              <Button
+                size="lg"
+                className="bg-amber hover:bg-amber/90 text-charcoal font-semibold"
+                onClick={() => {
+                  if (!user) {
+                    setLocation('/login');
+                    return;
+                  }
+                  setShowInterviewCoach(true);
+                }}
+                data-testid="button-start-coach"
+              >
+                <MessageCircle size={20} className="mr-2" />
+                Start Interview Practice
+              </Button>
+            ) : (
+              <div className="mt-8">
+                <InterviewCoach
+                  candidateProfile={profileData?.profile ? JSON.stringify({
+                    name: profileData.profile.candidate?.fullName,
+                    headline: profileData.profile.candidate?.headline,
+                    summary: profileData.profile.candidate?.summary,
+                    experience: profileData.profile.experiences,
+                    education: profileData.profile.education,
+                    skills: profileData.profile.skills,
+                  }) : undefined}
+                  onClose={() => setShowInterviewCoach(false)}
+                />
+              </div>
+            )}
+          </div>
         </Section>
       )}
 
