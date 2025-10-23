@@ -112,22 +112,22 @@ export default function Recruiters() {
 
   const features = [
     {
-      icon: <CheckCircle className="text-cyan" size={24} />,
+      icon: <CheckCircle className="text-amber" size={24} />,
       title: "Verify employers & ads",
       description: "All job posts verified. No more time wasted on fake listings."
     },
     {
-      icon: <FileText className="text-cyan" size={24} />,
+      icon: <FileText className="text-amber" size={24} />,
       title: "Required salary ranges",
       description: "Every job includes transparent salary info. Build trust, save time."
     },
     {
-      icon: <Download className="text-cyan" size={24} />,
+      icon: <Download className="text-amber" size={24} />,
       title: "Export to Pnet/CJ/Adzuna",
       description: "One-click export to all major SA job boards. Post once, reach everywhere."
     },
     {
-      icon: <Kanban className="text-cyan" size={24} />,
+      icon: <Kanban className="text-amber" size={24} />,
       title: "Pipeline Kanban",
       description: "Visual pipeline with drag-and-drop. Track every candidate at a glance."
     }
@@ -192,7 +192,7 @@ export default function Recruiters() {
       <Section>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
           <div>
-            <h2 className="text-3xl font-serif font-semibold mb-6" data-testid="text-section-title">
+            <h2 className="text-3xl font-serif font-semibold mb-6 text-white-brand" data-testid="text-section-title">
               Everything you need to recruit smarter
             </h2>
             <div className="space-y-6">
@@ -200,8 +200,8 @@ export default function Recruiters() {
                 <div key={idx} className="flex gap-4" data-testid={`feature-${idx}`}>
                   <div className="flex-shrink-0">{feature.icon}</div>
                   <div>
-                    <h3 className="font-semibold mb-1" data-testid="text-feature-title">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground" data-testid="text-feature-description">
+                    <h3 className="font-semibold mb-1 text-white-brand" data-testid="text-feature-title">{feature.title}</h3>
+                    <p className="text-sm text-slate" data-testid="text-feature-description">
                       {feature.description}
                     </p>
                   </div>
@@ -210,36 +210,37 @@ export default function Recruiters() {
             </div>
           </div>
           <Card className="p-8">
-            <div className="aspect-video bg-gradient-to-br from-cyan/10 to-transparent rounded-lg flex items-center justify-center border">
-              <p className="text-muted-foreground" data-testid="text-mock-ui">[Kanban Pipeline Mock UI]</p>
+            <div className="aspect-video bg-gradient-to-br from-amber/10 to-transparent rounded-lg flex items-center justify-center border">
+              <p className="text-slate" data-testid="text-mock-ui">[Kanban Pipeline Mock UI]</p>
             </div>
           </Card>
         </div>
 
         <div className="bg-card rounded-2xl p-8 mb-16">
-          <h3 className="text-2xl font-serif font-semibold mb-8 text-center" data-testid="text-stats-title">
+          <h3 className="text-2xl font-serif font-semibold mb-8 text-center text-white-brand" data-testid="text-stats-title">
             Real results from SA recruiters
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Stat value="↓50%" label="Time-to-shortlist" trend="down" color="cyan" />
-            <Stat value="↓22%" label="Cost-per-hire" trend="down" color="violet" />
+            <Stat value="↓50%" label="Time-to-shortlist" trend="down" color="amber" />
+            <Stat value="↓22%" label="Cost-per-hire" trend="down" color="amber" />
           </div>
         </div>
       </Section>
 
-      <Section className="bg-card" id="jobs">
+      <Section className="bg-graphite" id="jobs">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
-              <h2 className="text-3xl font-serif font-semibold mb-2" data-testid="text-jobs-title">
+              <h2 className="text-3xl font-serif font-semibold mb-2 text-white-brand" data-testid="text-jobs-title">
                 Job Postings
               </h2>
-              <p className="text-muted-foreground">
+              <p className="text-slate">
                 Post jobs with mandatory salary ranges and WhatsApp contact
               </p>
             </div>
             <Button
               size="lg"
+              className="bg-amber-gradient text-charcoal hover:opacity-90"
               data-testid="button-post-job"
               onClick={() => setShowForm(!showForm)}
             >
@@ -249,7 +250,7 @@ export default function Recruiters() {
 
           {showForm && (
             <Card className="p-8 mb-8">
-              <h3 className="text-xl font-semibold mb-6" data-testid="text-form-title">Create Job Posting</h3>
+              <h3 className="text-xl font-semibold mb-6 text-white-brand" data-testid="text-form-title">Create Job Posting</h3>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -464,6 +465,7 @@ export default function Recruiters() {
                   <div className="flex gap-4">
                     <Button
                       type="submit"
+                      className="bg-amber-gradient text-charcoal hover:opacity-90"
                       disabled={mutation.isPending}
                       data-testid="button-submit-job"
                     >
@@ -498,21 +500,21 @@ export default function Recruiters() {
 
           {isLoading ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading jobs...</p>
+              <p className="text-slate">Loading jobs...</p>
             </div>
           ) : filteredJobs.length === 0 ? (
             <Card className="p-12 text-center">
-              <Briefcase className="mx-auto mb-4 text-muted-foreground" size={48} />
-              <h3 className="text-xl font-semibold mb-2" data-testid="text-no-jobs">
+              <Briefcase className="mx-auto mb-4 text-slate" size={48} />
+              <h3 className="text-xl font-semibold mb-2 text-white-brand" data-testid="text-no-jobs">
                 {searchTerm ? "No jobs found" : "No jobs posted yet"}
               </h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-slate mb-4">
                 {searchTerm
                   ? "Try adjusting your search terms"
                   : "Be the first to post a job with transparent salary ranges"}
               </p>
               {!showForm && !searchTerm && (
-                <Button onClick={() => setShowForm(true)} data-testid="button-post-first">
+                <Button className="bg-amber-gradient text-charcoal hover:opacity-90" onClick={() => setShowForm(true)} data-testid="button-post-first">
                   Post the first job
                 </Button>
               )}
@@ -523,19 +525,19 @@ export default function Recruiters() {
                 <Card key={job.id} className="p-6 hover-elevate" data-testid={`card-job-${job.id}`}>
                   <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                     <div>
-                      <h3 className="text-xl font-semibold mb-2" data-testid="text-job-title">
+                      <h3 className="text-xl font-semibold mb-2 text-white-brand" data-testid="text-job-title">
                         {job.title}
                       </h3>
-                      <p className="text-lg text-muted-foreground mb-3" data-testid="text-job-company">
+                      <p className="text-lg text-slate mb-3" data-testid="text-job-company">
                         {job.company}
                       </p>
                     </div>
-                    <Badge className="text-sm" data-testid="badge-employment-type">
+                    <Badge className="bg-amber/10 text-amber border-0 text-sm" data-testid="badge-employment-type">
                       {job.employmentType}
                     </Badge>
                   </div>
 
-                  <div className="flex flex-wrap gap-4 mb-4 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap gap-4 mb-4 text-sm text-slate">
                     <div className="flex items-center gap-2">
                       <MapPin size={16} />
                       <span data-testid="text-job-location">{job.location}</span>
@@ -552,13 +554,13 @@ export default function Recruiters() {
                     </div>
                   </div>
 
-                  <p className="text-muted-foreground mb-4 line-clamp-3" data-testid="text-job-description">
+                  <p className="text-slate mb-4 line-clamp-3" data-testid="text-job-description">
                     {job.description}
                   </p>
 
                   <div className="flex flex-wrap items-center gap-3">
                     <Button
-                      variant="default"
+                      className="bg-amber-gradient text-charcoal hover:opacity-90"
                       size="sm"
                       onClick={() => window.open(`https://wa.me/${job.whatsappContact.replace(/\D/g, '')}`, '_blank')}
                       data-testid="button-whatsapp"
@@ -580,7 +582,7 @@ export default function Recruiters() {
           )}
 
           {filteredJobs.length > 0 && (
-            <p className="text-center text-sm text-muted-foreground mt-6">
+            <p className="text-center text-sm text-slate mt-6">
               Showing {filteredJobs.length} of {jobsData?.count || 0} jobs
             </p>
           )}

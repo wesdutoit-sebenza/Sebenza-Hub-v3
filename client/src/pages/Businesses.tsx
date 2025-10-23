@@ -14,22 +14,22 @@ export default function Businesses() {
 
   const valueProps = [
     {
-      icon: <Zap className="text-green" size={24} />,
+      icon: <Zap className="text-amber" size={24} />,
       title: "One-click multi-post",
       description: "Post to Pnet, CareerJunction, and Adzuna simultaneously. Reach more candidates, faster."
     },
     {
-      icon: <MessageCircle className="text-green" size={24} />,
+      icon: <MessageCircle className="text-amber" size={24} />,
       title: "WhatsApp apply",
       description: "Candidates apply where they are. You get structured data. Win-win."
     },
     {
-      icon: <Shield className="text-green" size={24} />,
+      icon: <Shield className="text-amber" size={24} />,
       title: "POPIA & EE compliance",
       description: "Automated consent logs, EE reports, and audit trails. Stay compliant, stress-free."
     },
     {
-      icon: <TrendingUp className="text-green" size={24} />,
+      icon: <TrendingUp className="text-amber" size={24} />,
       title: "Background checks",
       description: "Integrated API for criminal, credit, and qualification checks from major SA providers."
     }
@@ -51,8 +51,8 @@ export default function Businesses() {
               <div className="flex gap-4">
                 <div className="flex-shrink-0">{prop.icon}</div>
                 <div>
-                  <h3 className="font-semibold mb-2" data-testid="text-value-title">{prop.title}</h3>
-                  <p className="text-sm text-muted-foreground" data-testid="text-value-description">
+                  <h3 className="font-semibold mb-2 text-white-brand" data-testid="text-value-title">{prop.title}</h3>
+                  <p className="text-sm text-slate" data-testid="text-value-description">
                     {prop.description}
                   </p>
                 </div>
@@ -83,20 +83,20 @@ export default function Businesses() {
         <div className="bg-card rounded-2xl p-8 mb-16">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
-              <Badge className="mb-3 bg-green/10 text-green border-0" data-testid="badge-recommended">
+              <Badge className="mb-3 bg-amber/10 text-amber border-0" data-testid="badge-recommended">
                 Recommended
               </Badge>
-              <h3 className="text-2xl font-serif font-semibold mb-2" data-testid="text-plan-callout">
+              <h3 className="text-2xl font-serif font-semibold mb-2 text-white-brand" data-testid="text-plan-callout">
                 The Team plan is perfect for SMEs
               </h3>
-              <p className="text-muted-foreground">
+              <p className="text-slate">
                 Up to 50 active jobs, multi-user accounts, EE reporting, and priority support.
               </p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold mb-1" data-testid="text-plan-price">R1,499</p>
-              <p className="text-sm text-muted-foreground mb-4">/month</p>
-              <Button data-testid="button-plan-cta" onClick={() => console.log("Team plan selected")}>
+              <p className="text-3xl font-bold mb-1 text-white-brand" data-testid="text-plan-price">R1,499</p>
+              <p className="text-sm text-slate mb-4">/month</p>
+              <Button className="bg-amber-gradient text-charcoal hover:opacity-90" data-testid="button-plan-cta" onClick={() => console.log("Team plan selected")}>
                 Start free trial
               </Button>
             </div>
@@ -104,12 +104,12 @@ export default function Businesses() {
         </div>
 
         <div className="mb-16">
-          <Card className="p-8 bg-gradient-to-br from-green/5 to-transparent">
-            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2" data-testid="text-bbbee-title">
-              <Badge className="bg-green/10 text-green border-0">New</Badge>
+          <Card className="p-8 bg-gradient-to-br from-amber/5 to-transparent">
+            <h3 className="text-xl font-semibold mb-4 flex items-center gap-2 text-white-brand" data-testid="text-bbbee-title">
+              <Badge className="bg-amber/10 text-amber border-0">New</Badge>
               Learnerships & BBBEE support
             </h3>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-slate mb-4">
               Track learnership placements, BBBEE scorecards, and skills development initiatives—all in one place.
             </p>
             <Button
@@ -125,6 +125,7 @@ export default function Businesses() {
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Button
             size="lg"
+            className="bg-amber-gradient text-charcoal hover:opacity-90"
             data-testid="button-start-free"
             onClick={() => console.log("Start free clicked")}
           >
@@ -141,8 +142,8 @@ export default function Businesses() {
         </div>
       </Section>
 
-      <Section className="bg-card" id="faq">
-        <h2 className="text-3xl font-serif font-semibold text-center mb-12" data-testid="text-faq-title">
+      <Section className="bg-graphite" id="faq">
+        <h2 className="text-3xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-faq-title">
           Business FAQs
         </h2>
         <div className="max-w-3xl mx-auto">

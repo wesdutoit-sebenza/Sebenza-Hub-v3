@@ -88,6 +88,7 @@ export default function Home() {
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Button
               size="lg"
+              className="bg-amber-gradient text-charcoal hover:opacity-90"
               data-testid="button-hero-access"
               onClick={() => document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' })}
             >
@@ -112,20 +113,20 @@ export default function Home() {
             const Icon = iconMap[prop.icon as keyof typeof iconMap];
             return (
               <Card key={idx} className="p-6 hover-elevate" data-testid={`card-value-${idx}`}>
-                <Icon size={32} className="text-primary mb-4" />
-                <h3 className="font-semibold text-lg mb-2" data-testid="text-value-title">{prop.title}</h3>
-                <p className="text-sm text-muted-foreground" data-testid="text-value-description">{prop.description}</p>
+                <Icon size={32} className="text-amber mb-4" />
+                <h3 className="font-semibold text-lg mb-2 text-white-brand" data-testid="text-value-title">{prop.title}</h3>
+                <p className="text-sm text-slate" data-testid="text-value-description">{prop.description}</p>
               </Card>
             );
           })}
         </div>
       </Section>
 
-      <Section className="bg-card" id="how-it-works">
-        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4" data-testid="text-how-it-works-title">
+      <Section className="bg-graphite" id="how-it-works">
+        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-how-it-works-title">
           Hiring made simple
         </h2>
-        <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+        <p className="text-center text-slate mb-12 max-w-2xl mx-auto">
           From posting to placement, Sebenza Hub streamlines every step of the recruitment journey.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -138,12 +139,12 @@ export default function Home() {
               />
             </div>
             <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <span className="text-lg font-semibold text-primary">1</span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber/10">
+                <span className="text-lg font-semibold text-amber">1</span>
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">Post Your Role</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-xl font-semibold mb-2 text-white-brand">Post Your Role</h3>
+                <p className="text-slate">
                   Create compliant job listings with transparent salary ranges and clear requirements.
                 </p>
               </div>
@@ -159,12 +160,12 @@ export default function Home() {
               />
             </div>
             <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <span className="text-lg font-semibold text-primary">2</span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber/10">
+                <span className="text-lg font-semibold text-amber">2</span>
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">AI-Powered Screening</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-xl font-semibold mb-2 text-white-brand">AI-Powered Screening</h3>
+                <p className="text-slate">
                   Our AI evaluates candidates against your criteria, ranking them by fit and highlighting top matches.
                 </p>
               </div>
@@ -180,12 +181,12 @@ export default function Home() {
               />
             </div>
             <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <span className="text-lg font-semibold text-primary">3</span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber/10">
+                <span className="text-lg font-semibold text-amber">3</span>
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">Connect & Interview</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-xl font-semibold mb-2 text-white-brand">Connect & Interview</h3>
+                <p className="text-slate">
                   Reach candidates via WhatsApp or email, schedule interviews, and collaborate with your team.
                 </p>
               </div>
@@ -201,12 +202,12 @@ export default function Home() {
               />
             </div>
             <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <span className="text-lg font-semibold text-primary">4</span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber/10">
+                <span className="text-lg font-semibold text-amber">4</span>
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2">Make the Hire</h3>
-                <p className="text-muted-foreground">
+                <h3 className="text-xl font-semibold mb-2 text-white-brand">Make the Hire</h3>
+                <p className="text-slate">
                   Send offers, track acceptances, and onboard your new team member—all in one place.
                 </p>
               </div>
@@ -216,7 +217,7 @@ export default function Home() {
       </Section>
 
       <Section id="for-who">
-        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-12" data-testid="text-section-title">
+        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-section-title">
           Built for everyone in SA hiring
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -229,11 +230,11 @@ export default function Home() {
                   className="w-full aspect-video object-cover"
                 />
               </div>
-              <h3 className="text-2xl font-serif font-semibold mb-2" data-testid="text-teaser-title">For Recruiters</h3>
-              <p className="text-muted-foreground mb-4">
+              <h3 className="text-2xl font-serif font-semibold mb-2 text-white-brand" data-testid="text-teaser-title">For Recruiters</h3>
+              <p className="text-slate mb-4">
                 Less noise. Faster shortlists. Export to Pnet/CJ/Adzuna.
               </p>
-              <div className="flex items-center gap-2 text-primary group-hover:gap-3 transition-all">
+              <div className="flex items-center gap-2 text-amber group-hover:gap-3 transition-all">
                 <span className="text-sm font-medium">Learn more</span>
                 <ArrowRight size={16} />
               </div>
@@ -249,11 +250,11 @@ export default function Home() {
                   className="w-full aspect-video object-cover"
                 />
               </div>
-              <h3 className="text-2xl font-serif font-semibold mb-2" data-testid="text-teaser-title">For Businesses</h3>
-              <p className="text-muted-foreground mb-4">
+              <h3 className="text-2xl font-serif font-semibold mb-2 text-white-brand" data-testid="text-teaser-title">For Businesses</h3>
+              <p className="text-slate mb-4">
                 SME-friendly hiring with POPIA/EE compliance built-in.
               </p>
-              <div className="flex items-center gap-2 text-primary group-hover:gap-3 transition-all">
+              <div className="flex items-center gap-2 text-amber group-hover:gap-3 transition-all">
                 <span className="text-sm font-medium">Learn more</span>
                 <ArrowRight size={16} />
               </div>
@@ -269,11 +270,11 @@ export default function Home() {
                   className="w-full aspect-video object-cover"
                 />
               </div>
-              <h3 className="text-2xl font-serif font-semibold mb-2" data-testid="text-teaser-title">For Individuals</h3>
-              <p className="text-muted-foreground mb-4">
+              <h3 className="text-2xl font-serif font-semibold mb-2 text-white-brand" data-testid="text-teaser-title">For Individuals</h3>
+              <p className="text-slate mb-4">
                 One profile. Real salary ranges. Skills that matter.
               </p>
-              <div className="flex items-center gap-2 text-primary group-hover:gap-3 transition-all">
+              <div className="flex items-center gap-2 text-amber group-hover:gap-3 transition-all">
                 <span className="text-sm font-medium">Learn more</span>
                 <ArrowRight size={16} />
               </div>
@@ -283,34 +284,34 @@ export default function Home() {
       </Section>
 
       <Section id="pricing">
-        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4" data-testid="text-pricing-title">
+        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-pricing-title">
           Simple, transparent pricing
         </h2>
-        <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+        <p className="text-center text-slate mb-12 max-w-2xl mx-auto">
           All plans include POPIA compliance, WhatsApp integration, and salary transparency tools.
         </p>
         <PricingTable />
       </Section>
 
-      <Section className="bg-card" id="testimonials">
-        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-12" data-testid="text-testimonials-title">
+      <Section className="bg-graphite" id="testimonials">
+        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-testimonials-title">
           Trusted by SA recruiters
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {testimonials.map((testimonial, idx) => (
             <Card key={idx} className="p-6" data-testid={`card-testimonial-${idx}`}>
-              <p className="text-muted-foreground mb-4 italic" data-testid="text-testimonial-quote">
+              <p className="text-slate mb-4 italic" data-testid="text-testimonial-quote">
                 "{testimonial.quote}"
               </p>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-primary font-semibold">
+                <div className="w-12 h-12 rounded-full bg-amber/10 flex items-center justify-center">
+                  <span className="text-amber font-semibold">
                     {testimonial.name.split(' ').map(n => n[0]).join('')}
                   </span>
                 </div>
                 <div>
-                  <p className="font-semibold text-sm" data-testid="text-testimonial-name">{testimonial.name}</p>
-                  <p className="text-xs text-muted-foreground" data-testid="text-testimonial-role">
+                  <p className="font-semibold text-sm text-white-brand" data-testid="text-testimonial-name">{testimonial.name}</p>
+                  <p className="text-xs text-slate" data-testid="text-testimonial-role">
                     {testimonial.title}, {testimonial.company}
                   </p>
                 </div>
@@ -321,7 +322,7 @@ export default function Home() {
       </Section>
 
       <Section id="faq">
-        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-12" data-testid="text-faq-title">
+        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-faq-title">
           Frequently asked questions
         </h2>
         <div className="max-w-3xl mx-auto">
@@ -329,12 +330,12 @@ export default function Home() {
         </div>
       </Section>
 
-      <Section className="bg-card" id="cta">
+      <Section className="bg-graphite" id="cta">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-serif font-semibold mb-4" data-testid="text-cta-title">
+          <h2 className="text-3xl md:text-4xl font-serif font-semibold mb-4 text-white-brand" data-testid="text-cta-title">
             Ready to transform your hiring?
           </h2>
-          <p className="text-muted-foreground mb-8">
+          <p className="text-slate mb-8">
             Join the waitlist for early access. No credit card required.
           </p>
           <form onSubmit={handleEmailSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">

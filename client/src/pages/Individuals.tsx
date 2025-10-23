@@ -113,7 +113,7 @@ export default function Individuals() {
       />
 
       <Section>
-        <h2 className="text-3xl font-serif font-semibold text-center mb-12" data-testid="text-section-title">
+        <h2 className="text-3xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-section-title">
           How it works
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
@@ -122,11 +122,11 @@ export default function Individuals() {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber/10 mb-4">
                 {step.icon}
               </div>
-              <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber text-primary-foreground text-sm font-bold mb-3">
+              <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-amber text-charcoal text-sm font-bold mb-3">
                 {step.number}
               </div>
-              <h3 className="font-semibold text-lg mb-2" data-testid="text-step-title">{step.title}</h3>
-              <p className="text-sm text-muted-foreground" data-testid="text-step-description">
+              <h3 className="font-semibold text-lg mb-2 text-white-brand" data-testid="text-step-title">{step.title}</h3>
+              <p className="text-sm text-slate" data-testid="text-step-description">
                 {step.description}
               </p>
             </div>
@@ -135,15 +135,15 @@ export default function Individuals() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
           <div>
-            <h2 className="text-3xl font-serif font-semibold mb-6" data-testid="text-whatsapp-title">
+            <h2 className="text-3xl font-serif font-semibold mb-6 text-white-brand" data-testid="text-whatsapp-title">
               Apply on WhatsApp
             </h2>
-            <p className="text-muted-foreground mb-6">
+            <p className="text-slate mb-6">
               See a job you like? Scan the QR code or tap the button. We'll guide you through a quick application right in WhatsApp—no emails, no portals.
             </p>
             <Button
               size="lg"
-              className="bg-green hover:bg-green/90"
+              className="bg-amber-gradient text-charcoal hover:opacity-90"
               data-testid="button-whatsapp-apply"
               onClick={() => console.log("WhatsApp apply clicked")}
             >
@@ -154,9 +154,9 @@ export default function Individuals() {
             <div className="aspect-square max-w-sm mx-auto bg-gradient-to-br from-amber/10 to-transparent rounded-2xl flex items-center justify-center border">
               <div className="text-center">
                 <div className="w-48 h-48 bg-muted rounded-lg flex items-center justify-center mb-4">
-                  <p className="text-muted-foreground text-sm">[QR Code]</p>
+                  <p className="text-slate text-sm">[QR Code]</p>
                 </div>
-                <p className="text-sm text-muted-foreground" data-testid="text-qr-instruction">
+                <p className="text-sm text-slate" data-testid="text-qr-instruction">
                   Scan to apply via WhatsApp
                 </p>
               </div>
@@ -164,28 +164,28 @@ export default function Individuals() {
           </Card>
         </div>
 
-        <h2 className="text-3xl font-serif font-semibold text-center mb-12" data-testid="text-portfolio-title">
+        <h2 className="text-3xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-portfolio-title">
           Stand out with verified skills
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           <Card className="p-6 hover-elevate" data-testid="card-portfolio-upload">
-            <Upload className="text-violet mb-4" size={32} />
-            <h3 className="font-semibold mb-2">Upload work samples</h3>
-            <p className="text-sm text-muted-foreground">
+            <Upload className="text-amber mb-4" size={32} />
+            <h3 className="font-semibold mb-2 text-white-brand">Upload work samples</h3>
+            <p className="text-sm text-slate">
               Show, don't just tell. Upload your best work to your profile.
             </p>
           </Card>
           <Card className="p-6 hover-elevate" data-testid="card-portfolio-assessment">
-            <Award className="text-cyan mb-4" size={32} />
-            <h3 className="font-semibold mb-2">Short assessments</h3>
-            <p className="text-sm text-muted-foreground">
+            <Award className="text-amber mb-4" size={32} />
+            <h3 className="font-semibold mb-2 text-white-brand">Short assessments</h3>
+            <p className="text-sm text-slate">
               2-minute skill checks that prove what you can do.
             </p>
           </Card>
           <Card className="p-6 hover-elevate" data-testid="card-portfolio-verified">
-            <Shield className="text-green mb-4" size={32} />
-            <h3 className="font-semibold mb-2">Verified credentials</h3>
-            <p className="text-sm text-muted-foreground">
+            <Shield className="text-amber mb-4" size={32} />
+            <h3 className="font-semibold mb-2 text-white-brand">Verified credentials</h3>
+            <p className="text-sm text-slate">
               Get badges for completed tasks, qualifications, and experience.
             </p>
           </Card>
@@ -194,6 +194,7 @@ export default function Individuals() {
         <div className="text-center">
           <Button
             size="lg"
+            className="bg-amber-gradient text-charcoal hover:opacity-90"
             data-testid="button-create-profile"
             onClick={handleCreateCVClick}
           >
@@ -210,13 +211,13 @@ export default function Individuals() {
       )}
 
       {!showCVBuilder && (<>
-        <Section className="bg-card" id="jobs">
+        <Section className="bg-graphite" id="jobs">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-serif font-semibold mb-4" data-testid="text-jobs-title">
+            <h2 className="text-3xl font-serif font-semibold mb-4 text-white-brand" data-testid="text-jobs-title">
               Browse Available Jobs
             </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-slate max-w-2xl mx-auto">
               All jobs include transparent salary ranges. Apply directly via WhatsApp.
             </p>
           </div>
@@ -292,15 +293,15 @@ export default function Individuals() {
 
           {isLoading ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading jobs...</p>
+              <p className="text-slate">Loading jobs...</p>
             </div>
           ) : filteredJobs.length === 0 ? (
             <Card className="p-12 text-center">
-              <Briefcase className="mx-auto mb-4 text-muted-foreground" size={48} />
-              <h3 className="text-xl font-semibold mb-2" data-testid="text-no-jobs">
+              <Briefcase className="mx-auto mb-4 text-slate" size={48} />
+              <h3 className="text-xl font-semibold mb-2 text-white-brand" data-testid="text-no-jobs">
                 {hasActiveFilters ? "No jobs match your filters" : "No jobs available yet"}
               </h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-slate mb-4">
                 {hasActiveFilters
                   ? "Try adjusting your search or filters"
                   : "Check back soon for new opportunities"}
@@ -322,26 +323,26 @@ export default function Individuals() {
                   <Card key={job.id} className="p-6 hover-elevate" data-testid={`card-job-${job.id}`}>
                     <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                       <div>
-                        <h3 className="text-xl font-semibold mb-2" data-testid="text-job-title">
+                        <h3 className="text-xl font-semibold mb-2 text-white-brand" data-testid="text-job-title">
                           {job.title}
                         </h3>
-                        <p className="text-lg text-muted-foreground mb-3" data-testid="text-job-company">
+                        <p className="text-lg text-slate mb-3" data-testid="text-job-company">
                           {job.company}
                         </p>
                       </div>
-                      <Badge className="text-sm" data-testid="badge-employment-type">
+                      <Badge className="bg-amber/10 text-amber border-0 text-sm" data-testid="badge-employment-type">
                         {job.employmentType}
                       </Badge>
                     </div>
 
-                    <div className="flex flex-wrap gap-4 mb-4 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap gap-4 mb-4 text-sm text-slate">
                       <div className="flex items-center gap-2">
                         <MapPin size={16} />
                         <span data-testid="text-job-location">{job.location}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <DollarSign size={16} />
-                        <span data-testid="text-job-salary" className="font-semibold text-foreground">
+                        <span data-testid="text-job-salary" className="font-semibold text-white-brand">
                           R{job.salaryMin.toLocaleString()} - R{job.salaryMax.toLocaleString()}
                         </span>
                       </div>
@@ -352,19 +353,19 @@ export default function Individuals() {
                     </div>
 
                     <div className="mb-4">
-                      <h4 className="font-semibold text-sm mb-2">About the role:</h4>
-                      <p className="text-muted-foreground text-sm mb-3" data-testid="text-job-description">
+                      <h4 className="font-semibold text-sm mb-2 text-white-brand">About the role:</h4>
+                      <p className="text-slate text-sm mb-3" data-testid="text-job-description">
                         {job.description}
                       </p>
-                      <h4 className="font-semibold text-sm mb-2">Requirements:</h4>
-                      <p className="text-muted-foreground text-sm" data-testid="text-job-requirements">
+                      <h4 className="font-semibold text-sm mb-2 text-white-brand">Requirements:</h4>
+                      <p className="text-slate text-sm" data-testid="text-job-requirements">
                         {job.requirements}
                       </p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
                       <Button
-                        className="bg-green hover:bg-green/90"
+                        className="bg-amber-gradient text-charcoal hover:opacity-90"
                         size="sm"
                         onClick={() => window.open(`https://wa.me/${job.whatsappContact.replace(/\D/g, '')}`, '_blank')}
                         data-testid="button-apply-whatsapp"
@@ -384,7 +385,7 @@ export default function Individuals() {
                 ))}
               </div>
 
-              <p className="text-center text-sm text-muted-foreground mt-6">
+              <p className="text-center text-sm text-slate mt-6">
                 Showing {filteredJobs.length} of {jobsData?.count || 0} jobs
               </p>
             </>
@@ -393,7 +394,7 @@ export default function Individuals() {
       </Section>
       
       <Section id="faq">
-        <h2 className="text-3xl font-serif font-semibold text-center mb-12" data-testid="text-faq-title">
+        <h2 className="text-3xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-faq-title">
           Individual FAQs
         </h2>
         <div className="max-w-3xl mx-auto">
