@@ -19,6 +19,7 @@ import recruitmentMeetingImg from "@assets/u3533279657_Recruitment_meeting_with_
 import handshakeImg from "@assets/u3533279657_Diverse_professionals_shaking_hands_after_intervi_1c642bbb-5603-4c43-aa74-a81f8f5fc995_1_1761202295752.png";
 import jobSeekerImg from "@assets/u3533279657_Young_job_seeker_smiling_at_laptop_with_recruiter_3bd02d8d-0f33-42cf-b52a-f5c56e3b4b8c_0_1761202295752.png";
 import teamCollabImg from "@assets/u3533279657_South_African_team_collaborating_in_open-plan_off_fdf3ace1-427a-4f16-aaa5-d6099fde55b6_1_1761202295752.png";
+import logoVideo from "@assets/Sebenza Hub Logo Clip_1761211070614.mp4";
 
 export default function Home() {
   const [showTourModal, setShowTourModal] = useState(false);
@@ -71,6 +72,22 @@ export default function Home() {
 
   return (
     <main id="main-content">
+      <section className="relative bg-charcoal py-12 px-6 overflow-hidden">
+        <div className="max-w-4xl mx-auto flex justify-center">
+          <video 
+            autoPlay 
+            loop 
+            muted 
+            playsInline
+            className="w-full max-w-2xl rounded-lg"
+            data-testid="video-logo"
+          >
+            <source src={logoVideo} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </section>
+
       <section className="relative min-h-[80vh] flex items-center justify-center px-6 overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center"
