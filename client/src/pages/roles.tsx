@@ -195,7 +195,7 @@ export default function Roles() {
               </CardContent>
             </Card>
 
-            <Card data-testid="card-stat-active">
+            <Card data-testid="card-stat-active" style={{ backgroundColor: '#2e2f31' }}>
               <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-white-brand">Active Roles</CardTitle>
                 <CheckCircle2 className="h-4 w-4 text-amber" />
@@ -208,7 +208,7 @@ export default function Roles() {
               </CardContent>
             </Card>
 
-            <Card data-testid="card-stat-screenings">
+            <Card data-testid="card-stat-screenings" style={{ backgroundColor: '#2e2f31' }}>
               <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-white-brand">Total Screenings</CardTitle>
                 <Target className="h-4 w-4 text-amber" />
@@ -221,7 +221,7 @@ export default function Roles() {
               </CardContent>
             </Card>
 
-            <Card data-testid="card-stat-recent">
+            <Card data-testid="card-stat-recent" style={{ backgroundColor: '#2e2f31' }}>
               <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-white-brand">Recent Roles</CardTitle>
                 <TrendingUp className="h-4 w-4 text-amber" />
@@ -236,7 +236,7 @@ export default function Roles() {
           </div>
 
           {stats.topRoles && stats.topRoles.length > 0 && (
-            <Card className="mb-8">
+            <Card className="mb-8" style={{ backgroundColor: '#2e2f31' }}>
               <CardHeader>
                 <CardTitle className="text-white-brand">Top Roles by Screening Activity</CardTitle>
                 <CardDescription className="text-slate">Roles with the most candidate evaluations</CardDescription>
@@ -273,7 +273,7 @@ export default function Roles() {
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
       ) : roles.length === 0 ? (
-        <Card>
+        <Card style={{ backgroundColor: '#2e2f31' }}>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Briefcase className="w-12 h-12 text-amber mb-4" />
             <h3 className="text-lg font-semibold mb-2 text-white-brand">No roles yet</h3>
@@ -289,7 +289,7 @@ export default function Roles() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {roles.map((role: any) => (
-            <Card key={role.id} className="hover-elevate" data-testid={`card-role-${role.id}`}>
+            <Card key={role.id} className="hover-elevate" data-testid={`card-role-${role.id}`} style={{ backgroundColor: '#2e2f31' }}>
               <CardHeader className="space-y-1">
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-xl text-white-brand">{role.jobTitle}</CardTitle>
