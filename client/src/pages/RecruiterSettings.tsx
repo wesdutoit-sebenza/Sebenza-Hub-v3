@@ -104,48 +104,54 @@ export default function RecruiterSettings() {
   // Fetch Interview Settings
   const { data: interviewData } = useQuery({
     queryKey: [`/api/organizations/${MOCK_ORG_ID}/interview-settings`],
-    onSuccess: (data: any) => {
-      if (data) {
-        setInterviewSettings({
-          calendarProvider: data.calendar_provider || "none",
-          videoProvider: data.video_provider || "none",
-          panelTemplates: data.panel_templates || [],
-          feedbackFormTemplate: data.feedback_form_template || "",
-        });
-      }
-    },
   });
+
+  useEffect(() => {
+    if (interviewData) {
+      const data = interviewData as any;
+      setInterviewSettings({
+        calendarProvider: data.calendar_provider || "none",
+        videoProvider: data.video_provider || "none",
+        panelTemplates: data.panel_templates || [],
+        feedbackFormTemplate: data.feedback_form_template || "",
+      });
+    }
+  }, [interviewData]);
 
   // Fetch Compliance Settings
   const { data: complianceData } = useQuery({
     queryKey: [`/api/organizations/${MOCK_ORG_ID}/compliance-settings`],
-    onSuccess: (data: any) => {
-      if (data) {
-        setComplianceSettings({
-          eeDataCapture: data.ee_data_capture || "optional",
-          consentText: data.consent_text || "",
-          dataRetentionDays: data.data_retention_days || 365,
-          popiaOfficer: data.popia_officer || "",
-          dataDeletionContact: data.data_deletion_contact || "",
-        });
-      }
-    },
   });
+
+  useEffect(() => {
+    if (complianceData) {
+      const data = complianceData as any;
+      setComplianceSettings({
+        eeDataCapture: data.ee_data_capture || "optional",
+        consentText: data.consent_text || "",
+        dataRetentionDays: data.data_retention_days || 365,
+        popiaOfficer: data.popia_officer || "",
+        dataDeletionContact: data.data_deletion_contact || "",
+      });
+    }
+  }, [complianceData]);
 
   // Fetch Integration Settings
   const { data: integrationData } = useQuery({
     queryKey: [`/api/organizations/${MOCK_ORG_ID}/integrations`],
-    onSuccess: (data: any) => {
-      if (data) {
-        setIntegrationSettings({
-          slackWebhook: data.slack_webhook || "",
-          msTeamsWebhook: data.ms_teams_webhook || "",
-          atsProvider: data.ats_provider || "none",
-          sourcingChannels: data.sourcing_channels || [],
-        });
-      }
-    },
   });
+
+  useEffect(() => {
+    if (integrationData) {
+      const data = integrationData as any;
+      setIntegrationSettings({
+        slackWebhook: data.slack_webhook || "",
+        msTeamsWebhook: data.ms_teams_webhook || "",
+        atsProvider: data.ats_provider || "none",
+        sourcingChannels: data.sourcing_channels || [],
+      });
+    }
+  }, [integrationData]);
 
   // Add Team Member Mutation
   const addMemberMutation = useMutation({
