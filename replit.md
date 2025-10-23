@@ -3,6 +3,10 @@
 ## Overview
 Sebenza Hub is a marketing website for a South African recruiting platform focused on transparency, compliance, and WhatsApp-first hiring. It targets recruiters, businesses, and job seekers with distinct landing pages. The platform aims to capture early-access subscribers and showcases a modern, minimal design. It is a full-stack TypeScript application utilizing a React frontend and an Express backend, built for performance, accessibility, and mobile-first responsiveness. The project's ambition is to become a leading recruiting solution in South Africa, streamlining hiring processes and enhancing candidate experience.
 
+## Recent Changes (October 23, 2025)
+- **Admin Dashboard Integration**: Complete admin dashboard with navigation integration. Admin users see "Admin Dashboard" link (with shield icon, highlighted in amber) in the Header dropdown menu.
+- **Critical Bug Fix**: Fixed `/api/me` endpoint that was incorrectly wrapping user data in `{ user: ... }` instead of returning user object directly. This was preventing role-based features from working correctly in the frontend.
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
