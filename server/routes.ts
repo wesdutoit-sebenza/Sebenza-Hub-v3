@@ -200,29 +200,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.post("/auth/magic/start", async (req, res) => {
     try {
+      console.log("[AUTH] Magic link request received for:", req.body.email);
+      
       const { email } = z.object({
         email: z.string().email(),
       }).parse(req.body);
 
+      console.log("[AUTH] Generating token for:", email);
       const token = randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
+      console.log("[AUTH] Deleting old tokens for:", email);
       await db.delete(magicTokens).where(eq(magicTokens.email, email));
 
+      console.log("[AUTH] Inserting new token");
       await db.insert(magicTokens).values({
         token,
         email,
         expiresAt,
       });
 
+      console.log("[AUTH] Sending magic link email to:", email);
       await sendMagicLinkEmail(email, token);
 
+      console.log("[AUTH] Magic link sent successfully to:", email);
       res.json({
         success: true,
         message: "Magic link sent to your email!",
       });
     } catch (error: any) {
-      console.error("Magic link error:", error);
+      console.error("[AUTH] Magic link error:", error);
+      console.error("[AUTH] Error stack:", error.stack);
       res.status(400).json({
         success: false,
         message: "Failed to send magic link. Please check your email address.",
