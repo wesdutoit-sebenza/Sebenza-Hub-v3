@@ -14,7 +14,14 @@ Preferred communication style: Simple, everyday language.
 - **Key Features**:
     - **Recruiters Page**: Job posting form, numeric salary inputs, WhatsApp integration, employment type, and industry categorization.
     - **Individuals Page**: Job search and filtering, multi-step CV builder wizard (7 steps) with professional CV preview, and `react-hook-form` with Zod validation.
-    - **CV Screening Page**: AI-powered candidate evaluation using OpenAI GPT-5. Includes job creation with configurable scoring weights, text file CV processing, and detailed results display with ranking, AI reasoning, and knockout warnings. Supports Draft, Processing, and Completed/Failed states.
+    - **CV Screening Page (Legacy)**: AI-powered candidate evaluation using OpenAI GPT-5. Includes job creation with configurable scoring weights, text file CV processing, and detailed results display with ranking, AI reasoning, and knockout warnings. Supports Draft, Processing, and Completed/Failed states.
+    - **Integrated Roles & Screening**: Modern screening system that bridges ATS and AI evaluation:
+        - **Role Management**: Create, edit, and manage hiring roles with job details, required skills, salary ranges, location requirements, and custom knockout criteria
+        - **Configurable Scoring**: Define custom scoring weights across six dimensions (skills, experience, achievements, education, location/auth, salary/availability)
+        - **Candidate Screening**: Screen existing ATS candidates against roles with one-click batch evaluation
+        - **Ranked Results**: View AI-evaluated candidates sorted by total score with detailed breakdowns, must-haves analysis, missing skills, and knockout warnings
+        - **Re-screening Support**: Upsert logic allows re-evaluating candidates against the same role, updating previous scores
+        - **Foreign Key Integration**: Direct database links between roles and ATS candidates ensure data integrity
     - **ATS (Applicant Tracking System)**: Comprehensive candidate management system with normalized database, AI-powered resume parsing, and full candidate lifecycle management. Features include:
         - Candidate database with search and filtering
         - **File Upload Support**: Resume upload via multer middleware supporting PDF, DOCX, DOC, and TXT formats (max 10MB)
@@ -27,7 +34,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend
 - **Server Framework**: Express.js with TypeScript, integrated with Vite middleware for development and static file serving for production.
-- **API Endpoints**: Handles subscriptions, job postings, CV management, AI screening job creation/processing, and comprehensive ATS candidate management (20+ endpoints for candidates, resumes, experiences, education, skills, certifications, projects, and awards).
+- **API Endpoints**: Handles subscriptions, job postings, CV management, legacy AI screening, integrated roles/screening system (CRUD + evaluation), and comprehensive ATS candidate management (30+ endpoints total for candidates, resumes, experiences, education, skills, certifications, projects, awards, roles, and screenings).
 - **Request/Response**: JSON body parsing, custom logging, and structured JSON error responses.
 - **AI Integration**: Two separate AI systems - CV screening for job-specific evaluation and resume ingestion for structured data extraction.
 
@@ -35,9 +42,11 @@ Preferred communication style: Simple, everyday language.
 - **Database**: PostgreSQL (Neon) with Drizzle ORM for schema management, pgvector extension for semantic search capabilities.
 - **Schema Design**: 
     - **Core Tables**: users, magic tokens, organizations, memberships, candidate profiles, recruiter profiles
-    - **CV Screening**: Dedicated tables for AI screening jobs, screening candidates, and evaluations
+    - **Legacy CV Screening**: Dedicated tables for AI screening jobs, screening candidates, and evaluations (maintained for backward compatibility)
+    - **Integrated Roles & Screening**: roles table (job definitions with must-have skills, knockouts, weights) and screenings table (evaluation results with foreign keys to roles and ATS candidates)
     - **ATS Module**: Normalized schema with 10 tables (ats_candidates, ats_resumes, ats_experiences, ats_education, ats_certifications, ats_projects, ats_awards, ats_skills, ats_candidate_skills, ats_candidate_embeddings)
     - All tables use UUID primary keys for scalability
+    - Foreign key constraints enforce referential integrity between roles, screenings, and candidates
 - **Hybrid Storage**: Authentication, profiles, screening data, and ATS use PostgreSQL, while legacy features (subscribers, jobs, CVs) are currently in-memory, with plans for migration.
 
 ### Authentication & Authorization
