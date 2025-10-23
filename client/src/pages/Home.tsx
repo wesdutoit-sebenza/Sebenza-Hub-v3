@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Shield, Layout, MessageCircle, Award, ArrowRight } from "lucide-react";
 import Section from "@/components/Section";
 import Modal from "@/components/Modal";
-import PricingTable from "@/components/PricingTable";
 import FAQAccordion from "@/components/FAQAccordion";
 import TourSlides from "@/components/TourSlides";
 import { testimonials, valueProps } from "@/data";
@@ -297,16 +296,6 @@ export default function Home() {
             </Card>
           </Link>
         </div>
-      </Section>
-
-      <Section id="pricing">
-        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-pricing-title">
-          Simple, transparent pricing
-        </h2>
-        <p className="text-center text-slate mb-12 max-w-2xl mx-auto">
-          All plans include POPIA compliance, WhatsApp integration, and salary transparency tools.
-        </p>
-        <PricingTable />
       </Section>
 
       <Section className="bg-graphite" id="testimonials">
