@@ -1,10 +1,11 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, User as UserIcon, LogOut } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { User } from "@shared/schema";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +20,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toast } = useToast();
 
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<User>({
     queryKey: ['/api/me'],
     retry: false,
   });
@@ -90,7 +91,7 @@ export default function Header() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2" data-testid="button-user-menu">
-                    <User size={16} />
+                    <UserIcon size={16} />
                     {user.email}
                   </Button>
                 </DropdownMenuTrigger>
@@ -116,9 +117,11 @@ export default function Header() {
                     Sign In
                   </Button>
                 </Link>
-                <Button data-testid="button-get-access" variant="default">
-                  Get Started
-                </Button>
+                <Link href="/login">
+                  <Button data-testid="button-get-access" variant="default">
+                    Get Started
+                  </Button>
+                </Link>
               </>
             )}
           </div>
@@ -176,9 +179,11 @@ export default function Header() {
                       Sign In
                     </Button>
                   </Link>
-                  <Button data-testid="button-mobile-access" variant="default" onClick={() => setMobileMenuOpen(false)}>
-                    Get Started
-                  </Button>
+                  <Link href="/login">
+                    <Button data-testid="button-mobile-access" variant="default" onClick={() => setMobileMenuOpen(false)}>
+                      Get Started
+                    </Button>
+                  </Link>
                 </>
               )}
             </div>
