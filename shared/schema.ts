@@ -333,3 +333,178 @@ export const insertScreeningEvaluationSchema = createInsertSchema(screeningEvalu
 
 export type InsertScreeningEvaluation = z.infer<typeof insertScreeningEvaluationSchema>;
 export type ScreeningEvaluation = typeof screeningEvaluations.$inferSelect;
+
+// ============================================================================
+// ATS (Applicant Tracking System) Tables - Standalone Candidate Database
+// ============================================================================
+
+// Core candidate table
+export const candidates = pgTable("candidates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  fullName: text("full_name"),
+  headline: text("headline"),
+  email: text("email"),
+  phone: text("phone"),
+  city: text("city"),
+  country: text("country"),
+  links: jsonb("links").default(sql`'{}'::jsonb`), // { linkedin, github, portfolio, etc. }
+  summary: text("summary"),
+  workAuthorization: text("work_authorization"),
+  availability: text("availability"),
+  salaryExpectation: text("salary_expectation"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertCandidateSchema = createInsertSchema(candidates).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertCandidate = z.infer<typeof insertCandidateSchema>;
+export type Candidate = typeof candidates.$inferSelect;
+
+// Resumes - file uploads linked to candidates
+export const resumes = pgTable("resumes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  candidateId: varchar("candidate_id").notNull(),
+  filename: text("filename"),
+  filesizeBytes: integer("filesize_bytes"),
+  parsedOk: integer("parsed_ok").notNull().default(1), // 0 = failed, 1 = success
+  parseNotes: text("parse_notes"),
+  rawText: text("raw_text"), // extracted text from resume
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertResumeSchema = createInsertSchema(resumes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertResume = z.infer<typeof insertResumeSchema>;
+export type Resume = typeof resumes.$inferSelect;
+
+// Work experience entries
+export const experiences = pgTable("experiences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  candidateId: varchar("candidate_id").notNull(),
+  title: text("title"),
+  company: text("company"),
+  industry: text("industry"),
+  location: text("location"),
+  startDate: text("start_date"),
+  endDate: text("end_date"),
+  isCurrent: integer("is_current").notNull().default(0), // 0 = false, 1 = true
+  bullets: text("bullets").array().notNull().default(sql`'{}'::text[]`),
+});
+
+export const insertExperienceSchema = createInsertSchema(experiences).omit({
+  id: true,
+});
+
+export type InsertExperience = z.infer<typeof insertExperienceSchema>;
+export type Experience = typeof experiences.$inferSelect;
+
+// Education entries
+export const education = pgTable("education", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  candidateId: varchar("candidate_id").notNull(),
+  institution: text("institution"),
+  qualification: text("qualification"),
+  location: text("location"),
+  gradDate: text("grad_date"),
+});
+
+export const insertEducationSchema = createInsertSchema(education).omit({
+  id: true,
+});
+
+export type InsertEducation = z.infer<typeof insertEducationSchema>;
+export type Education = typeof education.$inferSelect;
+
+// Certifications
+export const certifications = pgTable("certifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  candidateId: varchar("candidate_id").notNull(),
+  name: text("name"),
+  issuer: text("issuer"),
+  year: text("year"),
+});
+
+export const insertCertificationSchema = createInsertSchema(certifications).omit({
+  id: true,
+});
+
+export type InsertCertification = z.infer<typeof insertCertificationSchema>;
+export type Certification = typeof certifications.$inferSelect;
+
+// Projects
+export const projects = pgTable("projects", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  candidateId: varchar("candidate_id").notNull(),
+  name: text("name"),
+  what: text("what"), // description
+  impact: text("impact"),
+  link: text("link"),
+});
+
+export const insertProjectSchema = createInsertSchema(projects).omit({
+  id: true,
+});
+
+export type InsertProject = z.infer<typeof insertProjectSchema>;
+export type Project = typeof projects.$inferSelect;
+
+// Awards
+export const awards = pgTable("awards", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  candidateId: varchar("candidate_id").notNull(),
+  name: text("name"),
+  byWhom: text("by_whom"),
+  year: text("year"),
+  note: text("note"),
+});
+
+export const insertAwardSchema = createInsertSchema(awards).omit({
+  id: true,
+});
+
+export type InsertAward = z.infer<typeof insertAwardSchema>;
+export type Award = typeof awards.$inferSelect;
+
+// Skills - normalized table
+export const skills = pgTable("skills", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+});
+
+export const insertSkillSchema = createInsertSchema(skills).omit({
+  id: true,
+});
+
+export type InsertSkill = z.infer<typeof insertSkillSchema>;
+export type Skill = typeof skills.$inferSelect;
+
+// Candidate skills - many-to-many relationship
+export const candidateSkills = pgTable("candidate_skills", {
+  candidateId: varchar("candidate_id").notNull(),
+  skillId: varchar("skill_id").notNull(),
+  kind: text("kind").notNull(), // 'technical', 'tools', 'soft'
+});
+
+export const insertCandidateSkillSchema = createInsertSchema(candidateSkills);
+
+export type InsertCandidateSkill = z.infer<typeof insertCandidateSkillSchema>;
+export type CandidateSkill = typeof candidateSkills.$inferSelect;
+
+// Candidate embeddings for semantic search
+// Note: pgvector extension must be enabled in the database
+export const candidateEmbeddings = pgTable("candidate_embeddings", {
+  candidateId: varchar("candidate_id").primaryKey().notNull(),
+  embedding: text("embedding").notNull(), // Store as JSON array for compatibility
+});
+
+export const insertCandidateEmbeddingSchema = createInsertSchema(candidateEmbeddings);
+
+export type InsertCandidateEmbedding = z.infer<typeof insertCandidateEmbeddingSchema>;
+export type CandidateEmbedding = typeof candidateEmbeddings.$inferSelect;
