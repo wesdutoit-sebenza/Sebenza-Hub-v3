@@ -6,18 +6,59 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Loader2, ArrowLeft } from "lucide-react";
+import { Upload, Loader2, ArrowLeft, FileText, CheckCircle2 } from "lucide-react";
 import { queryClient } from "@/lib/queryClient";
 import { Link } from "wouter";
+
+type UploadMethod = 'file' | 'text';
 
 export default function AddCandidatePage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [uploadMethod, setUploadMethod] = useState<UploadMethod>('file');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filename, setFilename] = useState("");
   const [rawText, setRawText] = useState("");
 
-  const parseResumeMutation = useMutation({
+  // File upload mutation (new enhanced endpoint)
+  const uploadFileMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch("/api/ats/resumes/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to upload resume");
+      }
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Success",
+        description: "Resume uploaded and candidate profile created successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/ats/candidates"] });
+      setLocation(`/candidates/${data.candidateId}`);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Upload Failed",
+        description: error.message || "Failed to upload and parse resume",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Text parse mutation (legacy endpoint)
+  const parseTextMutation = useMutation({
     mutationFn: async () => {
       if (!filename || !rawText) {
         throw new Error("Please provide both filename and resume text");
@@ -40,21 +81,28 @@ export default function AddCandidatePage() {
     onSuccess: (data: any) => {
       toast({
         title: "Success",
-        description: "Candidate profile created successfully from resume",
+        description: "Candidate profile created successfully from resume text",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/ats/candidates"] });
       setLocation(`/candidates/${data.candidate.id}`);
     },
     onError: (error: any) => {
       toast({
-        title: "Error",
+        title: "Parse Failed",
         description: error.message || "Failed to parse resume",
         variant: "destructive",
       });
     },
   });
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
+  const handleTextFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -70,8 +118,15 @@ export default function AddCandidatePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    parseResumeMutation.mutate();
+
+    if (uploadMethod === 'file' && selectedFile) {
+      uploadFileMutation.mutate(selectedFile);
+    } else if (uploadMethod === 'text') {
+      parseTextMutation.mutate();
+    }
   };
+
+  const isPending = uploadFileMutation.isPending || parseTextMutation.isPending;
 
   return (
     <div className="min-h-screen bg-background">
@@ -87,79 +142,168 @@ export default function AddCandidatePage() {
             Add Candidate
           </h1>
           <p className="text-muted-foreground mt-1">
-            Upload a resume to automatically create a candidate profile
+            Upload a resume to automatically create a candidate profile using AI
           </p>
         </div>
 
+        <div className="flex gap-2 mb-6">
+          <Button
+            type="button"
+            variant={uploadMethod === 'file' ? 'default' : 'outline'}
+            onClick={() => setUploadMethod('file')}
+            data-testid="button-method-file"
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Upload File
+          </Button>
+          <Button
+            type="button"
+            variant={uploadMethod === 'text' ? 'default' : 'outline'}
+            onClick={() => setUploadMethod('text')}
+            data-testid="button-method-text"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Paste Text
+          </Button>
+        </div>
+
         <form onSubmit={handleSubmit}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Resume Upload</CardTitle>
-              <CardDescription>
-                Upload a resume file (.txt) to automatically extract candidate information using AI
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="resume-file">Resume File</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="resume-file"
-                    type="file"
-                    accept=".txt"
-                    onChange={handleFileUpload}
-                    data-testid="input-resume-file"
-                  />
-                </div>
-                {filename && (
-                  <p className="text-sm text-muted-foreground" data-testid="text-filename">
-                    Selected: {filename}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="raw-text">Resume Text (or paste here)</Label>
-                <Textarea
-                  id="raw-text"
-                  placeholder="Paste resume text here or upload a file above..."
-                  value={rawText}
-                  onChange={(e) => setRawText(e.target.value)}
-                  rows={15}
-                  className="font-mono text-sm"
-                  data-testid="textarea-resume-text"
-                />
-                <p className="text-sm text-muted-foreground">
-                  {rawText.length > 0 ? `${rawText.length} characters` : "No text entered"}
-                </p>
-              </div>
-
-              <div className="flex gap-3 justify-end pt-4">
-                <Link href="/candidates">
-                  <Button type="button" variant="outline" data-testid="button-cancel">
-                    Cancel
-                  </Button>
-                </Link>
-                <Button
-                  type="submit"
-                  disabled={!rawText || parseResumeMutation.isPending}
-                  data-testid="button-parse-resume"
-                >
-                  {parseResumeMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Parsing Resume...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4 mr-2" />
-                      Parse & Create Candidate
-                    </>
+          {uploadMethod === 'file' ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Resume File Upload</CardTitle>
+                <CardDescription>
+                  Upload a resume file (PDF, DOCX, or TXT) to automatically extract candidate information using AI
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="resume-file">Select Resume File</Label>
+                  <div className="flex items-center gap-3">
+                    <Input
+                      id="resume-file"
+                      type="file"
+                      accept=".txt,.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                      onChange={handleFileSelect}
+                      data-testid="input-resume-file"
+                      className="cursor-pointer"
+                    />
+                  </div>
+                  {selectedFile && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <CheckCircle2 className="w-4 h-4 text-green" />
+                      <span data-testid="text-filename">
+                        {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
+                      </span>
+                      <Badge variant="outline" className="text-xs">
+                        {selectedFile.name.split('.').pop()?.toUpperCase()}
+                      </Badge>
+                    </div>
                   )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  <p className="text-xs text-muted-foreground">
+                    Supported formats: PDF, DOCX, DOC, TXT (Max 10MB)
+                  </p>
+                </div>
+
+                <div className="flex gap-3 justify-end pt-4 border-t">
+                  <Link href="/candidates">
+                    <Button type="button" variant="outline" data-testid="button-cancel">
+                      Cancel
+                    </Button>
+                  </Link>
+                  <Button
+                    type="submit"
+                    disabled={!selectedFile || isPending}
+                    data-testid="button-upload-resume"
+                  >
+                    {uploadFileMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing Resume...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload & Create Candidate
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Paste Resume Text</CardTitle>
+                <CardDescription>
+                  Paste resume text directly or upload a text file
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="text-file">Quick Upload (Optional)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="text-file"
+                      type="file"
+                      accept=".txt"
+                      onChange={handleTextFileUpload}
+                      data-testid="input-text-file"
+                    />
+                  </div>
+                  {filename && (
+                    <p className="text-sm text-muted-foreground" data-testid="text-filename-text">
+                      Loaded: {filename}
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="raw-text">Resume Text</Label>
+                  <Textarea
+                    id="raw-text"
+                    placeholder="Paste resume text here..."
+                    value={rawText}
+                    onChange={(e) => {
+                      setRawText(e.target.value);
+                      if (!filename) setFilename("pasted-resume.txt");
+                    }}
+                    rows={15}
+                    className="font-mono text-sm"
+                    data-testid="textarea-resume-text"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    {rawText.length > 0 ? `${rawText.length} characters` : "No text entered"}
+                  </p>
+                </div>
+
+                <div className="flex gap-3 justify-end pt-4 border-t">
+                  <Link href="/candidates">
+                    <Button type="button" variant="outline" data-testid="button-cancel-text">
+                      Cancel
+                    </Button>
+                  </Link>
+                  <Button
+                    type="submit"
+                    disabled={!rawText || isPending}
+                    data-testid="button-parse-resume"
+                  >
+                    {parseTextMutation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Parsing Resume...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 mr-2" />
+                        Parse & Create Candidate
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="mt-4">
             <CardHeader>
@@ -167,10 +311,10 @@ export default function AddCandidatePage() {
             </CardHeader>
             <CardContent>
               <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                <li>AI will parse the resume and extract structured information</li>
-                <li>A candidate profile will be created automatically</li>
-                <li>Work experience, education, skills, and certifications will be added</li>
-                <li>You can review and edit the profile after creation</li>
+                <li>AI will analyze the resume and extract structured information</li>
+                <li>A candidate profile will be created automatically with all details</li>
+                <li>Work experience, education, skills, and certifications will be populated</li>
+                <li>You'll be redirected to the candidate profile to review and edit</li>
               </ol>
             </CardContent>
           </Card>

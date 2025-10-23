@@ -11,6 +11,9 @@ import { requireAuth, requireRole, optionalAuth, generateToken, type AuthRequest
 import { z } from "zod";
 import { parseCVWithAI, evaluateCandidateWithAI, isAIConfigured } from "./ai-screening";
 import { parseCVWithAI as parseResumeWithAI, isAIConfigured as isAIConfiguredForCV } from "./ai-cv-ingestion";
+import multer from "multer";
+import { promises as fs } from "fs";
+import path from "path";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/subscribe", async (req, res) => {
@@ -1324,6 +1327,246 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ATS - Resume Upload and AI Parsing
   // ============================================================================
 
+  // Configure multer for file uploads
+  const uploadDir = path.join(process.cwd(), 'uploads');
+  
+  // Ensure upload directory exists
+  try {
+    await fs.mkdir(uploadDir, { recursive: true });
+  } catch (err) {
+    console.error('Failed to create upload directory:', err);
+  }
+
+  const upload = multer({
+    dest: uploadDir,
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB max
+    },
+    fileFilter: (_req, file, cb) => {
+      const allowedMimes = [
+        'text/plain',
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword',
+      ];
+      if (allowedMimes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Invalid file type. Only TXT, PDF, and DOCX files are allowed.'));
+      }
+    },
+  });
+
+  // Enhanced endpoint: Upload actual file (PDF/DOCX/TXT)
+  app.post("/api/ats/resumes/upload", requireAuth, upload.single('file'), async (req: AuthRequest, res) => {
+    const uploadedFile = req.file;
+
+    try {
+      // Check if AI is configured
+      if (!isAIConfiguredForCV()) {
+        return res.status(503).json({
+          success: false,
+          message: "AI integration is not configured. Please set up OpenAI integration.",
+        });
+      }
+
+      if (!uploadedFile) {
+        return res.status(400).json({
+          success: false,
+          message: "No file uploaded",
+        });
+      }
+
+      console.log(`[ATS] Processing uploaded file: ${uploadedFile.originalname} (${uploadedFile.size} bytes)`);
+
+      // Read file content
+      let fileContent: string;
+      
+      if (uploadedFile.mimetype === 'text/plain') {
+        // For text files, read directly
+        fileContent = await fs.readFile(uploadedFile.path, 'utf-8');
+      } else {
+        // For PDF/DOCX, we'll send the file to OpenAI's API which can handle binary formats
+        // Read as base64 for now (OpenAI can process this)
+        const fileBuffer = await fs.readFile(uploadedFile.path);
+        fileContent = fileBuffer.toString('base64');
+      }
+
+      // Parse CV with AI
+      const parsedResult = await parseResumeWithAI(
+        fileContent,
+        uploadedFile.originalname,
+        uploadedFile.size
+      );
+
+      const { candidate: parsedCandidate } = parsedResult;
+
+      // Create candidate and all related records in transaction
+      const [newCandidate] = await db.insert(candidates)
+        .values({
+          fullName: parsedCandidate.full_name || null,
+          headline: parsedCandidate.headline || null,
+          email: parsedCandidate.contact?.email || null,
+          phone: parsedCandidate.contact?.phone || null,
+          city: parsedCandidate.contact?.city || null,
+          country: parsedCandidate.contact?.country || null,
+          links: parsedCandidate.links || {},
+          summary: parsedCandidate.summary || null,
+          workAuthorization: parsedCandidate.work_authorization || null,
+          availability: parsedCandidate.availability || null,
+          salaryExpectation: parsedCandidate.salary_expectation || null,
+          notes: parsedCandidate.notes || null,
+        })
+        .returning();
+
+      const candidateId = newCandidate.id;
+
+      // Create resume record
+      await db.insert(resumes).values({
+        candidateId,
+        filename: uploadedFile.originalname,
+        filesizeBytes: uploadedFile.size,
+        parsedOk: parsedResult.source_meta.parsed_ok ? 1 : 0,
+        parseNotes: parsedResult.source_meta.parse_notes,
+        rawText: uploadedFile.mimetype === 'text/plain' ? fileContent : null,
+      });
+
+      // Create experiences
+      if (parsedCandidate.experience && parsedCandidate.experience.length > 0) {
+        for (const exp of parsedCandidate.experience) {
+          await db.insert(experiences).values({
+            candidateId,
+            title: exp.title || null,
+            company: exp.company || null,
+            industry: exp.industry || null,
+            location: exp.location || null,
+            startDate: exp.start_date || null,
+            endDate: exp.end_date || null,
+            isCurrent: exp.is_current ? 1 : 0,
+            bullets: exp.bullets || [],
+          });
+        }
+      }
+
+      // Create education
+      if (parsedCandidate.education && parsedCandidate.education.length > 0) {
+        for (const edu of parsedCandidate.education) {
+          await db.insert(education).values({
+            candidateId,
+            institution: edu.institution || null,
+            qualification: edu.qualification || null,
+            location: edu.location || null,
+            gradDate: edu.grad_date || null,
+          });
+        }
+      }
+
+      // Create certifications
+      if (parsedCandidate.certifications && parsedCandidate.certifications.length > 0) {
+        for (const cert of parsedCandidate.certifications) {
+          await db.insert(certifications).values({
+            candidateId,
+            name: cert.name || null,
+            issuer: cert.issuer || null,
+            year: cert.year || null,
+          });
+        }
+      }
+
+      // Create projects
+      if (parsedCandidate.projects && parsedCandidate.projects.length > 0) {
+        for (const proj of parsedCandidate.projects) {
+          await db.insert(projects).values({
+            candidateId,
+            name: proj.name || null,
+            what: proj.what || null,
+            impact: proj.impact || null,
+            link: proj.link || null,
+          });
+        }
+      }
+
+      // Create awards
+      if (parsedCandidate.awards && parsedCandidate.awards.length > 0) {
+        for (const award of parsedCandidate.awards) {
+          await db.insert(awards).values({
+            candidateId,
+            name: award.name || null,
+            byWhom: award.by || null,
+            year: award.year || null,
+            note: award.note || null,
+          });
+        }
+      }
+
+      // Create skills
+      if (parsedCandidate.skills) {
+        const allSkills: Array<{ name: string; kind: string }> = [];
+
+        if (parsedCandidate.skills.technical) {
+          allSkills.push(...parsedCandidate.skills.technical.map(s => ({ name: s, kind: 'technical' })));
+        }
+        if (parsedCandidate.skills.tools) {
+          allSkills.push(...parsedCandidate.skills.tools.map(s => ({ name: s, kind: 'tools' })));
+        }
+        if (parsedCandidate.skills.soft) {
+          allSkills.push(...parsedCandidate.skills.soft.map(s => ({ name: s, kind: 'soft' })));
+        }
+
+        for (const { name, kind } of allSkills) {
+          if (!name?.trim()) continue;
+
+          // Find or create skill
+          let [skill] = await db.select()
+            .from(skills)
+            .where(eq(skills.name, name.trim()));
+
+          if (!skill) {
+            [skill] = await db.insert(skills)
+              .values({ name: name.trim() })
+              .returning();
+          }
+
+          // Link to candidate
+          await db.insert(candidateSkills)
+            .values({
+              candidateId,
+              skillId: skill.id,
+              kind,
+            })
+            .onConflictDoNothing();
+        }
+      }
+
+      console.log(`[ATS] Successfully created candidate: ${newCandidate.fullName} (${candidateId})`);
+
+      res.json({
+        success: true,
+        message: "Resume uploaded and parsed successfully",
+        candidateId: candidateId,
+        candidate: newCandidate,
+      });
+    } catch (error: any) {
+      console.error("[ATS] Resume upload error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to process resume",
+        error: error.message,
+      });
+    } finally {
+      // Clean up uploaded file
+      if (uploadedFile) {
+        try {
+          await fs.unlink(uploadedFile.path);
+          console.log(`[ATS] Cleaned up temporary file: ${uploadedFile.path}`);
+        } catch (err) {
+          console.error(`[ATS] Failed to delete temporary file: ${uploadedFile.path}`, err);
+        }
+      }
+    }
+  });
+
+  // Legacy endpoint: Parse resume from raw text (keep for backwards compatibility)
   app.post("/api/ats/resumes/parse", requireAuth, async (req: AuthRequest, res) => {
     try {
       // Check if AI is configured
