@@ -6,6 +6,7 @@ const redisUrl = process.env.REDIS_URL;
 
 let connection: IORedis | null = null;
 let screeningQueue: Queue | null = null;
+let fraudDetectionQueue: Queue | null = null;
 
 if (redisUrl) {
   try {
@@ -14,15 +15,16 @@ if (redisUrl) {
       enableReadyCheck: false,
     });
     screeningQueue = new Queue("screening", { connection });
-    console.log("[Queue] Redis connected, screening queue initialized");
+    fraudDetectionQueue = new Queue("fraud-detection", { connection });
+    console.log("[Queue] Redis connected, screening and fraud detection queues initialized");
   } catch (error) {
     console.error("[Queue] Failed to connect to Redis:", error);
   }
 } else {
-  console.warn("[Queue] REDIS_URL not configured, background screening disabled");
+  console.warn("[Queue] REDIS_URL not configured, background screening and fraud detection disabled");
 }
 
-export { connection, screeningQueue };
+export { connection, screeningQueue, fraudDetectionQueue };
 
 // Helper to check if queue is available
 export function isQueueAvailable(): boolean {

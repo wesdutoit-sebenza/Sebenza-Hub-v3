@@ -935,3 +935,30 @@ export const insertIndividualNotificationSettingsSchema = createInsertSchema(ind
 
 export type InsertIndividualNotificationSettings = z.infer<typeof insertIndividualNotificationSettingsSchema>;
 export type IndividualNotificationSettings = typeof individualNotificationSettings.$inferSelect;
+
+// Fraud Detections - AI-powered fraud and spam detection across all content types
+export const fraudDetections = pgTable("fraud_detections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  contentType: text("content_type").notNull(), // 'job_post', 'cv_upload', 'candidate_profile', 'recruiter_profile', 'organization'
+  contentId: varchar("content_id").notNull(), // ID of the related content
+  userId: varchar("user_id"), // User who submitted the content (nullable for anonymous submissions)
+  riskLevel: text("risk_level").notNull(), // 'low', 'medium', 'high', 'critical'
+  riskScore: integer("risk_score").notNull(), // 0-100
+  flags: text("flags").array().notNull().default(sql`'{}'::text[]`), // ['spam', 'scam', 'inappropriate', 'fake_company', 'data_harvesting']
+  aiReasoning: text("ai_reasoning").notNull(), // Detailed explanation from AI
+  contentSnapshot: jsonb("content_snapshot").notNull(), // Full content at time of detection
+  status: text("status").notNull().default('pending'), // 'pending', 'approved', 'rejected', 'auto_approved'
+  reviewedBy: varchar("reviewed_by"), // Admin user ID who reviewed
+  reviewedAt: timestamp("reviewed_at"),
+  reviewNotes: text("review_notes"),
+  actionTaken: text("action_taken"), // 'approved', 'content_removed', 'user_warned', 'user_banned'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertFraudDetectionSchema = createInsertSchema(fraudDetections).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertFraudDetection = z.infer<typeof insertFraudDetectionSchema>;
+export type FraudDetection = typeof fraudDetections.$inferSelect;

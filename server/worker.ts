@@ -1,7 +1,8 @@
 import { Worker, Job } from "bullmq";
-import { connection, isQueueAvailable, screeningQueue } from "./queue";
+import { connection, isQueueAvailable, screeningQueue, fraudDetectionQueue } from "./queue";
 import pg from "pg";
 import OpenAI from "openai";
+import { detectFraud, shouldAutoApprove, shouldAutoReject } from "./fraud-detection";
 
 // Worker only starts if Redis is available
 if (!isQueueAvailable() || !connection) {
@@ -394,10 +395,82 @@ worker.on("error", (err) => {
 
 console.log("[Worker] Screening worker started successfully");
 
+// Fraud Detection Worker
+const fraudWorker = new Worker(
+  "fraud-detection",
+  async (job: Job) => {
+    const { contentType, contentId, content, userId } = job.data;
+
+    console.log(`[FraudWorker] Processing ${contentType} fraud detection for contentId ${contentId}`);
+
+    try {
+      // Run AI fraud detection
+      const result = await detectFraud(contentType, content, userId);
+      
+      // Determine status
+      let status = 'pending';
+      if (shouldAutoApprove(result)) {
+        status = 'auto_approved';
+      }
+
+      // Save detection result to database
+      await pool.query(
+        `INSERT INTO fraud_detections 
+        (content_type, content_id, user_id, risk_level, risk_score, flags, ai_reasoning, content_snapshot, status)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        ON CONFLICT (content_id, content_type) 
+        DO UPDATE SET 
+          risk_level = EXCLUDED.risk_level,
+          risk_score = EXCLUDED.risk_score,
+          flags = EXCLUDED.flags,
+          ai_reasoning = EXCLUDED.ai_reasoning,
+          status = EXCLUDED.status`,
+        [
+          contentType,
+          contentId,
+          userId || null,
+          result.riskLevel,
+          result.riskScore,
+          result.flags,
+          result.reasoning,
+          JSON.stringify(content),
+          status
+        ]
+      );
+
+      console.log(`[FraudWorker] Completed ${contentType} detection: ${result.riskLevel} risk (score: ${result.riskScore})`);
+      
+      return { success: true, result };
+    } catch (error: any) {
+      console.error(`[FraudWorker] Failed to process fraud detection:`, error);
+      throw error;
+    }
+  },
+  {
+    connection: connection!,
+    concurrency: 3, // Process 3 fraud checks concurrently
+  }
+);
+
+fraudWorker.on("completed", (job) => {
+  console.log(`[FraudWorker] Job ${job.id} completed`);
+});
+
+fraudWorker.on("failed", (job, err) => {
+  console.error(`[FraudWorker] Job ${job?.id} failed:`, err.message);
+});
+
+fraudWorker.on("error", (err) => {
+  console.error("[FraudWorker] Worker error:", err);
+});
+
+console.log("[FraudWorker] Fraud detection worker started successfully");
+
 // Graceful shutdown
 process.on("SIGTERM", async () => {
   console.log("[Worker] SIGTERM received, shutting down gracefully...");
   await worker.close();
+  await fraudWorker.close();
   await connection?.quit();
   process.exit(0);
 });
@@ -405,6 +478,7 @@ process.on("SIGTERM", async () => {
 process.on("SIGINT", async () => {
   console.log("[Worker] SIGINT received, shutting down gracefully...");
   await worker.close();
+  await fraudWorker.close();
   await connection?.quit();
   process.exit(0);
 });

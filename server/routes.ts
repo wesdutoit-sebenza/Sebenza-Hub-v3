@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertMagicTokenSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, insertIndividualPreferencesSchema, insertIndividualNotificationSettingsSchema, type User } from "@shared/schema";
 import { db } from "./db";
-import { users, magicTokens, candidateProfiles, organizations, recruiterProfiles, memberships, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings } from "@shared/schema";
+import { users, magicTokens, candidateProfiles, organizations, recruiterProfiles, memberships, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { sendMagicLinkEmail } from "./resend";
@@ -11,6 +11,7 @@ import { requireAuth, requireRole, optionalAuth, generateToken, type AuthRequest
 import { screeningQueue, isQueueAvailable } from "./queue";
 import pg from "pg";
 import { z } from "zod";
+import { queueFraudDetection } from "./fraud-queue-helper";
 
 // Create pg pool for raw SQL queries (used by queue system)
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
@@ -111,6 +112,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const job = await storage.createJob(validatedData);
       
       console.log(`New job posted: ${job.title} at ${job.company}`);
+      
+      // Queue fraud detection for job posting
+      await queueFraudDetection('job_post', job.id, job, job.postedByUserId || undefined);
       
       res.json({
         success: true,
@@ -424,6 +428,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .set({ onboardingComplete })
         .where(eq(users.id, req.user!.id));
 
+      // Queue fraud detection for candidate profile
+      await queueFraudDetection('candidate_profile', profile.id, profile, profile.userId);
+
       res.json({
         success: true,
         message: "Candidate profile created successfully",
@@ -460,6 +467,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .set({ onboardingComplete })
         .where(eq(users.id, req.user!.id));
 
+      // Queue fraud detection for organization
+      await queueFraudDetection('organization', organization.id, organization, req.user!.id);
+
       res.json({
         success: true,
         message: "Organization created successfully",
@@ -495,6 +505,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [profile] = await db.insert(recruiterProfiles)
         .values(validatedData)
         .returning();
+
+      // Queue fraud detection for recruiter profile
+      await queueFraudDetection('recruiter_profile', profile.id, profile, profile.userId);
 
       res.json({
         success: true,
@@ -867,6 +880,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       enqueueScreeningsForCandidate(candidate.id).catch(err => {
         console.error(`[Auto-Screen] Failed to enqueue screenings:`, err);
       });
+
+      // Queue fraud detection for CV upload
+      await queueFraudDetection('cv_upload', candidate.id, candidate, req.user!.id);
 
       res.json({
         success: true,
@@ -1720,6 +1736,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error(`[Auto-Screen] Failed to enqueue screenings:`, err);
       });
 
+      // Queue fraud detection for CV upload
+      await queueFraudDetection('cv_upload', candidateId, newCandidate, req.user!.id);
+
       res.json({
         success: true,
         message: "Resume uploaded and parsed successfully",
@@ -1924,6 +1943,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         enqueueScreeningsForCandidate(candidateId).catch(err => {
           console.error(`[Auto-Screen] Failed to enqueue screenings:`, err);
         });
+
+        // Queue fraud detection for CV upload
+        await queueFraudDetection('cv_upload', candidateId, newCandidate, req.user!.id);
 
         res.json({
           success: true,
@@ -2160,6 +2182,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       enqueueScreeningsForCandidate(candidateId).catch(err => {
         console.error(`[Auto-Screen] Failed to enqueue screenings:`, err);
       });
+
+      // Queue fraud detection for CV upload
+      await queueFraudDetection('cv_upload', candidateId, newCandidate, req.user!.id);
 
       res.json({
         success: true,
@@ -2593,6 +2618,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       enqueueScreeningsForCandidate(candidateId).catch(err => {
         console.error(`[Auto-Screen] Failed to enqueue screenings:`, err);
       });
+
+      // Queue fraud detection for CV upload
+      await queueFraudDetection('cv_upload', candidateId, newCandidate, req.user!.id);
 
       res.json({
         success: true,
@@ -3336,6 +3364,182 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to process deletion request",
+      });
+    }
+  });
+
+  // ============================================================================
+  // Fraud Detection Admin - Admin dashboard for reviewing flagged content
+  // ============================================================================
+
+  // Get all fraud detections with filters
+  app.get("/api/admin/fraud-detections", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      // TODO: Add proper admin role check here
+      // For now, any authenticated user can access (replace with admin check later)
+      
+      const { status, riskLevel, contentType, limit = 50, offset = 0 } = req.query;
+
+      let query = db.select().from(fraudDetections);
+
+      // Apply filters
+      if (status) {
+        query = query.where(eq(fraudDetections.status, status as string)) as any;
+      }
+      if (riskLevel) {
+        query = query.where(eq(fraudDetections.riskLevel, riskLevel as string)) as any;
+      }
+      if (contentType) {
+        query = query.where(eq(fraudDetections.contentType, contentType as string)) as any;
+      }
+
+      const results = await query
+        .orderBy(desc(fraudDetections.createdAt))
+        .limit(Number(limit))
+        .offset(Number(offset));
+
+      // Get total count
+      const [{ count }] = await db.select({ count: sql<number>`count(*)` })
+        .from(fraudDetections);
+
+      res.json({
+        success: true,
+        detections: results,
+        total: count,
+        limit: Number(limit),
+        offset: Number(offset),
+      });
+    } catch (error: any) {
+      console.error("Fetch fraud detections error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch fraud detections",
+      });
+    }
+  });
+
+  // Get fraud detection statistics
+  app.get("/api/admin/fraud-detections/stats", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      // Get counts by status
+      const statusCounts = await db.select({
+        status: fraudDetections.status,
+        count: sql<number>`count(*)`,
+      })
+        .from(fraudDetections)
+        .groupBy(fraudDetections.status);
+
+      // Get counts by risk level
+      const riskLevelCounts = await db.select({
+        riskLevel: fraudDetections.riskLevel,
+        count: sql<number>`count(*)`,
+      })
+        .from(fraudDetections)
+        .groupBy(fraudDetections.riskLevel);
+
+      // Get counts by content type
+      const contentTypeCounts = await db.select({
+        contentType: fraudDetections.contentType,
+        count: sql<number>`count(*)`,
+      })
+        .from(fraudDetections)
+        .groupBy(fraudDetections.contentType);
+
+      res.json({
+        success: true,
+        stats: {
+          byStatus: statusCounts,
+          byRiskLevel: riskLevelCounts,
+          byContentType: contentTypeCounts,
+        },
+      });
+    } catch (error: any) {
+      console.error("Fetch fraud stats error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch fraud statistics",
+      });
+    }
+  });
+
+  // Approve flagged content
+  app.post("/api/admin/fraud-detections/:id/approve", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { notes } = req.body;
+
+      const [updated] = await db.update(fraudDetections)
+        .set({
+          status: 'approved',
+          reviewedBy: req.user!.id,
+          reviewedAt: new Date(),
+          reviewNotes: notes || null,
+          actionTaken: 'approved',
+        })
+        .where(eq(fraudDetections.id, id))
+        .returning();
+
+      if (!updated) {
+        return res.status(404).json({
+          success: false,
+          message: "Fraud detection not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Content approved successfully",
+        detection: updated,
+      });
+    } catch (error: any) {
+      console.error("Approve content error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to approve content",
+      });
+    }
+  });
+
+  // Reject flagged content
+  app.post("/api/admin/fraud-detections/:id/reject", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      const { notes, action } = req.body;
+
+      // action can be: 'content_removed', 'user_warned', 'user_banned'
+      const actionTaken = action || 'content_removed';
+
+      const [updated] = await db.update(fraudDetections)
+        .set({
+          status: 'rejected',
+          reviewedBy: req.user!.id,
+          reviewedAt: new Date(),
+          reviewNotes: notes || null,
+          actionTaken,
+        })
+        .where(eq(fraudDetections.id, id))
+        .returning();
+
+      if (!updated) {
+        return res.status(404).json({
+          success: false,
+          message: "Fraud detection not found",
+        });
+      }
+
+      // TODO: Implement actual content removal/user warning/banning logic here
+      // For now, just update the status
+
+      res.json({
+        success: true,
+        message: `Content ${actionTaken.replace('_', ' ')} successfully`,
+        detection: updated,
+      });
+    } catch (error: any) {
+      console.error("Reject content error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to reject content",
       });
     }
   });
