@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +17,10 @@ import Section from "@/components/Section";
 import FAQAccordion from "@/components/FAQAccordion";
 import CVBuilder from "@/components/CVBuilder";
 import { User, Clock, Video, Upload, Award, Shield, Briefcase, MapPin, DollarSign, MessageCircle, Search, Filter, FileText } from "lucide-react";
-import { type Job } from "@shared/schema";
+import { type Job, type User as UserType } from "@shared/schema";
 
 export default function Individuals() {
+  const [, setLocation] = useLocation();
   const [searchTerm, setSearchTerm] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [industryFilter, setIndustryFilter] = useState("all");
@@ -29,9 +31,22 @@ export default function Individuals() {
     document.title = "For Individuals | One profile. Verified skills. Transparent pay.";
   }, []);
 
+  const { data: user } = useQuery<UserType>({
+    queryKey: ['/api/me'],
+    retry: false,
+  });
+
   const { data: jobsData, isLoading } = useQuery<{ success: boolean; count: number; jobs: Job[] }>({
     queryKey: ["/api/jobs"],
   });
+
+  const handleCreateCVClick = () => {
+    if (!user) {
+      setLocation('/login');
+      return;
+    }
+    setShowCVBuilder(!showCVBuilder);
+  };
 
   const steps = [
     {
@@ -180,7 +195,7 @@ export default function Individuals() {
           <Button
             size="lg"
             data-testid="button-create-profile"
-            onClick={() => setShowCVBuilder(!showCVBuilder)}
+            onClick={handleCreateCVClick}
           >
             <FileText size={20} className="mr-2" />
             {showCVBuilder ? "Back to Profile" : "Create Your CV"}
