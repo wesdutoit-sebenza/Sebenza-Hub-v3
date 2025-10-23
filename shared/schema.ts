@@ -91,6 +91,8 @@ export const candidateProfiles = pgTable("candidate_profiles", {
   skills: text("skills").array().notNull().default(sql`'{}'::text[]`),
   cvUrl: text("cv_url"),
   isPublic: integer("is_public").notNull().default(1), // 0 = private, 1 = public
+  popiaConsentGiven: integer("popia_consent_given").notNull(), // 0 = no, 1 = yes
+  popiaConsentDate: timestamp("popia_consent_date").notNull().defaultNow(),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -99,6 +101,7 @@ export const insertCandidateProfileSchema = createInsertSchema(candidateProfiles
   id: true,
   createdAt: true,
   updatedAt: true,
+  popiaConsentDate: true,
 });
 
 export type InsertCandidateProfile = z.infer<typeof insertCandidateProfileSchema>;

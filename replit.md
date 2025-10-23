@@ -96,36 +96,82 @@ Preferred communication style: Simple, everyday language.
 ### Data Storage
 
 **Current Implementation:**
-- In-memory storage (`MemStorage` class) for development/demo purposes
-- Interface-based storage abstraction (`IStorage`) for future database integration
+- PostgreSQL database actively connected and running (Neon)
+- Hybrid storage: Jobs/CVs/Subscribers using in-memory storage, Auth tables using PostgreSQL
+- Database schema managed via Drizzle ORM with `npm run db:push`
 
 **Schema Design (Drizzle ORM):**
-- PostgreSQL dialect configuration
-- Five primary tables:
-  - `users`: Basic authentication (id, username, password)
-  - `subscribers`: Email waitlist (id, email, createdAt)
-  - `jobs`: Job postings (id, title, company, location, salaryMin, salaryMax, description, requirements, whatsappContact, employmentType, industry, createdAt)
-  - `cvs`: CV/Resume data (id, userId, personalInfo, workExperience, skills, education, references, aboutMe, createdAt, updatedAt)
-- UUID primary keys with database-level generation
+- PostgreSQL dialect with UUID primary keys (database-generated via `gen_random_uuid()`)
+- **Authentication Tables (PostgreSQL):**
+  - `users` - Core user accounts (id, email, roles[], onboardingComplete{}, createdAt)
+  - `magic_tokens` - Passwordless auth tokens (id, token, email, expiresAt, createdAt)
+  - `organizations` - Business/Agency entities (id, name, type, province, city, industry, size, logoUrl, isVerified, plan, jobPostLimit, createdAt)
+  - `memberships` - User-to-organization relationships (id, userId, organizationId, role, createdAt)
+  - `candidate_profiles` - Job seeker profiles (id, userId, fullName, province, city, jobTitle, experienceLevel, skills[], cvUrl, isPublic, popiaConsentGiven, popiaConsentDate, createdAt, updatedAt)
+  - `recruiter_profiles` - Recruiter/agency profiles (id, userId, sectors[], proofUrl, verificationStatus, createdAt, updatedAt)
+- **Legacy Tables (In-Memory):**
+  - `subscribers` - Email waitlist (migrating to database soon)
+  - `jobs` - Job postings (will be linked to organizations after full auth rollout)
+  - `cvs` - CV builder data (will be linked to candidate_profiles)
 - Zod schema validation for type-safe inserts with required field enforcement
-- Complex nested JSON structures for CV sections (work experience, skills, education, references)
 
-**Future Database Integration:**
-- Configured for PostgreSQL via Drizzle ORM
-- Neon Database serverless driver specified in dependencies
-- Migration directory: `./migrations`
-- Ready for `drizzle-kit push` deployment
+**Database Operations:**
+- Schema changes: `npm run db:push` (or `--force` for data-loss warnings)
+- Database access: `db` object from `server/db.ts` (Drizzle client)
+- Environment variable: `DATABASE_URL` configured automatically by Replit
 
 ### Authentication & Authorization
 
-**Current State:**
-- User schema defined but authentication not yet implemented
-- Subscriber endpoints are publicly accessible
-- No session management or auth middleware currently active
+**Current Implementation (October 2025):**
 
-**Prepared Infrastructure:**
-- `connect-pg-simple` included for PostgreSQL session storage
-- User password storage schema ready (note: hashing should be implemented before production)
+**Passwordless Magic Link Authentication:**
+- No passwords stored - users sign in via email magic links (10-minute expiry)
+- JWT tokens in httpOnly cookies (7-day expiry, SESSION_SECRET required)
+- Email delivery via Resend integration (configured connector)
+
+**Multi-Role User System:**
+- Single users table with roles array: `['individual', 'business', 'recruiter']`
+- Users can hold multiple roles simultaneously
+- Role-specific onboarding tracked via `onboardingComplete` JSONB field
+
+**Auth Endpoints:**
+- `POST /auth/magic/start` - Request magic link email
+- `GET /auth/verify?token=...` - Verify token, create/login user, redirect to `/onboarding`
+- `POST /auth/logout` - Clear session cookie
+- `GET /api/me` - Get authenticated user (requires auth)
+- `POST /api/me/role` - Add role to user (requires auth)
+
+**Protected Endpoints:**
+- `POST /api/profile/candidate` - Create job seeker profile (requires 'individual' role + POPIA consent)
+- `POST /api/organizations` - Create company/agency (requires auth)
+- `POST /api/profile/recruiter` - Create recruiter profile (requires 'recruiter' role)
+
+**Middleware:**
+- `requireAuth` - Verifies JWT cookie, populates `req.user`
+- `requireRole(...roles)` - Checks user has one of the specified roles
+- `optionalAuth` - Populates `req.user` if token exists, doesn't block if missing
+
+**Onboarding Flow:**
+1. User enters email at `/login`
+2. Magic link sent to email
+3. User clicks link → verified → redirected to `/onboarding`
+4. Role selection screen (Individual/Business/Recruiter)
+5. Role-specific onboarding form:
+   - **Individual** (`/onboarding/individual`) - COMPLETE: Name, location, job title, experience, skills, visibility, POPIA consent
+   - **Business** (`/onboarding/business`) - STUB: Placeholder "coming soon" page
+   - **Recruiter** (`/onboarding/recruiter`) - STUB: Placeholder "coming soon" page
+6. After onboarding → redirect to relevant dashboard
+
+**POPIA Compliance:**
+- Candidate profiles require explicit data consent (checkbox + server validation)
+- Consent tracked with `popiaConsentGiven` flag and `popiaConsentDate` timestamp
+- Backend validates consent before creating profiles (400 error if not provided)
+
+**Security Notes:**
+- `SESSION_SECRET` environment variable REQUIRED (app fails fast if missing)
+- Cookies: httpOnly, Secure in production, SameSite: lax
+- Magic tokens auto-deleted after verification or expiry
+- No user passwords stored anywhere
 
 ### External Dependencies
 

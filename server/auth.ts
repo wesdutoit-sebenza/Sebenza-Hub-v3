@@ -4,7 +4,11 @@ import { db } from './db';
 import { users, type User } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
-const JWT_SECRET = process.env.SESSION_SECRET || 'dev-secret-change-in-production';
+if (!process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET environment variable must be set');
+}
+
+const JWT_SECRET = process.env.SESSION_SECRET;
 const JWT_EXPIRES_IN = '7d';
 
 export interface AuthRequest extends Request {

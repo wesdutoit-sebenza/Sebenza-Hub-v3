@@ -321,6 +321,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: req.user!.id,
       });
 
+      if (!validatedData.popiaConsentGiven || validatedData.popiaConsentGiven !== 1) {
+        return res.status(400).json({
+          success: false,
+          message: "POPIA consent is required to create a profile",
+        });
+      }
+
       const [existing] = await db.select()
         .from(candidateProfiles)
         .where(eq(candidateProfiles.userId, req.user!.id));

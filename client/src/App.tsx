@@ -9,12 +9,22 @@ import Home from "@/pages/Home";
 import Recruiters from "@/pages/Recruiters";
 import Businesses from "@/pages/Businesses";
 import Individuals from "@/pages/Individuals";
+import Login from "@/pages/login";
+import Onboarding from "@/pages/onboarding";
+import OnboardingIndividual from "@/pages/onboarding-individual";
+import OnboardingBusiness from "@/pages/onboarding-business";
+import OnboardingRecruiter from "@/pages/onboarding-recruiter";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/login" component={Login} />
+      <Route path="/onboarding" component={Onboarding} />
+      <Route path="/onboarding/individual" component={OnboardingIndividual} />
+      <Route path="/onboarding/business" component={OnboardingBusiness} />
+      <Route path="/onboarding/recruiter" component={OnboardingRecruiter} />
       <Route path="/recruiters" component={Recruiters} />
       <Route path="/businesses" component={Businesses} />
       <Route path="/individuals" component={Individuals} />

@@ -48,9 +48,14 @@ export default function Header() {
             ))}
           </nav>
 
-          <div className="hidden md:block">
+          <div className="hidden md:flex items-center gap-2">
+            <Link href="/login">
+              <Button data-testid="button-sign-in" variant="ghost">
+                Sign In
+              </Button>
+            </Link>
             <Button data-testid="button-get-access" variant="default">
-              Get early access
+              Get Started
             </Button>
           </div>
 
@@ -82,8 +87,13 @@ export default function Header() {
                   {link.label}
                 </Link>
               ))}
-              <Button data-testid="button-mobile-access" className="mt-2" variant="default">
-                Get early access
+              <Link href="/login">
+                <Button data-testid="button-mobile-sign-in" className="mt-2" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
+                  Sign In
+                </Button>
+              </Link>
+              <Button data-testid="button-mobile-access" variant="default" onClick={() => setMobileMenuOpen(false)}>
+                Get Started
               </Button>
             </div>
           </nav>
