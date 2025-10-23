@@ -72,7 +72,7 @@ export default function Home() {
 
   return (
     <main id="main-content">
-      <section className="relative bg-slate-gradient py-8 px-6 overflow-hidden">
+      <section className="relative bg-charcoal py-8 px-6 overflow-hidden">
         <div className="max-w-5xl mx-auto">
           <video 
             autoPlay 
