@@ -27,8 +27,10 @@ import PageHeader from "@/components/PageHeader";
 import Section from "@/components/Section";
 import Stat from "@/components/Stat";
 import FAQAccordion from "@/components/FAQAccordion";
+import PricingTable from "@/components/PricingTable";
 import { CheckCircle, FileText, Kanban, Download, Briefcase, MapPin, DollarSign, MessageCircle, Search } from "lucide-react";
 import { type Job } from "@shared/schema";
+import { recruiterPricingPlans } from "@/data";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
@@ -630,6 +632,16 @@ export default function Recruiters() {
             Book a demo
           </Button>
         </div>
+      </Section>
+
+      <Section id="pricing">
+        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-pricing-title">
+          Pricing for Recruiters
+        </h2>
+        <p className="text-center text-slate mb-12 max-w-2xl mx-auto">
+          Choose the plan that fits your recruitment needs. All plans include POPIA compliance and WhatsApp integration.
+        </p>
+        <PricingTable plans={recruiterPricingPlans} />
       </Section>
 
       <Section className="bg-graphite" id="faq">
