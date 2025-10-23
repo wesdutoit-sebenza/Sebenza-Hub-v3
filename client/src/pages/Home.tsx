@@ -116,7 +116,101 @@ export default function Home() {
         </div>
       </Section>
 
-      <Section className="bg-card" id="for-who">
+      <Section className="bg-card" id="how-it-works">
+        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4" data-testid="text-how-it-works-title">
+          Hiring made simple
+        </h2>
+        <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+          From posting to placement, Sebenza Hub streamlines every step of the recruitment journey.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Card className="p-6 hover-elevate" data-testid="card-process-post">
+            <div className="relative mb-4 overflow-hidden rounded-lg">
+              <img 
+                src={recruitmentMeetingImg} 
+                alt="Recruitment meeting and planning" 
+                className="w-full aspect-[4/3] object-cover"
+              />
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <span className="text-lg font-semibold text-primary">1</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Post Your Role</h3>
+                <p className="text-muted-foreground">
+                  Create compliant job listings with transparent salary ranges and clear requirements.
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 hover-elevate" data-testid="card-process-screen">
+            <div className="relative mb-4 overflow-hidden rounded-lg">
+              <img 
+                src={teamCollabImg} 
+                alt="Team collaborating on candidate selection" 
+                className="w-full aspect-[4/3] object-cover"
+              />
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <span className="text-lg font-semibold text-primary">2</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-2">AI-Powered Screening</h3>
+                <p className="text-muted-foreground">
+                  Our AI evaluates candidates against your criteria, ranking them by fit and highlighting top matches.
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 hover-elevate" data-testid="card-process-interview">
+            <div className="relative mb-4 overflow-hidden rounded-lg">
+              <img 
+                src={handshakeImg} 
+                alt="Successful interview conclusion" 
+                className="w-full aspect-[4/3] object-cover"
+              />
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <span className="text-lg font-semibold text-primary">3</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Connect & Interview</h3>
+                <p className="text-muted-foreground">
+                  Reach candidates via WhatsApp or email, schedule interviews, and collaborate with your team.
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 hover-elevate" data-testid="card-process-hire">
+            <div className="relative mb-4 overflow-hidden rounded-lg">
+              <img 
+                src={contractSigningImg} 
+                alt="Happy employee signing employment contract" 
+                className="w-full aspect-[4/3] object-cover"
+              />
+            </div>
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <span className="text-lg font-semibold text-primary">4</span>
+              </div>
+              <div>
+                <h3 className="text-xl font-semibold mb-2">Make the Hire</h3>
+                <p className="text-muted-foreground">
+                  Send offers, track acceptances, and onboard your new team member—all in one place.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </Section>
+
+      <Section id="for-who">
         <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-12" data-testid="text-section-title">
           Built for everyone in SA hiring
         </h2>
