@@ -72,18 +72,20 @@ export default function Home() {
 
   return (
     <main id="main-content">
-      <section className="relative bg-charcoal overflow-hidden">
-        <video 
-          autoPlay 
-          loop 
-          muted 
-          playsInline
-          className="w-full"
-          data-testid="video-logo"
-        >
-          <source src={logoVideo} type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
+      <section className="relative bg-charcoal py-8 px-6 overflow-hidden">
+        <div className="max-w-5xl mx-auto">
+          <video 
+            autoPlay 
+            loop 
+            muted 
+            playsInline
+            className="w-full rounded-lg"
+            data-testid="video-logo"
+          >
+            <source src={logoVideo} type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
       </section>
 
       <section className="relative min-h-[80vh] flex items-center justify-center px-6 overflow-hidden">
