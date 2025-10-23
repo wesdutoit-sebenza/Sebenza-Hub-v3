@@ -49,15 +49,13 @@ export default function OnboardingIndividual() {
     mutationFn: async (data: FormData) => {
       const skills = data.skills.split(',').map(s => s.trim()).filter(Boolean);
       
-      return apiRequest('/api/profile/candidate', {
-        method: 'POST',
-        body: JSON.stringify({
-          ...data,
-          skills,
-          isPublic: data.isPublic ? 1 : 0,
-          popiaConsentGiven: data.dataConsent ? 1 : 0,
-        }),
+      const res = await apiRequest('POST', '/api/profile/candidate', {
+        ...data,
+        skills,
+        isPublic: data.isPublic ? 1 : 0,
+        popiaConsentGiven: data.dataConsent ? 1 : 0,
       });
+      return res.json();
     },
     onSuccess: () => {
       toast({

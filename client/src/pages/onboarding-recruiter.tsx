@@ -49,10 +49,8 @@ export default function OnboardingRecruiter() {
 
   const createRecruiterProfileMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      return apiRequest('/api/profile/recruiter', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      const res = await apiRequest('POST', '/api/profile/recruiter', data);
+      return res.json();
     },
     onSuccess: () => {
       toast({

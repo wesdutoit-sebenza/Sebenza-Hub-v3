@@ -20,10 +20,8 @@ export default function Onboarding() {
 
   const selectRoleMutation = useMutation({
     mutationFn: async (role: UserRole) => {
-      return apiRequest('/api/me/role', {
-        method: 'POST',
-        body: JSON.stringify({ role }),
-      });
+      const res = await apiRequest('POST', '/api/me/role', { role });
+      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/me'] });

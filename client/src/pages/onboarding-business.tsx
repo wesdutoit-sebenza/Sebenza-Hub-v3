@@ -78,10 +78,8 @@ export default function OnboardingBusiness() {
 
   const createOrganizationMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      return apiRequest('/api/organizations', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      const res = await apiRequest('POST', '/api/organizations', data);
+      return res.json();
     },
     onSuccess: () => {
       toast({

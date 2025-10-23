@@ -14,10 +14,8 @@ export default function Login() {
 
   const sendMagicLinkMutation = useMutation({
     mutationFn: async (email: string) => {
-      return apiRequest('/auth/magic/start', {
-        method: 'POST',
-        body: JSON.stringify({ email }),
-      });
+      const res = await apiRequest('POST', '/auth/magic/start', { email });
+      return res.json();
     },
     onSuccess: () => {
       setEmailSent(true);

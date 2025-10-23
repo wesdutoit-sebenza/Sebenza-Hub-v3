@@ -26,11 +26,11 @@ export default function Header() {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/auth/logout', {
-        method: 'POST',
-      });
+      const res = await apiRequest('POST', '/auth/logout');
+      return res.json();
     },
     onSuccess: () => {
+      queryClient.setQueryData(['/api/me'], null);
       queryClient.invalidateQueries({ queryKey: ['/api/me'] });
       toast({
         title: "Logged out",
