@@ -50,6 +50,7 @@ import multer from "multer";
 import { promises as fs } from "fs";
 import path from "path";
 import shortlistRoutes from "./shortlist.routes";
+import organizationSettingsRoutes from "./organization-settings.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/subscribe", async (req, res) => {
@@ -2281,6 +2282,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount shortlist routes
   app.use("/api", shortlistRoutes);
+  
+  // Mount organization settings routes
+  app.use("/api", organizationSettingsRoutes);
 
   const httpServer = createServer(app);
 
