@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User as UserIcon, LogOut, Database, Sparkles, Briefcase, Settings } from "lucide-react";
+import { Menu, X, User as UserIcon, LogOut, Database, Sparkles, Briefcase, Settings, Shield } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -102,6 +102,19 @@ export default function Header() {
                     {user.email}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
+                  {user.roles?.includes('admin') && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => setLocation('/admin/overview')}
+                        className="gap-2 cursor-pointer bg-amber/10 text-amber hover:bg-amber/20"
+                        data-testid="link-admin"
+                      >
+                        <Shield size={16} />
+                        Admin Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem
                     onClick={() => setLocation('/roles')}
                     className="gap-2 cursor-pointer"
@@ -216,6 +229,20 @@ export default function Header() {
                   <div className="mt-2 px-4 py-2 text-sm text-slate" data-testid="text-mobile-user-email">
                     {user.email}
                   </div>
+                  {user.roles?.includes('admin') && (
+                    <Button 
+                      variant="ghost" 
+                      className="gap-2 text-amber hover:text-amber/80"
+                      onClick={() => {
+                        setLocation('/admin/overview');
+                        setMobileMenuOpen(false);
+                      }}
+                      data-testid="link-mobile-admin"
+                    >
+                      <Shield size={16} />
+                      Admin Dashboard
+                    </Button>
+                  )}
                   <Button 
                     variant="ghost" 
                     className="gap-2 text-white-brand"
