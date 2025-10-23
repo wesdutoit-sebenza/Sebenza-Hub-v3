@@ -60,7 +60,7 @@ export default function CVBuilder({ onComplete }: { onComplete?: () => void }) {
     },
   });
 
-  const updateCVData = (section: keyof InsertCV, data: any) => {
+  const updateCVData = (section: string, data: any) => {
     setCvData((prev) => ({
       ...prev,
       [section]: data,
