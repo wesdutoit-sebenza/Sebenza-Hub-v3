@@ -3,9 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
-import { pricingPlans } from "@/data";
 
-export default function PricingTable() {
+interface PricingPlan {
+  name: string;
+  price: { monthly: number; annual: number };
+  description: string;
+  features: string[];
+  cta: string;
+  highlighted: boolean;
+}
+
+interface PricingTableProps {
+  plans: PricingPlan[];
+}
+
+export default function PricingTable({ plans }: PricingTableProps) {
   const [isAnnual, setIsAnnual] = useState(false);
 
   return (
@@ -37,7 +49,7 @@ export default function PricingTable() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {pricingPlans.map((plan, idx) => (
+        {plans.map((plan, idx) => (
           <Card
             key={plan.name}
             className={`p-8 ${plan.highlighted ? 'border-primary border-2' : ''}`}

@@ -62,49 +62,140 @@ export const faqs = [
   }
 ];
 
-export const pricingPlans = [
+// Recruiter pricing plans
+export const recruiterPricingPlans = [
   {
-    name: "Starter",
-    price: { monthly: 499, annual: 4490 },
-    description: "Perfect for independent recruiters",
+    name: "Recruiter Free",
+    price: { monthly: 0, annual: 0 },
+    description: "Get started with essential tools",
     features: [
-      "Up to 10 active jobs",
-      "WhatsApp apply integration",
-      "POPIA consent logs",
-      "Basic analytics",
-      "Email support"
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed"
     ],
-    cta: "Start free trial",
+    cta: "Get started",
     highlighted: false
   },
   {
-    name: "Team",
-    price: { monthly: 1499, annual: 13490 },
-    description: "For small agencies & businesses",
+    name: "Recruiter Standard",
+    price: { monthly: 999, annual: 8990 },
+    description: "For growing recruitment agencies",
     features: [
-      "Up to 50 active jobs",
-      "Multi-user accounts (5 seats)",
-      "Export to Pnet/CJ/Adzuna",
-      "EE reporting",
-      "Kanban pipeline",
-      "Priority support"
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed"
     ],
     cta: "Start free trial",
     highlighted: true
   },
   {
-    name: "Business",
-    price: { monthly: 3999, annual: 35990 },
-    description: "Enterprise-grade hiring",
+    name: "Recruiter Premium",
+    price: { monthly: 2999, annual: 26990 },
+    description: "Advanced features for professional recruiters",
     features: [
-      "Unlimited jobs",
-      "Unlimited users",
-      "Background check API",
-      "Custom integrations",
-      "Dedicated account manager",
-      "SLA guarantee"
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed"
     ],
-    cta: "Talk to sales",
+    cta: "Contact sales",
+    highlighted: false
+  }
+];
+
+// Business pricing plans
+export const businessPricingPlans = [
+  {
+    name: "Business Free",
+    price: { monthly: 0, annual: 0 },
+    description: "Perfect for small businesses",
+    features: [
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed"
+    ],
+    cta: "Get started",
+    highlighted: false
+  },
+  {
+    name: "Business Standard",
+    price: { monthly: 799, annual: 7190 },
+    description: "For SMEs with regular hiring needs",
+    features: [
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed"
+    ],
+    cta: "Start free trial",
+    highlighted: true
+  },
+  {
+    name: "Business Premium",
+    price: { monthly: 1999, annual: 17990 },
+    description: "Enterprise-grade compliance and features",
+    features: [
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed"
+    ],
+    cta: "Contact sales",
+    highlighted: false
+  }
+];
+
+// Individual pricing plans
+export const individualPricingPlans = [
+  {
+    name: "Individual Free",
+    price: { monthly: 0, annual: 0 },
+    description: "Start your job search today",
+    features: [
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed"
+    ],
+    cta: "Sign up free",
+    highlighted: false
+  },
+  {
+    name: "Individual Standard",
+    price: { monthly: 99, annual: 890 },
+    description: "Accelerate your job search",
+    features: [
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed"
+    ],
+    cta: "Start free trial",
+    highlighted: true
+  },
+  {
+    name: "Individual Premium",
+    price: { monthly: 299, annual: 2690 },
+    description: "Premium career development tools",
+    features: [
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed"
+    ],
+    cta: "Upgrade now",
     highlighted: false
   }
 ];
