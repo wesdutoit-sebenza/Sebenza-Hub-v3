@@ -13,6 +13,13 @@ import TourSlides from "@/components/TourSlides";
 import { testimonials, valueProps } from "@/data";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import contractSigningImg from "@assets/u3533279657_Happy_employee_signing_contract_desk_with_laptop__c9cd7681-7b1f-449e-9cd3-ed6854df1887_0_1761202295751.png";
+import blueCollarImg from "@assets/u3533279657_Blue-collar_workers_at_morning_briefing_outdoor_i_ad47f0c2-e3cf-47ab-8976-d49ad110e3b8_0_1761202295752.png";
+import hrTeamImg from "@assets/u3533279657_Modern_HR_team_reviewing_CVs_authentic_South_Afri_f2c1f635-e045-418a-acf5-01ef03bfc454_1_1761202295752.png";
+import recruitmentMeetingImg from "@assets/u3533279657_Recruitment_meeting_with_notebook_and_pen_on_desk_4595fa8c-a7b0-45dc-9eeb-cb9f9f393194_3_1761202295752.png";
+import handshakeImg from "@assets/u3533279657_Diverse_professionals_shaking_hands_after_intervi_1c642bbb-5603-4c43-aa74-a81f8f5fc995_1_1761202295752.png";
+import jobSeekerImg from "@assets/u3533279657_Young_job_seeker_smiling_at_laptop_with_recruiter_3bd02d8d-0f33-42cf-b52a-f5c56e3b4b8c_0_1761202295752.png";
+import teamCollabImg from "@assets/u3533279657_South_African_team_collaborating_in_open-plan_off_fdf3ace1-427a-4f16-aaa5-d6099fde55b6_1_1761202295752.png";
 
 export default function Home() {
   const [showTourModal, setShowTourModal] = useState(false);
@@ -116,11 +123,12 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Link href="/recruiters">
             <Card className="p-8 hover-elevate h-full cursor-pointer group" data-testid="card-teaser-recruiters">
-              <div className="relative mb-4">
-                <GradientBlob variant="cyan" className="rounded-lg" />
-                <div className="relative z-10 aspect-video flex items-center justify-center">
-                  <p className="text-sm text-muted-foreground">[Pipeline UI Mock]</p>
-                </div>
+              <div className="relative mb-4 overflow-hidden rounded-lg">
+                <img 
+                  src={hrTeamImg} 
+                  alt="HR team reviewing candidate CVs" 
+                  className="w-full aspect-video object-cover"
+                />
               </div>
               <h3 className="text-2xl font-serif font-semibold mb-2" data-testid="text-teaser-title">For Recruiters</h3>
               <p className="text-muted-foreground mb-4">
@@ -135,11 +143,12 @@ export default function Home() {
 
           <Link href="/businesses">
             <Card className="p-8 hover-elevate h-full cursor-pointer group" data-testid="card-teaser-businesses">
-              <div className="relative mb-4">
-                <GradientBlob variant="green" className="rounded-lg" />
-                <div className="relative z-10 aspect-video flex items-center justify-center">
-                  <p className="text-sm text-muted-foreground">[Job Post Form Mock]</p>
-                </div>
+              <div className="relative mb-4 overflow-hidden rounded-lg">
+                <img 
+                  src={blueCollarImg} 
+                  alt="Blue-collar workers at morning briefing" 
+                  className="w-full aspect-video object-cover"
+                />
               </div>
               <h3 className="text-2xl font-serif font-semibold mb-2" data-testid="text-teaser-title">For Businesses</h3>
               <p className="text-muted-foreground mb-4">
@@ -154,11 +163,12 @@ export default function Home() {
 
           <Link href="/individuals">
             <Card className="p-8 hover-elevate h-full cursor-pointer group" data-testid="card-teaser-individuals">
-              <div className="relative mb-4">
-                <GradientBlob variant="amber" className="rounded-lg" />
-                <div className="relative z-10 aspect-video flex items-center justify-center">
-                  <p className="text-sm text-muted-foreground">[WhatsApp QR Mock]</p>
-                </div>
+              <div className="relative mb-4 overflow-hidden rounded-lg">
+                <img 
+                  src={jobSeekerImg} 
+                  alt="Young job seeker collaborating with recruiter" 
+                  className="w-full aspect-video object-cover"
+                />
               </div>
               <h3 className="text-2xl font-serif font-semibold mb-2" data-testid="text-teaser-title">For Individuals</h3>
               <p className="text-muted-foreground mb-4">
