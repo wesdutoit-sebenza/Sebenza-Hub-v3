@@ -1,11 +1,48 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, LogOut } from "lucide-react";
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Header() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { toast } = useToast();
+
+  const { data: user } = useQuery({
+    queryKey: ['/api/me'],
+    retry: false,
+  });
+
+  const logoutMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('/auth/logout', {
+        method: 'POST',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+      setLocation("/");
+    },
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
 
   const isActive = (path: string) => location === path;
 
@@ -49,14 +86,41 @@ export default function Header() {
           </nav>
 
           <div className="hidden md:flex items-center gap-2">
-            <Link href="/login">
-              <Button data-testid="button-sign-in" variant="ghost">
-                Sign In
-              </Button>
-            </Link>
-            <Button data-testid="button-get-access" variant="default">
-              Get Started
-            </Button>
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="gap-2" data-testid="button-user-menu">
+                    <User size={16} />
+                    {user.email}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel data-testid="text-user-email">
+                    {user.email}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="gap-2 cursor-pointer"
+                    data-testid="button-logout"
+                  >
+                    <LogOut size={16} />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link href="/login">
+                  <Button data-testid="button-sign-in" variant="ghost">
+                    Sign In
+                  </Button>
+                </Link>
+                <Button data-testid="button-get-access" variant="default">
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
 
           <button
@@ -87,14 +151,36 @@ export default function Header() {
                   {link.label}
                 </Link>
               ))}
-              <Link href="/login">
-                <Button data-testid="button-mobile-sign-in" className="mt-2" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
-                  Sign In
-                </Button>
-              </Link>
-              <Button data-testid="button-mobile-access" variant="default" onClick={() => setMobileMenuOpen(false)}>
-                Get Started
-              </Button>
+              {user ? (
+                <>
+                  <div className="mt-2 px-4 py-2 text-sm text-muted-foreground" data-testid="text-mobile-user-email">
+                    {user.email}
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    className="gap-2"
+                    onClick={() => {
+                      handleLogout();
+                      setMobileMenuOpen(false);
+                    }}
+                    data-testid="button-mobile-logout"
+                  >
+                    <LogOut size={16} />
+                    Log out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/login">
+                    <Button data-testid="button-mobile-sign-in" className="mt-2" variant="ghost" onClick={() => setMobileMenuOpen(false)}>
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Button data-testid="button-mobile-access" variant="default" onClick={() => setMobileMenuOpen(false)}>
+                    Get Started
+                  </Button>
+                </>
+              )}
             </div>
           </nav>
         )}
