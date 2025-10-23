@@ -9,8 +9,21 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Plus, Upload, FileText, TrendingUp, AlertCircle, CheckCircle2, XCircle } from "lucide-react";
+import { Plus, Upload, FileText, TrendingUp, AlertCircle, CheckCircle2, XCircle, Clock, Target } from "lucide-react";
 import type { ScreeningJob, ScreeningCandidate, ScreeningEvaluation } from "@shared/schema";
+
+interface ScreeningStatsData {
+  success: boolean;
+  stats: {
+    totalJobs: number;
+    draftJobs: number;
+    processingJobs: number;
+    completedJobs: number;
+    failedJobs: number;
+    recentJobs: number;
+    successRate: number;
+  };
+}
 
 export default function Screening() {
   const { toast } = useToast();
@@ -20,6 +33,12 @@ export default function Screening() {
   // Fetch screening jobs
   const { data: jobsData, isLoading: jobsLoading } = useQuery<{ success: boolean; jobs: ScreeningJob[] }>({
     queryKey: ['/api/screening/jobs'],
+    enabled: view === 'list',
+  });
+
+  // Fetch screening stats
+  const { data: statsData, isLoading: statsLoading } = useQuery<ScreeningStatsData>({
+    queryKey: ['/api/screening/stats'],
     enabled: view === 'list',
   });
 
@@ -55,14 +74,85 @@ export default function Screening() {
         </div>
 
         {view === 'list' && (
-          <ScreeningJobList
-            jobs={jobsData?.jobs || []}
-            isLoading={jobsLoading}
-            onViewResults={(jobId) => {
-              setSelectedJobId(jobId);
-              setView('results');
-            }}
-          />
+          <>
+            {statsLoading ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+                {[1, 2, 3, 4].map((i) => (
+                  <Card key={i}>
+                    <CardHeader className="pb-3">
+                      <div className="animate-pulse space-y-2">
+                        <div className="h-4 bg-muted rounded w-24"></div>
+                        <div className="h-8 bg-muted rounded w-16"></div>
+                      </div>
+                    </CardHeader>
+                  </Card>
+                ))}
+              </div>
+            ) : statsData?.stats && (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+                <Card data-testid="card-stat-total">
+                  <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Jobs</CardTitle>
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold" data-testid="text-total-jobs">{statsData.stats.totalJobs}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {statsData.stats.completedJobs} completed
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card data-testid="card-stat-processing">
+                  <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Processing</CardTitle>
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold" data-testid="text-processing-jobs">{statsData.stats.processingJobs}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {statsData.stats.draftJobs} drafts
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card data-testid="card-stat-success">
+                  <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+                    <Target className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold" data-testid="text-success-rate">{statsData.stats.successRate}%</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {statsData.stats.failedJobs} failed
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card data-testid="card-stat-recent">
+                  <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Recent Jobs</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold" data-testid="text-recent-jobs">{statsData.stats.recentJobs}</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      in last 7 days
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            <ScreeningJobList
+              jobs={jobsData?.jobs || []}
+              isLoading={jobsLoading}
+              onViewResults={(jobId) => {
+                setSelectedJobId(jobId);
+                setView('results');
+              }}
+            />
+          </>
         )}
 
         {view === 'create' && (
