@@ -20,9 +20,14 @@ interface Individual {
 }
 
 export default function IndividualsAdmin() {
-  const { data: individuals = [], isLoading } = useQuery<Individual[]>({
+  const { data, isLoading } = useQuery<{ success: boolean; individuals: Individual[]; count: number }>({
     queryKey: ['/api/admin/individuals'],
   });
+
+  const individuals = (data?.individuals || []).map(item => ({
+    ...item,
+    id: item.profile.id, // Add id at root level for AdminDataTable
+  }));
 
   const columns = [
     {

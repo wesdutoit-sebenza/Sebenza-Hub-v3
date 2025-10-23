@@ -12,9 +12,11 @@ interface Business {
 }
 
 export default function BusinessesAdmin() {
-  const { data: businesses = [], isLoading } = useQuery<Business[]>({
+  const { data, isLoading } = useQuery<{ success: boolean; businesses: Business[]; count: number }>({
     queryKey: ['/api/admin/businesses'],
   });
+
+  const businesses = data?.businesses || [];
 
   const columns = [
     {

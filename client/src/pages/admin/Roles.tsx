@@ -16,9 +16,11 @@ interface Role {
 }
 
 export default function RolesAdmin() {
-  const { data: roles = [], isLoading } = useQuery<Role[]>({
+  const { data, isLoading } = useQuery<{ success: boolean; roles: Role[]; count: number }>({
     queryKey: ['/api/admin/roles'],
   });
+
+  const roles = data?.roles || [];
 
   const columns = [
     {

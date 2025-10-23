@@ -17,9 +17,14 @@ interface CVData {
 }
 
 export default function CVsAdmin() {
-  const { data: cvs = [], isLoading } = useQuery<CVData[]>({
+  const { data, isLoading } = useQuery<{ success: boolean; resumes: CVData[]; count: number }>({
     queryKey: ['/api/admin/cvs'],
   });
+
+  const cvs = (data?.resumes || []).map(item => ({
+    ...item,
+    id: item.resume.id, // Add id at root level for AdminDataTable
+  }));
 
   const columns = [
     {
