@@ -37,6 +37,12 @@ Preferred communication style: Simple, everyday language.
 - **API Endpoints**: Handles subscriptions, job postings, CV management, legacy AI screening, integrated roles/screening system (CRUD + evaluation), and comprehensive ATS candidate management (30+ endpoints total for candidates, resumes, experiences, education, skills, certifications, projects, awards, roles, and screenings).
 - **Request/Response**: JSON body parsing, custom logging, and structured JSON error responses.
 - **AI Integration**: Two separate AI systems - CV screening for job-specific evaluation and resume ingestion for structured data extraction.
+- **Background Job Processing**: BullMQ with Redis for asynchronous screening jobs:
+    - **Auto-Screening**: Automatically screens new candidates against all active roles when they're added via any endpoint (direct creation, file upload, or text parsing)
+    - **Worker Process**: Separate worker (server/worker.ts) processes screening jobs with configurable concurrency (5 concurrent jobs)
+    - **Graceful Degradation**: System continues to function without Redis - auto-screening is disabled with console warnings when REDIS_URL is not configured
+    - **Upsert Logic**: Re-screening the same candidate for the same role updates existing results rather than creating duplicates
+    - **Non-Blocking**: Candidate creation never fails due to screening errors - failures are logged and jobs can be retried
 
 ### Data Storage
 - **Database**: PostgreSQL (Neon) with Drizzle ORM for schema management, pgvector extension for semantic search capabilities.
@@ -66,6 +72,7 @@ Preferred communication style: Simple, everyday language.
 - **Form Handling**: React Hook Form, Zod.
 - **Database**: Drizzle ORM, @neondatabase/serverless.
 - **File Upload**: Multer (multipart/form-data middleware with file validation).
+- **Background Jobs**: BullMQ (job queue), ioredis (Redis client for queue management).
 - **Utilities**: date-fns, clsx, tailwind-merge, class-variance-authority.
 - **AI**: OpenAI GPT-4o (for ATS resume parsing), OpenAI GPT-5 (for CV screening), OpenAI text-embedding-3-small (for semantic search embeddings).
 - **Email**: Resend (for magic link delivery).
