@@ -182,7 +182,7 @@ export default function Roles() {
       ) : stats && (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
-            <Card data-testid="card-stat-total">
+            <Card data-testid="card-stat-total" style={{ backgroundColor: '#2e2f31' }}>
               <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-white-brand">Total Roles</CardTitle>
                 <Briefcase className="h-4 w-4 text-amber" />
