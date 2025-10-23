@@ -588,14 +588,34 @@ function ScreeningResults({ jobId }: { jobId: string }) {
             <h2 className="text-xl font-semibold">Ranked Candidates ({rankedCandidates.length})</h2>
             <Button
               variant="outline"
-              onClick={() => {
-                const json = JSON.stringify(rankedCandidates, null, 2);
-                const blob = new Blob([json], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `screening-results-${jobId}.json`;
-                a.click();
+              onClick={async () => {
+                try {
+                  const response = await fetch(`/api/screening/jobs/${jobId}/export`, {
+                    credentials: 'include',
+                  });
+                  if (!response.ok) throw new Error('Export failed');
+                  
+                  const data = await response.json();
+                  const json = JSON.stringify(data, null, 2);
+                  const blob = new Blob([json], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `screening-results-${jobId}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  
+                  toast({
+                    title: "Success",
+                    description: "Results exported successfully",
+                  });
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to export results",
+                    variant: "destructive",
+                  });
+                }
               }}
               data-testid="button-export-json"
             >

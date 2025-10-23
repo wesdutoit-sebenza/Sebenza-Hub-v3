@@ -688,6 +688,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Export screening results as JSON
+  app.get("/api/screening/jobs/:id/export", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const [job] = await db.select()
+        .from(screeningJobs)
+        .where(and(
+          eq(screeningJobs.id, req.params.id),
+          eq(screeningJobs.userId, req.user!.id)
+        ));
+
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: "Screening job not found",
+        });
+      }
+
+      // Get candidates and evaluations
+      const candidates = await db.select()
+        .from(screeningCandidates)
+        .where(eq(screeningCandidates.screeningJobId, job.id));
+
+      const evaluations = await db.select()
+        .from(screeningEvaluations)
+        .where(eq(screeningEvaluations.screeningJobId, job.id))
+        .orderBy(desc(screeningEvaluations.scoreTotal));
+
+      // Merge data
+      const rankedCandidates = evaluations.map((evaluation) => {
+        const candidate = candidates.find((c) => c.id === evaluation.candidateId);
+        return { ...evaluation, candidate };
+      });
+
+      const exportData = {
+        job,
+        candidates,
+        evaluations: rankedCandidates,
+        exportedAt: new Date().toISOString(),
+      };
+
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename="screening-results-${job.id}.json"`);
+      res.json(exportData);
+    } catch (error) {
+      console.error("Export error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to export results",
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
