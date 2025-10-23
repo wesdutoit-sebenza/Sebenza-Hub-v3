@@ -31,10 +31,16 @@ Preferred communication style: Simple, everyday language.
         - Normalized data model for efficient querying
         - **Security**: Strict MIME type validation, file size limits, automatic file cleanup after processing
         - **Semantic Search**: Automatic embedding generation using OpenAI text-embedding-3-small, comprehensive text representation (headline, summary, location, skills, experiences, education, projects), stored in candidate_embeddings table for future vector search
+    - **Organization Settings**: Comprehensive configuration system for recruiters and businesses with multi-tenant support:
+        - **Recruiter Settings** (/settings/recruiter): Team management, pipeline configuration, interview operations, compliance settings, and integrations
+        - **Business Settings** (/settings/business): Job templates, salary bands, and vendor management
+        - **ChipInput Component**: Reusable tag input component using shadcn/ui for managing arrays of values
+        - **Security**: All settings routes require authentication and organization membership validation
+        - **Dynamic Organization Context**: Frontend automatically fetches user's organization membership for multi-tenant access control
 
 ### Backend
 - **Server Framework**: Express.js with TypeScript, integrated with Vite middleware for development and static file serving for production.
-- **API Endpoints**: Handles subscriptions, job postings, CV management, legacy AI screening, integrated roles/screening system (CRUD + evaluation), and comprehensive ATS candidate management (30+ endpoints total for candidates, resumes, experiences, education, skills, certifications, projects, awards, roles, and screenings).
+- **API Endpoints**: Handles subscriptions, job postings, CV management, legacy AI screening, integrated roles/screening system (CRUD + evaluation), comprehensive ATS candidate management (30+ endpoints), and organization settings (40+ endpoints for team members, pipeline stages, interview settings, compliance, integrations, job templates, salary bands, and vendors).
 - **Request/Response**: JSON body parsing, custom logging, and structured JSON error responses.
 - **AI Integration**: Two separate AI systems - CV screening for job-specific evaluation and resume ingestion for structured data extraction.
 - **Background Job Processing**: BullMQ with Redis for asynchronous screening jobs:
@@ -57,8 +63,9 @@ Preferred communication style: Simple, everyday language.
     - **Legacy CV Screening**: Dedicated tables for AI screening jobs, screening candidates, and evaluations (maintained for backward compatibility)
     - **Integrated Roles & Screening**: roles table (job definitions with must-have skills, knockouts, weights) and screenings table (evaluation results with foreign keys to roles and ATS candidates)
     - **ATS Module**: Normalized schema with 10 tables (ats_candidates, ats_resumes, ats_experiences, ats_education, ats_certifications, ats_projects, ats_awards, ats_skills, ats_candidate_skills, ats_candidate_embeddings)
+    - **Organization Settings**: 8 new tables for comprehensive organization configuration (team_members, pipeline_stages, interview_settings, compliance_settings, organization_integrations, job_templates, salary_bands, approved_vendors)
     - All tables use UUID primary keys for scalability
-    - Foreign key constraints enforce referential integrity between roles, screenings, and candidates
+    - Foreign key constraints enforce referential integrity between organizations, roles, screenings, and candidates
 - **Hybrid Storage**: Authentication, profiles, screening data, and ATS use PostgreSQL, while legacy features (subscribers, jobs, CVs) are currently in-memory, with plans for migration.
 
 ### Authentication & Authorization

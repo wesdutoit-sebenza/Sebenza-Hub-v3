@@ -339,6 +339,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ user: req.user });
   });
 
+  app.get("/api/my-membership", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, req.user!.id))
+        .limit(1);
+
+      if (!membership) {
+        return res.status(404).json({
+          success: false,
+          message: "No organization membership found",
+        });
+      }
+
+      res.json({ organizationId: membership.organizationId, role: membership.role });
+    } catch (error) {
+      console.error("Membership fetch error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch membership",
+      });
+    }
+  });
+
   app.post("/api/me/role", requireAuth, async (req: AuthRequest, res) => {
     try {
       const { role } = z.object({

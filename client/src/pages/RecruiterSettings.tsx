@@ -13,8 +13,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Settings, Users, Workflow, MessageSquare, Shield, DollarSign, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-
-const MOCK_ORG_ID = "org-001";
+import type { User } from "@shared/schema";
 
 interface TeamMember {
   id: string;
@@ -56,6 +55,19 @@ interface IntegrationSettings {
 export default function RecruiterSettings() {
   const { toast } = useToast();
   
+  // Get current user to fetch their organization
+  const { data: user } = useQuery<User>({
+    queryKey: ['/api/me'],
+  });
+  
+  // Fetch user's first organization membership
+  const { data: membership } = useQuery<{ organizationId: string }>({
+    queryKey: ['/api/my-membership'],
+    enabled: !!user,
+  });
+  
+  const orgId = membership?.organizationId;
+  
   // Team Management State
   const [newMember, setNewMember] = useState({ email: "", role: "recruiter", permissions: [] as string[] });
   
@@ -93,17 +105,20 @@ export default function RecruiterSettings() {
 
   // Fetch Team Members
   const { data: teamMembers = [], isLoading: loadingMembers } = useQuery<TeamMember[]>({
-    queryKey: [`/api/organizations/${MOCK_ORG_ID}/team-members`],
+    queryKey: [`/api/organizations/${orgId}/team-members`],
+    enabled: !!orgId,
   });
 
   // Fetch Pipeline Stages
   const { data: pipelineStages = [], isLoading: loadingStages } = useQuery<PipelineStage[]>({
-    queryKey: [`/api/organizations/${MOCK_ORG_ID}/pipeline-stages`],
+    queryKey: [`/api/organizations/${orgId}/pipeline-stages`],
+    enabled: !!orgId,
   });
 
   // Fetch Interview Settings
   const { data: interviewData } = useQuery({
-    queryKey: [`/api/organizations/${MOCK_ORG_ID}/interview-settings`],
+    queryKey: [`/api/organizations/${orgId}/interview-settings`],
+    enabled: !!orgId,
   });
 
   useEffect(() => {
@@ -120,7 +135,8 @@ export default function RecruiterSettings() {
 
   // Fetch Compliance Settings
   const { data: complianceData } = useQuery({
-    queryKey: [`/api/organizations/${MOCK_ORG_ID}/compliance-settings`],
+    queryKey: [`/api/organizations/${orgId}/compliance-settings`],
+    enabled: !!orgId,
   });
 
   useEffect(() => {
@@ -138,7 +154,8 @@ export default function RecruiterSettings() {
 
   // Fetch Integration Settings
   const { data: integrationData } = useQuery({
-    queryKey: [`/api/organizations/${MOCK_ORG_ID}/integrations`],
+    queryKey: [`/api/organizations/${orgId}/integrations`],
+    enabled: !!orgId,
   });
 
   useEffect(() => {
@@ -156,11 +173,11 @@ export default function RecruiterSettings() {
   // Add Team Member Mutation
   const addMemberMutation = useMutation({
     mutationFn: async (member: typeof newMember) => {
-      const response = await apiRequest("POST", `/api/organizations/${MOCK_ORG_ID}/team-members`, member);
+      const response = await apiRequest("POST", `/api/organizations/${orgId}/team-members`, member);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${MOCK_ORG_ID}/team-members`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${orgId}/team-members`] });
       toast({ title: "Team member added successfully" });
       setNewMember({ email: "", role: "recruiter", permissions: [] });
     },
@@ -172,11 +189,11 @@ export default function RecruiterSettings() {
   // Delete Team Member Mutation
   const deleteMemberMutation = useMutation({
     mutationFn: async (memberId: string) => {
-      const response = await apiRequest("DELETE", `/api/organizations/${MOCK_ORG_ID}/team-members/${memberId}`);
+      const response = await apiRequest("DELETE", `/api/organizations/${orgId}/team-members/${memberId}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${MOCK_ORG_ID}/team-members`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${orgId}/team-members`] });
       toast({ title: "Team member removed" });
     },
   });
@@ -184,11 +201,11 @@ export default function RecruiterSettings() {
   // Add Pipeline Stage Mutation
   const addStageMutation = useMutation({
     mutationFn: async (stage: typeof newStage) => {
-      const response = await apiRequest("POST", `/api/organizations/${MOCK_ORG_ID}/pipeline-stages`, stage);
+      const response = await apiRequest("POST", `/api/organizations/${orgId}/pipeline-stages`, stage);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${MOCK_ORG_ID}/pipeline-stages`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${orgId}/pipeline-stages`] });
       toast({ title: "Pipeline stage added" });
       setNewStage({ name: "", order: (pipelineStages?.length || 0) + 1 });
     },
@@ -197,11 +214,11 @@ export default function RecruiterSettings() {
   // Delete Pipeline Stage Mutation
   const deleteStageMutation = useMutation({
     mutationFn: async (stageId: string) => {
-      const response = await apiRequest("DELETE", `/api/organizations/${MOCK_ORG_ID}/pipeline-stages/${stageId}`);
+      const response = await apiRequest("DELETE", `/api/organizations/${orgId}/pipeline-stages/${stageId}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${MOCK_ORG_ID}/pipeline-stages`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${orgId}/pipeline-stages`] });
       toast({ title: "Pipeline stage removed" });
     },
   });
@@ -209,7 +226,7 @@ export default function RecruiterSettings() {
   // Save Interview Settings Mutation
   const saveInterviewMutation = useMutation({
     mutationFn: async (settings: InterviewSettings) => {
-      const response = await apiRequest("PUT", `/api/organizations/${MOCK_ORG_ID}/interview-settings`, {
+      const response = await apiRequest("PUT", `/api/organizations/${orgId}/interview-settings`, {
         calendarProvider: settings.calendarProvider,
         videoProvider: settings.videoProvider,
         panelTemplates: settings.panelTemplates,
@@ -225,7 +242,7 @@ export default function RecruiterSettings() {
   // Save Compliance Settings Mutation
   const saveComplianceMutation = useMutation({
     mutationFn: async (settings: ComplianceSettings) => {
-      const response = await apiRequest("PUT", `/api/organizations/${MOCK_ORG_ID}/compliance-settings`, {
+      const response = await apiRequest("PUT", `/api/organizations/${orgId}/compliance-settings`, {
         eeDataCapture: settings.eeDataCapture,
         consentText: settings.consentText,
         dataRetentionDays: settings.dataRetentionDays,
@@ -242,7 +259,7 @@ export default function RecruiterSettings() {
   // Save Integration Settings Mutation
   const saveIntegrationMutation = useMutation({
     mutationFn: async (settings: IntegrationSettings) => {
-      const response = await apiRequest("PUT", `/api/organizations/${MOCK_ORG_ID}/integrations`, {
+      const response = await apiRequest("PUT", `/api/organizations/${orgId}/integrations`, {
         slackWebhook: settings.slackWebhook,
         msTeamsWebhook: settings.msTeamsWebhook,
         atsProvider: settings.atsProvider,

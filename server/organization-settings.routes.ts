@@ -1,15 +1,38 @@
-import { Router } from "express";
+import { Router, type Request, type Response, type NextFunction } from "express";
 import pg from "pg";
 import { z } from "zod";
+import { requireAuth, type AuthRequest } from "./auth";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const router = Router();
+
+// Middleware to validate organization membership
+async function requireOrgMembership(req: AuthRequest, res: Response, next: NextFunction) {
+  const { orgId } = req.params;
+  const userId = req.user?.id;
+
+  if (!userId) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  // Check if user is a member of the organization
+  const { rows } = await pool.query(
+    `SELECT role FROM memberships WHERE user_id = $1 AND organization_id = $2`,
+    [userId, orgId]
+  );
+
+  if (rows.length === 0) {
+    return res.status(403).json({ error: "Access denied to this organization" });
+  }
+
+  next();
+}
 
 // ============================================
 // TEAM MEMBERS
 // ============================================
 
-router.get("/organizations/:orgId/team-members", async (req, res) => {
+router.get("/organizations/:orgId/team-members", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM team_members WHERE organization_id = $1 ORDER BY invited_at DESC`,
@@ -18,7 +41,7 @@ router.get("/organizations/:orgId/team-members", async (req, res) => {
   res.json(rows);
 });
 
-router.post("/organizations/:orgId/team-members", async (req, res) => {
+router.post("/organizations/:orgId/team-members", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { email, role, permissions, status } = req.body;
   const { rows } = await pool.query(
@@ -30,7 +53,7 @@ router.post("/organizations/:orgId/team-members", async (req, res) => {
   res.json(rows[0]);
 });
 
-router.patch("/organizations/:orgId/team-members/:memberId", async (req, res) => {
+router.patch("/organizations/:orgId/team-members/:memberId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, memberId } = req.params;
   const { email, role, permissions, status, acceptedAt } = req.body;
   
@@ -78,7 +101,7 @@ router.patch("/organizations/:orgId/team-members/:memberId", async (req, res) =>
   res.json(rows[0]);
 });
 
-router.delete("/organizations/:orgId/team-members/:memberId", async (req, res) => {
+router.delete("/organizations/:orgId/team-members/:memberId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, memberId } = req.params;
   const { rows } = await pool.query(
     `DELETE FROM team_members WHERE id = $1 AND organization_id = $2 RETURNING id`,
@@ -96,7 +119,7 @@ router.delete("/organizations/:orgId/team-members/:memberId", async (req, res) =
 // PIPELINE STAGES
 // ============================================
 
-router.get("/organizations/:orgId/pipeline-stages", async (req, res) => {
+router.get("/organizations/:orgId/pipeline-stages", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM pipeline_stages WHERE organization_id = $1 ORDER BY "order"`,
@@ -105,7 +128,7 @@ router.get("/organizations/:orgId/pipeline-stages", async (req, res) => {
   res.json(rows);
 });
 
-router.post("/organizations/:orgId/pipeline-stages", async (req, res) => {
+router.post("/organizations/:orgId/pipeline-stages", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { name, order, isDefault } = req.body;
   const { rows } = await pool.query(
@@ -117,7 +140,7 @@ router.post("/organizations/:orgId/pipeline-stages", async (req, res) => {
   res.json(rows[0]);
 });
 
-router.patch("/organizations/:orgId/pipeline-stages/:stageId", async (req, res) => {
+router.patch("/organizations/:orgId/pipeline-stages/:stageId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, stageId } = req.params;
   const { name, order, isDefault } = req.body;
   
@@ -157,7 +180,7 @@ router.patch("/organizations/:orgId/pipeline-stages/:stageId", async (req, res) 
   res.json(rows[0]);
 });
 
-router.delete("/organizations/:orgId/pipeline-stages/:stageId", async (req, res) => {
+router.delete("/organizations/:orgId/pipeline-stages/:stageId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, stageId } = req.params;
   const { rows } = await pool.query(
     `DELETE FROM pipeline_stages WHERE id = $1 AND organization_id = $2 RETURNING id`,
@@ -175,7 +198,7 @@ router.delete("/organizations/:orgId/pipeline-stages/:stageId", async (req, res)
 // INTERVIEW SETTINGS
 // ============================================
 
-router.get("/organizations/:orgId/interview-settings", async (req, res) => {
+router.get("/organizations/:orgId/interview-settings", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM interview_settings WHERE organization_id = $1`,
@@ -195,7 +218,7 @@ router.get("/organizations/:orgId/interview-settings", async (req, res) => {
   res.json(rows[0]);
 });
 
-router.put("/organizations/:orgId/interview-settings", async (req, res) => {
+router.put("/organizations/:orgId/interview-settings", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { calendarProvider, videoProvider, panelTemplates, feedbackFormTemplate } = req.body;
   
@@ -230,7 +253,7 @@ router.put("/organizations/:orgId/interview-settings", async (req, res) => {
 // COMPLIANCE SETTINGS
 // ============================================
 
-router.get("/organizations/:orgId/compliance-settings", async (req, res) => {
+router.get("/organizations/:orgId/compliance-settings", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM compliance_settings WHERE organization_id = $1`,
@@ -250,7 +273,7 @@ router.get("/organizations/:orgId/compliance-settings", async (req, res) => {
   res.json(rows[0]);
 });
 
-router.put("/organizations/:orgId/compliance-settings", async (req, res) => {
+router.put("/organizations/:orgId/compliance-settings", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { eeDataCapture, consentText, dataRetentionDays, popiaOfficer, dataDeletionContact } = req.body;
   
@@ -286,7 +309,7 @@ router.put("/organizations/:orgId/compliance-settings", async (req, res) => {
 // ORGANIZATION INTEGRATIONS
 // ============================================
 
-router.get("/organizations/:orgId/integrations", async (req, res) => {
+router.get("/organizations/:orgId/integrations", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM organization_integrations WHERE organization_id = $1`,
@@ -306,7 +329,7 @@ router.get("/organizations/:orgId/integrations", async (req, res) => {
   res.json(rows[0]);
 });
 
-router.put("/organizations/:orgId/integrations", async (req, res) => {
+router.put("/organizations/:orgId/integrations", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { slackWebhook, msTeamsWebhook, atsProvider, atsApiKey, sourcingChannels } = req.body;
   
@@ -342,7 +365,7 @@ router.put("/organizations/:orgId/integrations", async (req, res) => {
 // JOB TEMPLATES
 // ============================================
 
-router.get("/organizations/:orgId/job-templates", async (req, res) => {
+router.get("/organizations/:orgId/job-templates", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM job_templates WHERE organization_id = $1 ORDER BY created_at DESC`,
@@ -351,7 +374,7 @@ router.get("/organizations/:orgId/job-templates", async (req, res) => {
   res.json(rows);
 });
 
-router.post("/organizations/:orgId/job-templates", async (req, res) => {
+router.post("/organizations/:orgId/job-templates", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { name, jobTitle, jobDescription, requirements, interviewStructure, approvalChain } = req.body;
   const { rows } = await pool.query(
@@ -364,7 +387,7 @@ router.post("/organizations/:orgId/job-templates", async (req, res) => {
   res.json(rows[0]);
 });
 
-router.patch("/organizations/:orgId/job-templates/:templateId", async (req, res) => {
+router.patch("/organizations/:orgId/job-templates/:templateId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, templateId } = req.params;
   const { name, jobTitle, jobDescription, requirements, interviewStructure, approvalChain } = req.body;
   
@@ -417,7 +440,7 @@ router.patch("/organizations/:orgId/job-templates/:templateId", async (req, res)
   res.json(rows[0]);
 });
 
-router.delete("/organizations/:orgId/job-templates/:templateId", async (req, res) => {
+router.delete("/organizations/:orgId/job-templates/:templateId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, templateId } = req.params;
   const { rows } = await pool.query(
     `DELETE FROM job_templates WHERE id = $1 AND organization_id = $2 RETURNING id`,
@@ -435,7 +458,7 @@ router.delete("/organizations/:orgId/job-templates/:templateId", async (req, res
 // SALARY BANDS
 // ============================================
 
-router.get("/organizations/:orgId/salary-bands", async (req, res) => {
+router.get("/organizations/:orgId/salary-bands", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM salary_bands WHERE organization_id = $1 ORDER BY created_at DESC`,
@@ -444,7 +467,7 @@ router.get("/organizations/:orgId/salary-bands", async (req, res) => {
   res.json(rows);
 });
 
-router.post("/organizations/:orgId/salary-bands", async (req, res) => {
+router.post("/organizations/:orgId/salary-bands", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { title, minSalary, maxSalary, currency } = req.body;
   const { rows } = await pool.query(
@@ -456,7 +479,7 @@ router.post("/organizations/:orgId/salary-bands", async (req, res) => {
   res.json(rows[0]);
 });
 
-router.patch("/organizations/:orgId/salary-bands/:bandId", async (req, res) => {
+router.patch("/organizations/:orgId/salary-bands/:bandId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, bandId } = req.params;
   const { title, minSalary, maxSalary, currency } = req.body;
   
@@ -500,7 +523,7 @@ router.patch("/organizations/:orgId/salary-bands/:bandId", async (req, res) => {
   res.json(rows[0]);
 });
 
-router.delete("/organizations/:orgId/salary-bands/:bandId", async (req, res) => {
+router.delete("/organizations/:orgId/salary-bands/:bandId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, bandId } = req.params;
   const { rows } = await pool.query(
     `DELETE FROM salary_bands WHERE id = $1 AND organization_id = $2 RETURNING id`,
@@ -518,7 +541,7 @@ router.delete("/organizations/:orgId/salary-bands/:bandId", async (req, res) => 
 // APPROVED VENDORS
 // ============================================
 
-router.get("/organizations/:orgId/vendors", async (req, res) => {
+router.get("/organizations/:orgId/vendors", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM approved_vendors WHERE organization_id = $1 ORDER BY created_at DESC`,
@@ -527,7 +550,7 @@ router.get("/organizations/:orgId/vendors", async (req, res) => {
   res.json(rows);
 });
 
-router.post("/organizations/:orgId/vendors", async (req, res) => {
+router.post("/organizations/:orgId/vendors", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
   const { name, contactEmail, rate, ndaSigned, status } = req.body;
   const { rows } = await pool.query(
@@ -539,7 +562,7 @@ router.post("/organizations/:orgId/vendors", async (req, res) => {
   res.json(rows[0]);
 });
 
-router.patch("/organizations/:orgId/vendors/:vendorId", async (req, res) => {
+router.patch("/organizations/:orgId/vendors/:vendorId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, vendorId } = req.params;
   const { name, contactEmail, rate, ndaSigned, status } = req.body;
   
@@ -587,7 +610,7 @@ router.patch("/organizations/:orgId/vendors/:vendorId", async (req, res) => {
   res.json(rows[0]);
 });
 
-router.delete("/organizations/:orgId/vendors/:vendorId", async (req, res) => {
+router.delete("/organizations/:orgId/vendors/:vendorId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, vendorId } = req.params;
   const { rows } = await pool.query(
     `DELETE FROM approved_vendors WHERE id = $1 AND organization_id = $2 RETURNING id`,

@@ -13,8 +13,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Building, FileText, Users2, DollarSign, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-
-const MOCK_ORG_ID = "org-001";
+import type { User } from "@shared/schema";
 
 interface JobTemplate {
   id: string;
@@ -45,6 +44,19 @@ interface Vendor {
 
 export default function BusinessSettings() {
   const { toast } = useToast();
+  
+  // Get current user to fetch their organization
+  const { data: user } = useQuery<User>({
+    queryKey: ['/api/me'],
+  });
+  
+  // Fetch user's first organization membership
+  const { data: membership } = useQuery<{ organizationId: string }>({
+    queryKey: ['/api/my-membership'],
+    enabled: !!user,
+  });
+  
+  const orgId = membership?.organizationId;
 
   // Job Template State
   const [newTemplate, setNewTemplate] = useState({
@@ -79,27 +91,30 @@ export default function BusinessSettings() {
 
   // Fetch Job Templates
   const { data: jobTemplates = [], isLoading: loadingTemplates } = useQuery<JobTemplate[]>({
-    queryKey: [`/api/organizations/${MOCK_ORG_ID}/job-templates`],
+    queryKey: [`/api/organizations/${orgId}/job-templates`],
+    enabled: !!orgId,
   });
 
   // Fetch Salary Bands
   const { data: salaryBands = [], isLoading: loadingBands } = useQuery<SalaryBand[]>({
-    queryKey: [`/api/organizations/${MOCK_ORG_ID}/salary-bands`],
+    queryKey: [`/api/organizations/${orgId}/salary-bands`],
+    enabled: !!orgId,
   });
 
   // Fetch Vendors
   const { data: vendors = [], isLoading: loadingVendors } = useQuery<Vendor[]>({
-    queryKey: [`/api/organizations/${MOCK_ORG_ID}/vendors`],
+    queryKey: [`/api/organizations/${orgId}/vendors`],
+    enabled: !!orgId,
   });
 
   // Add Job Template Mutation
   const addTemplateMutation = useMutation({
     mutationFn: async (template: typeof newTemplate) => {
-      const response = await apiRequest("POST", `/api/organizations/${MOCK_ORG_ID}/job-templates`, template);
+      const response = await apiRequest("POST", `/api/organizations/${orgId}/job-templates`, template);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${MOCK_ORG_ID}/job-templates`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${orgId}/job-templates`] });
       toast({ title: "Job template added successfully" });
       setNewTemplate({
         name: "",
@@ -118,11 +133,11 @@ export default function BusinessSettings() {
   // Delete Job Template Mutation
   const deleteTemplateMutation = useMutation({
     mutationFn: async (templateId: string) => {
-      const response = await apiRequest("DELETE", `/api/organizations/${MOCK_ORG_ID}/job-templates/${templateId}`);
+      const response = await apiRequest("DELETE", `/api/organizations/${orgId}/job-templates/${templateId}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${MOCK_ORG_ID}/job-templates`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${orgId}/job-templates`] });
       toast({ title: "Job template removed" });
     },
   });
@@ -130,11 +145,11 @@ export default function BusinessSettings() {
   // Add Salary Band Mutation
   const addBandMutation = useMutation({
     mutationFn: async (band: typeof newBand) => {
-      const response = await apiRequest("POST", `/api/organizations/${MOCK_ORG_ID}/salary-bands`, band);
+      const response = await apiRequest("POST", `/api/organizations/${orgId}/salary-bands`, band);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${MOCK_ORG_ID}/salary-bands`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${orgId}/salary-bands`] });
       toast({ title: "Salary band added successfully" });
       setNewBand({ title: "", minSalary: 0, maxSalary: 0, currency: "ZAR" });
     },
@@ -146,11 +161,11 @@ export default function BusinessSettings() {
   // Delete Salary Band Mutation
   const deleteBandMutation = useMutation({
     mutationFn: async (bandId: string) => {
-      const response = await apiRequest("DELETE", `/api/organizations/${MOCK_ORG_ID}/salary-bands/${bandId}`);
+      const response = await apiRequest("DELETE", `/api/organizations/${orgId}/salary-bands/${bandId}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${MOCK_ORG_ID}/salary-bands`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${orgId}/salary-bands`] });
       toast({ title: "Salary band removed" });
     },
   });
@@ -158,11 +173,11 @@ export default function BusinessSettings() {
   // Add Vendor Mutation
   const addVendorMutation = useMutation({
     mutationFn: async (vendor: typeof newVendor) => {
-      const response = await apiRequest("POST", `/api/organizations/${MOCK_ORG_ID}/vendors`, vendor);
+      const response = await apiRequest("POST", `/api/organizations/${orgId}/vendors`, vendor);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${MOCK_ORG_ID}/vendors`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${orgId}/vendors`] });
       toast({ title: "Vendor added successfully" });
       setNewVendor({ name: "", contactEmail: "", rate: "", ndaSigned: 0, status: "active" });
     },
@@ -174,11 +189,11 @@ export default function BusinessSettings() {
   // Delete Vendor Mutation
   const deleteVendorMutation = useMutation({
     mutationFn: async (vendorId: string) => {
-      const response = await apiRequest("DELETE", `/api/organizations/${MOCK_ORG_ID}/vendors/${vendorId}`);
+      const response = await apiRequest("DELETE", `/api/organizations/${orgId}/vendors/${vendorId}`);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${MOCK_ORG_ID}/vendors`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/organizations/${orgId}/vendors`] });
       toast({ title: "Vendor removed" });
     },
   });

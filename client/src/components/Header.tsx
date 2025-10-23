@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User as UserIcon, LogOut, Database, Sparkles, Briefcase } from "lucide-react";
+import { Menu, X, User as UserIcon, LogOut, Database, Sparkles, Briefcase, Settings } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -123,6 +123,23 @@ export default function Header() {
                   >
                     <Sparkles size={16} />
                     CV Screening (Legacy)
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => setLocation('/settings/recruiter')}
+                    className="gap-2 cursor-pointer"
+                    data-testid="link-recruiter-settings"
+                  >
+                    <Settings size={16} />
+                    Recruiter Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setLocation('/settings/business')}
+                    className="gap-2 cursor-pointer"
+                    data-testid="link-business-settings"
+                  >
+                    <Settings size={16} />
+                    Business Settings
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem

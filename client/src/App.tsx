@@ -20,6 +20,8 @@ import CandidateProfile from "@/pages/candidate-profile";
 import CandidateAdd from "@/pages/candidate-add";
 import Roles from "@/pages/roles";
 import RoleScreening from "@/pages/role-screening";
+import RecruiterSettings from "@/pages/RecruiterSettings";
+import BusinessSettings from "@/pages/BusinessSettings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -40,6 +42,8 @@ function Router() {
       <Route path="/candidates/:id" component={CandidateProfile} />
       <Route path="/roles" component={Roles} />
       <Route path="/roles/:roleId/screen" component={RoleScreening} />
+      <Route path="/settings/recruiter" component={RecruiterSettings} />
+      <Route path="/settings/business" component={BusinessSettings} />
       <Route component={NotFound} />
     </Switch>
   );
