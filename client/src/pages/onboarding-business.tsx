@@ -104,11 +104,11 @@ export default function OnboardingBusiness() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full">
         <CardHeader>
-          <CardTitle data-testid="text-onboarding-business-title">Set Up Your Organization</CardTitle>
-          <CardDescription data-testid="text-onboarding-business-description">
+          <CardTitle className="text-white-brand" data-testid="text-onboarding-business-title">Set Up Your Organization</CardTitle>
+          <CardDescription className="text-slate" data-testid="text-onboarding-business-description">
             Tell us about your company
           </CardDescription>
         </CardHeader>
@@ -268,7 +268,7 @@ export default function OnboardingBusiness() {
 
               <Button 
                 type="submit" 
-                className="w-full" 
+                className="w-full bg-amber-gradient text-charcoal hover:opacity-90" 
                 disabled={isSubmitting}
                 data-testid="button-create-organization"
               >

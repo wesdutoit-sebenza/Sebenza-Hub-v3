@@ -75,11 +75,11 @@ export default function OnboardingRecruiter() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full">
         <CardHeader>
-          <CardTitle data-testid="text-onboarding-recruiter-title">Set Up Your Recruiter Profile</CardTitle>
-          <CardDescription data-testid="text-onboarding-recruiter-description">
+          <CardTitle className="text-white-brand" data-testid="text-onboarding-recruiter-title">Set Up Your Recruiter Profile</CardTitle>
+          <CardDescription className="text-slate" data-testid="text-onboarding-recruiter-description">
             Tell us about your recruiting expertise
           </CardDescription>
         </CardHeader>
@@ -160,16 +160,16 @@ export default function OnboardingRecruiter() {
                 )}
               />
 
-              <div className="p-4 bg-muted rounded-md">
-                <p className="text-sm text-muted-foreground">
-                  <strong>Note:</strong> Your recruiter profile will be reviewed by our team before being activated.
+              <div className="p-4 bg-amber/10 rounded-md border border-amber/20">
+                <p className="text-sm text-slate">
+                  <strong className="text-amber">Note:</strong> Your recruiter profile will be reviewed by our team before being activated.
                   This typically takes 1-2 business days.
                 </p>
               </div>
 
               <Button 
                 type="submit" 
-                className="w-full" 
+                className="w-full bg-amber-gradient text-charcoal hover:opacity-90" 
                 disabled={isSubmitting}
                 data-testid="button-create-recruiter-profile"
               >

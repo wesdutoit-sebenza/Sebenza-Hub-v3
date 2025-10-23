@@ -129,19 +129,19 @@ export default function AddCandidatePage() {
   const isPending = uploadFileMutation.isPending || parseTextMutation.isPending;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-charcoal">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
           <Link href="/candidates">
-            <Button variant="ghost" size="sm" className="mb-4" data-testid="button-back">
+            <Button variant="ghost" size="sm" className="mb-4 text-white-brand hover:text-amber" data-testid="button-back">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Candidates
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold" data-testid="heading-add-candidate">
+          <h1 className="text-3xl font-bold text-white-brand" data-testid="heading-add-candidate">
             Add Candidate
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-slate mt-1">
             Upload a resume to automatically create a candidate profile using AI
           </p>
         </div>
@@ -150,6 +150,7 @@ export default function AddCandidatePage() {
           <Button
             type="button"
             variant={uploadMethod === 'file' ? 'default' : 'outline'}
+            className={uploadMethod === 'file' ? 'bg-amber-gradient text-charcoal hover:opacity-90' : ''}
             onClick={() => setUploadMethod('file')}
             data-testid="button-method-file"
           >
@@ -159,6 +160,7 @@ export default function AddCandidatePage() {
           <Button
             type="button"
             variant={uploadMethod === 'text' ? 'default' : 'outline'}
+            className={uploadMethod === 'text' ? 'bg-amber-gradient text-charcoal hover:opacity-90' : ''}
             onClick={() => setUploadMethod('text')}
             data-testid="button-method-text"
           >
@@ -171,14 +173,14 @@ export default function AddCandidatePage() {
           {uploadMethod === 'file' ? (
             <Card>
               <CardHeader>
-                <CardTitle>Resume File Upload</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-white-brand">Resume File Upload</CardTitle>
+                <CardDescription className="text-slate">
                   Upload a resume file (PDF, DOCX, or TXT) to automatically extract candidate information using AI
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="resume-file">Select Resume File</Label>
+                  <Label htmlFor="resume-file" className="text-white-brand">Select Resume File</Label>
                   <div className="flex items-center gap-3">
                     <Input
                       id="resume-file"
@@ -186,21 +188,21 @@ export default function AddCandidatePage() {
                       accept=".txt,.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                       onChange={handleFileSelect}
                       data-testid="input-resume-file"
-                      className="cursor-pointer"
+                      className="cursor-pointer bg-graphite border-slate text-white-brand"
                     />
                   </div>
                   {selectedFile && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <CheckCircle2 className="w-4 h-4 text-green" />
+                    <div className="flex items-center gap-2 text-sm text-white-brand">
+                      <CheckCircle2 className="w-4 h-4 text-amber" />
                       <span data-testid="text-filename">
                         {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
                       </span>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs border-amber text-amber">
                         {selectedFile.name.split('.').pop()?.toUpperCase()}
                       </Badge>
                     </div>
                   )}
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-slate">
                     Supported formats: PDF, DOCX, DOC, TXT (Max 10MB)
                   </p>
                 </div>
@@ -214,6 +216,7 @@ export default function AddCandidatePage() {
                   <Button
                     type="submit"
                     disabled={!selectedFile || isPending}
+                    className="bg-amber-gradient text-charcoal hover:opacity-90"
                     data-testid="button-upload-resume"
                   >
                     {uploadFileMutation.isPending ? (
@@ -234,32 +237,33 @@ export default function AddCandidatePage() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Paste Resume Text</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-white-brand">Paste Resume Text</CardTitle>
+                <CardDescription className="text-slate">
                   Paste resume text directly or upload a text file
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="text-file">Quick Upload (Optional)</Label>
+                  <Label htmlFor="text-file" className="text-white-brand">Quick Upload (Optional)</Label>
                   <div className="flex gap-2">
                     <Input
                       id="text-file"
                       type="file"
                       accept=".txt"
                       onChange={handleTextFileUpload}
+                      className="bg-graphite border-slate text-white-brand"
                       data-testid="input-text-file"
                     />
                   </div>
                   {filename && (
-                    <p className="text-sm text-muted-foreground" data-testid="text-filename-text">
+                    <p className="text-sm text-slate" data-testid="text-filename-text">
                       Loaded: {filename}
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="raw-text">Resume Text</Label>
+                  <Label htmlFor="raw-text" className="text-white-brand">Resume Text</Label>
                   <Textarea
                     id="raw-text"
                     placeholder="Paste resume text here..."
@@ -269,10 +273,10 @@ export default function AddCandidatePage() {
                       if (!filename) setFilename("pasted-resume.txt");
                     }}
                     rows={15}
-                    className="font-mono text-sm"
+                    className="font-mono text-sm bg-graphite border-slate text-white-brand placeholder:text-slate"
                     data-testid="textarea-resume-text"
                   />
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-slate">
                     {rawText.length > 0 ? `${rawText.length} characters` : "No text entered"}
                   </p>
                 </div>
@@ -286,6 +290,7 @@ export default function AddCandidatePage() {
                   <Button
                     type="submit"
                     disabled={!rawText || isPending}
+                    className="bg-amber-gradient text-charcoal hover:opacity-90"
                     data-testid="button-parse-resume"
                   >
                     {parseTextMutation.isPending ? (
@@ -307,10 +312,10 @@ export default function AddCandidatePage() {
 
           <Card className="mt-4">
             <CardHeader>
-              <CardTitle>What happens next?</CardTitle>
+              <CardTitle className="text-white-brand">What happens next?</CardTitle>
             </CardHeader>
             <CardContent>
-              <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
+              <ol className="list-decimal list-inside space-y-2 text-sm text-slate">
                 <li>AI will analyze the resume and extract structured information</li>
                 <li>A candidate profile will be created automatically with all details</li>
                 <li>Work experience, education, skills, and certifications will be populated</li>

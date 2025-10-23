@@ -138,15 +138,15 @@ export default function Roles() {
   });
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="container mx-auto py-8 px-4 max-w-7xl bg-charcoal min-h-screen">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold mb-2" data-testid="text-page-title">Roles Management</h1>
-          <p className="text-muted-foreground">Create and manage hiring roles for candidate screening</p>
+          <h1 className="text-3xl font-bold mb-2 text-white-brand" data-testid="text-page-title">Roles Management</h1>
+          <p className="text-slate">Create and manage hiring roles for candidate screening</p>
         </div>
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
-            <Button data-testid="button-create-role">
+            <Button className="bg-amber-gradient text-charcoal hover:opacity-90" data-testid="button-create-role">
               <Plus className="w-4 h-4 mr-2" />
               Create Role
             </Button>
@@ -184,12 +184,12 @@ export default function Roles() {
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
             <Card data-testid="card-stat-total">
               <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Roles</CardTitle>
-                <Briefcase className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-white-brand">Total Roles</CardTitle>
+                <Briefcase className="h-4 w-4 text-amber" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold" data-testid="text-total-roles">{stats.totalRoles}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-2xl font-bold text-amber" data-testid="text-total-roles">{stats.totalRoles}</div>
+                <p className="text-xs text-slate mt-1">
                   {stats.activeRoles} active, {stats.inactiveRoles} inactive
                 </p>
               </CardContent>
@@ -197,12 +197,12 @@ export default function Roles() {
 
             <Card data-testid="card-stat-active">
               <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Roles</CardTitle>
-                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-white-brand">Active Roles</CardTitle>
+                <CheckCircle2 className="h-4 w-4 text-amber" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold" data-testid="text-active-roles">{stats.activeRoles}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-2xl font-bold text-amber" data-testid="text-active-roles">{stats.activeRoles}</div>
+                <p className="text-xs text-slate mt-1">
                   ready for screening
                 </p>
               </CardContent>
@@ -210,12 +210,12 @@ export default function Roles() {
 
             <Card data-testid="card-stat-screenings">
               <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Screenings</CardTitle>
-                <Target className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-white-brand">Total Screenings</CardTitle>
+                <Target className="h-4 w-4 text-amber" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold" data-testid="text-total-screenings">{stats.totalScreenings}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-2xl font-bold text-amber" data-testid="text-total-screenings">{stats.totalScreenings}</div>
+                <p className="text-xs text-slate mt-1">
                   candidates evaluated
                 </p>
               </CardContent>
@@ -223,12 +223,12 @@ export default function Roles() {
 
             <Card data-testid="card-stat-recent">
               <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Recent Roles</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-white-brand">Recent Roles</CardTitle>
+                <TrendingUp className="h-4 w-4 text-amber" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold" data-testid="text-recent-roles">{stats.recentRoles}</div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-2xl font-bold text-amber" data-testid="text-recent-roles">{stats.recentRoles}</div>
+                <p className="text-xs text-slate mt-1">
                   added in last 7 days
                 </p>
               </CardContent>
@@ -238,24 +238,24 @@ export default function Roles() {
           {stats.topRoles && stats.topRoles.length > 0 && (
             <Card className="mb-8">
               <CardHeader>
-                <CardTitle>Top Roles by Screening Activity</CardTitle>
-                <CardDescription>Roles with the most candidate evaluations</CardDescription>
+                <CardTitle className="text-white-brand">Top Roles by Screening Activity</CardTitle>
+                <CardDescription className="text-slate">Roles with the most candidate evaluations</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   {stats.topRoles.map((role, index) => (
                     <div key={index} className="flex items-center justify-between" data-testid={`top-role-${index}`}>
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <Badge variant="secondary" className="w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+                        <Badge variant="secondary" className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-amber text-charcoal">
                           {index + 1}
                         </Badge>
-                        <span className="font-medium truncate">{role.roleTitle}</span>
+                        <span className="font-medium truncate text-white-brand">{role.roleTitle}</span>
                       </div>
                       <div className="flex items-center gap-4 shrink-0">
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-sm text-slate">
                           {role.count} screenings
                         </div>
-                        <Badge variant="outline">
+                        <Badge variant="outline" className="border-amber text-amber">
                           Avg: {role.avgScore}%
                         </Badge>
                       </div>
@@ -275,12 +275,12 @@ export default function Roles() {
       ) : roles.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Briefcase className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No roles yet</h3>
-            <p className="text-muted-foreground text-center mb-4">
+            <Briefcase className="w-12 h-12 text-amber mb-4" />
+            <h3 className="text-lg font-semibold mb-2 text-white-brand">No roles yet</h3>
+            <p className="text-slate text-center mb-4">
               Create your first role to start screening candidates
             </p>
-            <Button onClick={() => setCreateDialogOpen(true)} data-testid="button-create-first-role">
+            <Button onClick={() => setCreateDialogOpen(true)} className="bg-amber-gradient text-charcoal hover:opacity-90" data-testid="button-create-first-role">
               <Plus className="w-4 h-4 mr-2" />
               Create Your First Role
             </Button>
@@ -292,7 +292,7 @@ export default function Roles() {
             <Card key={role.id} className="hover-elevate" data-testid={`card-role-${role.id}`}>
               <CardHeader className="space-y-1">
                 <div className="flex items-start justify-between">
-                  <CardTitle className="text-xl">{role.jobTitle}</CardTitle>
+                  <CardTitle className="text-xl text-white-brand">{role.jobTitle}</CardTitle>
                   <div className="flex gap-1">
                     <Button
                       size="icon"
@@ -316,16 +316,16 @@ export default function Roles() {
                     </Button>
                   </div>
                 </div>
-                <CardDescription className="line-clamp-2">{role.jobDescription}</CardDescription>
+                <CardDescription className="line-clamp-2 text-slate">{role.jobDescription}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <Briefcase className="w-4 h-4 text-muted-foreground" />
+                <div className="flex items-center gap-2 text-sm text-white-brand">
+                  <Briefcase className="w-4 h-4 text-amber" />
                   <span>{role.seniority || "Not specified"} • {role.employmentType || "Not specified"}</span>
                 </div>
                 {(role.locationCity || role.locationCountry) && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-sm text-white-brand">
+                    <MapPin className="w-4 h-4 text-amber" />
                     <span>
                       {[role.locationCity, role.locationCountry].filter(Boolean).join(", ")}
                       {role.workType && ` (${role.workType})`}
@@ -333,8 +333,8 @@ export default function Roles() {
                   </div>
                 )}
                 {(role.salaryMin || role.salaryMax) && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <DollarSign className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-sm text-white-brand">
+                    <DollarSign className="w-4 h-4 text-amber" />
                     <span>
                       {role.salaryCurrency || "ZAR"}{" "}
                       {role.salaryMin?.toLocaleString()} - {role.salaryMax?.toLocaleString()}
@@ -343,12 +343,12 @@ export default function Roles() {
                 )}
                 <div className="flex flex-wrap gap-1 mt-3">
                   {role.mustHaveSkills?.slice(0, 3).map((skill: string, idx: number) => (
-                    <Badge key={idx} variant="secondary" className="text-xs">
+                    <Badge key={idx} variant="secondary" className="text-xs bg-amber text-charcoal">
                       {skill}
                     </Badge>
                   ))}
                   {role.mustHaveSkills?.length > 3 && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs border-amber text-amber">
                       +{role.mustHaveSkills.length - 3} more
                     </Badge>
                   )}

@@ -43,16 +43,17 @@ export default function Screening() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-charcoal">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold" data-testid="heading-screening">CV Screening</h1>
-            <p className="text-muted-foreground mt-1">AI-powered candidate evaluation</p>
+            <h1 className="text-3xl font-bold text-white-brand" data-testid="heading-screening">CV Screening</h1>
+            <p className="text-slate mt-1">AI-powered candidate evaluation</p>
           </div>
           {view === 'list' && (
             <Button
               onClick={() => setView('create')}
+              className="bg-amber-gradient text-charcoal hover:opacity-90"
               data-testid="button-create-screening"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -92,12 +93,12 @@ export default function Screening() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
                 <Card data-testid="card-stat-total">
                   <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Jobs</CardTitle>
-                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium text-white-brand">Total Jobs</CardTitle>
+                    <FileText className="h-4 w-4 text-amber" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold" data-testid="text-total-jobs">{statsData.stats.totalJobs}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <div className="text-2xl font-bold text-amber" data-testid="text-total-jobs">{statsData.stats.totalJobs}</div>
+                    <p className="text-xs text-slate mt-1">
                       {statsData.stats.completedJobs} completed
                     </p>
                   </CardContent>
@@ -105,12 +106,12 @@ export default function Screening() {
 
                 <Card data-testid="card-stat-processing">
                   <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Processing</CardTitle>
-                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium text-white-brand">Processing</CardTitle>
+                    <Clock className="h-4 w-4 text-amber" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold" data-testid="text-processing-jobs">{statsData.stats.processingJobs}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <div className="text-2xl font-bold text-amber" data-testid="text-processing-jobs">{statsData.stats.processingJobs}</div>
+                    <p className="text-xs text-slate mt-1">
                       {statsData.stats.draftJobs} drafts
                     </p>
                   </CardContent>
@@ -118,12 +119,12 @@ export default function Screening() {
 
                 <Card data-testid="card-stat-success">
                   <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-                    <Target className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium text-white-brand">Success Rate</CardTitle>
+                    <Target className="h-4 w-4 text-amber" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold" data-testid="text-success-rate">{statsData.stats.successRate}%</div>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <div className="text-2xl font-bold text-amber" data-testid="text-success-rate">{statsData.stats.successRate}%</div>
+                    <p className="text-xs text-slate mt-1">
                       {statsData.stats.failedJobs} failed
                     </p>
                   </CardContent>
@@ -131,12 +132,12 @@ export default function Screening() {
 
                 <Card data-testid="card-stat-recent">
                   <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Recent Jobs</CardTitle>
-                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-sm font-medium text-white-brand">Recent Jobs</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-amber" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold" data-testid="text-recent-jobs">{statsData.stats.recentJobs}</div>
-                    <p className="text-xs text-muted-foreground mt-1">
+                    <div className="text-2xl font-bold text-amber" data-testid="text-recent-jobs">{statsData.stats.recentJobs}</div>
+                    <p className="text-xs text-slate mt-1">
                       in last 7 days
                     </p>
                   </CardContent>
@@ -185,9 +186,9 @@ function ScreeningJobList({ jobs, isLoading, onViewResults }: {
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No screening jobs yet</h3>
-          <p className="text-muted-foreground">Create your first screening job to get started</p>
+          <FileText className="w-12 h-12 mx-auto text-amber mb-4" />
+          <h3 className="text-lg font-semibold mb-2 text-white-brand">No screening jobs yet</h3>
+          <p className="text-slate">Create your first screening job to get started</p>
         </CardContent>
       </Card>
     );
@@ -200,8 +201,8 @@ function ScreeningJobList({ jobs, isLoading, onViewResults }: {
           <CardHeader>
             <div className="flex items-start justify-between">
               <div>
-                <CardTitle data-testid={`text-job-title-${job.id}`}>{job.jobTitle}</CardTitle>
-                <CardDescription className="mt-1">
+                <CardTitle className="text-white-brand" data-testid={`text-job-title-${job.id}`}>{job.jobTitle}</CardTitle>
+                <CardDescription className="mt-1 text-slate">
                   Created {new Date(job.createdAt).toLocaleDateString()}
                 </CardDescription>
               </div>
@@ -210,6 +211,11 @@ function ScreeningJobList({ jobs, isLoading, onViewResults }: {
                   job.status === 'completed' ? 'default' :
                   job.status === 'processing' ? 'secondary' :
                   job.status === 'failed' ? 'destructive' : 'outline'
+                }
+                className={
+                  job.status === 'completed' ? 'bg-amber text-charcoal' :
+                  job.status === 'processing' ? 'bg-amber/50 text-charcoal' :
+                  job.status === 'failed' ? '' : 'border-amber text-amber'
                 }
                 data-testid={`badge-status-${job.id}`}
               >
@@ -220,10 +226,10 @@ function ScreeningJobList({ jobs, isLoading, onViewResults }: {
           <CardContent>
             <div className="flex gap-2 flex-wrap">
               {job.mustHaveSkills.slice(0, 3).map((skill, i) => (
-                <Badge key={i} variant="outline">{skill}</Badge>
+                <Badge key={i} variant="outline" className="border-amber text-amber">{skill}</Badge>
               ))}
               {job.mustHaveSkills.length > 3 && (
-                <Badge variant="outline">+{job.mustHaveSkills.length - 3} more</Badge>
+                <Badge variant="outline" className="border-amber text-amber">+{job.mustHaveSkills.length - 3} more</Badge>
               )}
             </div>
           </CardContent>
@@ -351,29 +357,31 @@ function CreateScreeningJob({ onSuccess }: { onSuccess: (jobId: string) => void 
     <div className="max-w-3xl mx-auto">
       <Card>
         <CardHeader>
-          <CardTitle>Create Screening Job</CardTitle>
-          <CardDescription>Define criteria and weights for AI-powered candidate evaluation</CardDescription>
+          <CardTitle className="text-white-brand">Create Screening Job</CardTitle>
+          <CardDescription className="text-slate">Define criteria and weights for AI-powered candidate evaluation</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div>
-            <Label htmlFor="jobTitle">Job Title</Label>
+            <Label htmlFor="jobTitle" className="text-white-brand">Job Title</Label>
             <Input
               id="jobTitle"
               value={jobTitle}
               onChange={(e) => setJobTitle(e.target.value)}
               placeholder="e.g., Senior React Developer"
+              className="bg-graphite border-slate text-white-brand placeholder:text-slate"
               data-testid="input-job-title"
             />
           </div>
 
           <div>
-            <Label htmlFor="jobDescription">Job Description</Label>
+            <Label htmlFor="jobDescription" className="text-white-brand">Job Description</Label>
             <Textarea
               id="jobDescription"
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
               placeholder="Describe the role, responsibilities, and team..."
               rows={4}
+              className="bg-graphite border-slate text-white-brand placeholder:text-slate"
               data-testid="input-job-description"
             />
           </div>
@@ -508,7 +516,7 @@ function CreateScreeningJob({ onSuccess }: { onSuccess: (jobId: string) => void 
           <Button
             onClick={handleSubmit}
             disabled={createJobMutation.isPending}
-            className="w-full"
+            className="w-full bg-amber-gradient text-charcoal hover:opacity-90"
             data-testid="button-create-job"
           >
             {createJobMutation.isPending ? "Creating..." : "Create Screening Job"}

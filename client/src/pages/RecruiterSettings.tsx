@@ -273,10 +273,10 @@ export default function RecruiterSettings() {
   });
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-6xl">
+    <div className="container mx-auto py-8 px-4 max-w-6xl bg-charcoal min-h-screen">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Organization Settings</h1>
-        <p className="text-muted-foreground">Configure your recruiting platform settings and preferences</p>
+        <h1 className="text-4xl font-bold mb-2 text-white-brand">Organization Settings</h1>
+        <p className="text-slate">Configure your recruiting platform settings and preferences</p>
       </div>
 
       <Tabs defaultValue="team" className="space-y-6">
@@ -307,13 +307,13 @@ export default function RecruiterSettings() {
         <TabsContent value="team">
           <Card>
             <CardHeader>
-              <CardTitle>Team Management</CardTitle>
-              <CardDescription>Invite and manage team members for your organization</CardDescription>
+              <CardTitle className="text-white-brand">Team Management</CardTitle>
+              <CardDescription className="text-slate">Invite and manage team members for your organization</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Add Team Member Form */}
               <div className="space-y-4 p-4 border rounded-md">
-                <h3 className="font-semibold">Add Team Member</h3>
+                <h3 className="font-semibold text-white-brand">Add Team Member</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="member-email">Email</Label>
@@ -344,6 +344,7 @@ export default function RecruiterSettings() {
                   </div>
                   <div className="flex items-end">
                     <Button
+                      className="bg-amber-gradient text-charcoal hover:opacity-90"
                       onClick={() => addMemberMutation.mutate(newMember)}
                       disabled={!newMember.email || addMemberMutation.isPending}
                       data-testid="button-add-member"
@@ -366,11 +367,11 @@ export default function RecruiterSettings() {
 
               {/* Team Members List */}
               <div className="space-y-4">
-                <h3 className="font-semibold">Current Team Members</h3>
+                <h3 className="font-semibold text-white-brand">Current Team Members</h3>
                 {loadingMembers ? (
-                  <p className="text-sm text-muted-foreground">Loading team members...</p>
+                  <p className="text-sm text-slate">Loading team members...</p>
                 ) : teamMembers.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No team members yet. Add your first member above.</p>
+                  <p className="text-sm text-slate">No team members yet. Add your first member above.</p>
                 ) : (
                   <div className="space-y-2">
                     {teamMembers.map((member) => (
@@ -418,13 +419,13 @@ export default function RecruiterSettings() {
         <TabsContent value="pipeline">
           <Card>
             <CardHeader>
-              <CardTitle>Hiring Pipeline Configuration</CardTitle>
-              <CardDescription>Customize your hiring stages and workflow</CardDescription>
+              <CardTitle className="text-white-brand">Hiring Pipeline Configuration</CardTitle>
+              <CardDescription className="text-slate">Customize your hiring stages and workflow</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Add Pipeline Stage Form */}
               <div className="space-y-4 p-4 border rounded-md">
-                <h3 className="font-semibold">Add Pipeline Stage</h3>
+                <h3 className="font-semibold text-white-brand">Add Pipeline Stage</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="stage-name">Stage Name</Label>
@@ -438,6 +439,7 @@ export default function RecruiterSettings() {
                   </div>
                   <div className="flex items-end">
                     <Button
+                      className="bg-amber-gradient text-charcoal hover:opacity-90"
                       onClick={() => addStageMutation.mutate(newStage)}
                       disabled={!newStage.name || addStageMutation.isPending}
                       data-testid="button-add-stage"
@@ -452,11 +454,11 @@ export default function RecruiterSettings() {
 
               {/* Pipeline Stages List */}
               <div className="space-y-4">
-                <h3 className="font-semibold">Current Pipeline Stages</h3>
+                <h3 className="font-semibold text-white-brand">Current Pipeline Stages</h3>
                 {loadingStages ? (
-                  <p className="text-sm text-muted-foreground">Loading pipeline stages...</p>
+                  <p className="text-sm text-slate">Loading pipeline stages...</p>
                 ) : pipelineStages.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No pipeline stages configured yet.</p>
+                  <p className="text-sm text-slate">No pipeline stages configured yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {pipelineStages.map((stage) => (
@@ -495,8 +497,8 @@ export default function RecruiterSettings() {
         <TabsContent value="interview">
           <Card>
             <CardHeader>
-              <CardTitle>Interview Operations Settings</CardTitle>
-              <CardDescription>Configure calendar, video platforms, and interview templates</CardDescription>
+              <CardTitle className="text-white-brand">Interview Operations Settings</CardTitle>
+              <CardDescription className="text-slate">Configure calendar, video platforms, and interview templates</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -566,6 +568,7 @@ export default function RecruiterSettings() {
               </div>
 
               <Button
+                className="bg-amber-gradient text-charcoal hover:opacity-90"
                 onClick={() => saveInterviewMutation.mutate(interviewSettings)}
                 disabled={saveInterviewMutation.isPending}
                 data-testid="button-save-interview"
@@ -580,8 +583,8 @@ export default function RecruiterSettings() {
         <TabsContent value="compliance">
           <Card>
             <CardHeader>
-              <CardTitle>Compliance & POPIA Settings</CardTitle>
-              <CardDescription>Configure Employment Equity and data protection compliance</CardDescription>
+              <CardTitle className="text-white-brand">Compliance & POPIA Settings</CardTitle>
+              <CardDescription className="text-slate">Configure Employment Equity and data protection compliance</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -664,6 +667,7 @@ export default function RecruiterSettings() {
               </div>
 
               <Button
+                className="bg-amber-gradient text-charcoal hover:opacity-90"
                 onClick={() => saveComplianceMutation.mutate(complianceSettings)}
                 disabled={saveComplianceMutation.isPending}
                 data-testid="button-save-compliance"
@@ -678,8 +682,8 @@ export default function RecruiterSettings() {
         <TabsContent value="integrations">
           <Card>
             <CardHeader>
-              <CardTitle>External Integrations</CardTitle>
-              <CardDescription>Connect with Slack, Teams, and other platforms</CardDescription>
+              <CardTitle className="text-white-brand">External Integrations</CardTitle>
+              <CardDescription className="text-slate">Connect with Slack, Teams, and other platforms</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -742,6 +746,7 @@ export default function RecruiterSettings() {
               </div>
 
               <Button
+                className="bg-amber-gradient text-charcoal hover:opacity-90"
                 onClick={() => saveIntegrationMutation.mutate(integrationSettings)}
                 disabled={saveIntegrationMutation.isPending}
                 data-testid="button-save-integrations"

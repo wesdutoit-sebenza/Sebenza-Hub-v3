@@ -80,11 +80,11 @@ export default function OnboardingIndividual() {
   const provinces = ["Eastern Cape", "Free State", "Gauteng", "KwaZulu-Natal", "Limpopo", "Mpumalanga", "Northern Cape", "North West", "Western Cape"];
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full">
         <CardHeader>
-          <CardTitle data-testid="text-onboarding-individual-title">Set Up Your Job Seeker Profile</CardTitle>
-          <CardDescription data-testid="text-onboarding-individual-description">
+          <CardTitle className="text-white-brand" data-testid="text-onboarding-individual-title">Set Up Your Job Seeker Profile</CardTitle>
+          <CardDescription className="text-slate" data-testid="text-onboarding-individual-description">
             Tell us about yourself so employers can find you
           </CardDescription>
         </CardHeader>
@@ -252,7 +252,7 @@ export default function OnboardingIndividual() {
 
               <Button
                 type="submit"
-                className="w-full"
+                className="w-full bg-amber-gradient text-charcoal hover:opacity-90"
                 disabled={createProfileMutation.isPending}
                 data-testid="button-complete-onboarding"
               >

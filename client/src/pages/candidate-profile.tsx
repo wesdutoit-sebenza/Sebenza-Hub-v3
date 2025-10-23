@@ -100,11 +100,11 @@ export default function CandidateProfilePage() {
   const softSkills = candidate.skills?.filter((s) => s.kind === "soft") || [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-charcoal">
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="mb-6">
           <Link href="/candidates">
-            <Button variant="ghost" size="sm" className="mb-4" data-testid="button-back">
+            <Button variant="ghost" size="sm" className="mb-4 text-white-brand hover:text-amber" data-testid="button-back">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Candidates
             </Button>
@@ -116,17 +116,17 @@ export default function CandidateProfilePage() {
             <CardHeader>
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <CardTitle className="text-3xl mb-2" data-testid="text-candidate-name">
+                  <CardTitle className="text-3xl mb-2 text-white-brand" data-testid="text-candidate-name">
                     {candidate.fullName || "Unnamed Candidate"}
                   </CardTitle>
                   {candidate.headline && (
-                    <p className="text-lg text-muted-foreground" data-testid="text-candidate-headline">
+                    <p className="text-lg text-slate" data-testid="text-candidate-headline">
                       {candidate.headline}
                     </p>
                   )}
                 </div>
                 {candidate.workAuthorization && (
-                  <Badge variant="secondary" className="text-sm">
+                  <Badge variant="secondary" className="text-sm bg-amber text-charcoal">
                     {candidate.workAuthorization}
                   </Badge>
                 )}
@@ -135,24 +135,24 @@ export default function CandidateProfilePage() {
             <CardContent className="space-y-4">
               <div className="grid md:grid-cols-2 gap-3">
                 {candidate.email && (
-                  <div className="flex items-center gap-2" data-testid="text-email">
-                    <Mail className="w-4 h-4 text-muted-foreground" />
-                    <a href={`mailto:${candidate.email}`} className="hover:underline">
+                  <div className="flex items-center gap-2 text-white-brand" data-testid="text-email">
+                    <Mail className="w-4 h-4 text-amber" />
+                    <a href={`mailto:${candidate.email}`} className="hover:underline hover:text-amber">
                       {candidate.email}
                     </a>
                   </div>
                 )}
                 {candidate.phone && (
-                  <div className="flex items-center gap-2" data-testid="text-phone">
-                    <Phone className="w-4 h-4 text-muted-foreground" />
-                    <a href={`tel:${candidate.phone}`} className="hover:underline">
+                  <div className="flex items-center gap-2 text-white-brand" data-testid="text-phone">
+                    <Phone className="w-4 h-4 text-amber" />
+                    <a href={`tel:${candidate.phone}`} className="hover:underline hover:text-amber">
                       {candidate.phone}
                     </a>
                   </div>
                 )}
                 {(candidate.city || candidate.country) && (
-                  <div className="flex items-center gap-2" data-testid="text-location">
-                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <div className="flex items-center gap-2 text-white-brand" data-testid="text-location">
+                    <MapPin className="w-4 h-4 text-amber" />
                     <span>{[candidate.city, candidate.country].filter(Boolean).join(", ")}</span>
                   </div>
                 )}
@@ -199,7 +199,7 @@ export default function CandidateProfilePage() {
               {candidate.summary && (
                 <>
                   <Separator />
-                  <p className="text-sm leading-relaxed" data-testid="text-summary">
+                  <p className="text-sm leading-relaxed text-white-brand" data-testid="text-summary">
                     {candidate.summary}
                   </p>
                 </>
@@ -210,10 +210,10 @@ export default function CandidateProfilePage() {
                   <Separator />
                   <div className="flex gap-2">
                     {candidate.availability && (
-                      <Badge variant="outline">Available: {candidate.availability}</Badge>
+                      <Badge variant="outline" className="border-amber text-amber">Available: {candidate.availability}</Badge>
                     )}
                     {candidate.salaryExpectation && (
-                      <Badge variant="outline">Salary: {candidate.salaryExpectation}</Badge>
+                      <Badge variant="outline" className="border-amber text-amber">Salary: {candidate.salaryExpectation}</Badge>
                     )}
                   </div>
                 </>
@@ -224,8 +224,8 @@ export default function CandidateProfilePage() {
           {candidate.experiences && candidate.experiences.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-white-brand">
+                  <Briefcase className="w-5 h-5 text-amber" />
                   Work Experience
                 </CardTitle>
               </CardHeader>
@@ -235,20 +235,20 @@ export default function CandidateProfilePage() {
                     {idx > 0 && <Separator className="mb-6" />}
                     <div className="space-y-2">
                       <div>
-                        <h3 className="font-semibold text-lg">{exp.title}</h3>
-                        <p className="text-muted-foreground">{exp.company}</p>
+                        <h3 className="font-semibold text-lg text-white-brand">{exp.title}</h3>
+                        <p className="text-slate">{exp.company}</p>
                       </div>
-                      <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                      <div className="flex flex-wrap gap-2 text-sm text-slate">
                         {exp.location && <span>{exp.location}</span>}
                         {exp.startDate && (
                           <span>
                             {exp.startDate} - {exp.isCurrent ? "Present" : exp.endDate || "N/A"}
                           </span>
                         )}
-                        {exp.industry && <Badge variant="outline">{exp.industry}</Badge>}
+                        {exp.industry && <Badge variant="outline" className="border-amber text-amber">{exp.industry}</Badge>}
                       </div>
                       {exp.bullets && exp.bullets.length > 0 && (
-                        <ul className="list-disc list-inside space-y-1 mt-3 text-sm">
+                        <ul className="list-disc list-inside space-y-1 mt-3 text-sm text-white-brand">
                           {exp.bullets.map((bullet: string, i: number) => (
                             <li key={i}>{bullet}</li>
                           ))}
@@ -264,8 +264,8 @@ export default function CandidateProfilePage() {
           {candidate.education && candidate.education.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <GraduationCap className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-white-brand">
+                  <GraduationCap className="w-5 h-5 text-amber" />
                   Education
                 </CardTitle>
               </CardHeader>
@@ -274,9 +274,9 @@ export default function CandidateProfilePage() {
                   <div key={idx} data-testid={`education-${idx}`}>
                     {idx > 0 && <Separator className="mb-4" />}
                     <div>
-                      <h3 className="font-semibold">{edu.qualification}</h3>
-                      <p className="text-muted-foreground">{edu.institution}</p>
-                      <div className="flex gap-2 text-sm text-muted-foreground mt-1">
+                      <h3 className="font-semibold text-white-brand">{edu.qualification}</h3>
+                      <p className="text-slate">{edu.institution}</p>
+                      <div className="flex gap-2 text-sm text-slate mt-1">
                         {edu.location && <span>{edu.location}</span>}
                         {edu.gradDate && <span>{edu.gradDate}</span>}
                       </div>
@@ -290,18 +290,18 @@ export default function CandidateProfilePage() {
           {(technicalSkills.length > 0 || toolsSkills.length > 0 || softSkills.length > 0) && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Wrench className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-white-brand">
+                  <Wrench className="w-5 h-5 text-amber" />
                   Skills
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {technicalSkills.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-semibold mb-2">Technical Skills</h3>
+                    <h3 className="text-sm font-semibold mb-2 text-white-brand">Technical Skills</h3>
                     <div className="flex flex-wrap gap-2">
                       {technicalSkills.map((skill, idx) => (
-                        <Badge key={idx} variant="secondary">
+                        <Badge key={idx} variant="secondary" className="bg-amber text-charcoal">
                           {skill.skillName}
                         </Badge>
                       ))}
@@ -310,10 +310,10 @@ export default function CandidateProfilePage() {
                 )}
                 {toolsSkills.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-semibold mb-2">Tools & Technologies</h3>
+                    <h3 className="text-sm font-semibold mb-2 text-white-brand">Tools & Technologies</h3>
                     <div className="flex flex-wrap gap-2">
                       {toolsSkills.map((skill, idx) => (
-                        <Badge key={idx} variant="secondary">
+                        <Badge key={idx} variant="secondary" className="bg-amber text-charcoal">
                           {skill.skillName}
                         </Badge>
                       ))}
@@ -322,10 +322,10 @@ export default function CandidateProfilePage() {
                 )}
                 {softSkills.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-semibold mb-2">Soft Skills</h3>
+                    <h3 className="text-sm font-semibold mb-2 text-white-brand">Soft Skills</h3>
                     <div className="flex flex-wrap gap-2">
                       {softSkills.map((skill, idx) => (
-                        <Badge key={idx} variant="outline">
+                        <Badge key={idx} variant="outline" className="border-amber text-amber">
                           {skill.skillName}
                         </Badge>
                       ))}
@@ -339,8 +339,8 @@ export default function CandidateProfilePage() {
           {candidate.certifications && candidate.certifications.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-white-brand">
+                  <Award className="w-5 h-5 text-amber" />
                   Certifications
                 </CardTitle>
               </CardHeader>
@@ -348,10 +348,10 @@ export default function CandidateProfilePage() {
                 <div className="grid md:grid-cols-2 gap-3">
                   {candidate.certifications.map((cert: any, idx: number) => (
                     <div key={idx} className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber mt-2" />
                       <div className="flex-1">
-                        <p className="font-medium">{cert.name}</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="font-medium text-white-brand">{cert.name}</p>
+                        <p className="text-sm text-slate">
                           {cert.issuer} {cert.year && `(${cert.year})`}
                         </p>
                       </div>
@@ -365,8 +365,8 @@ export default function CandidateProfilePage() {
           {candidate.projects && candidate.projects.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-white-brand">
+                  <FileText className="w-5 h-5 text-amber" />
                   Projects
                 </CardTitle>
               </CardHeader>
@@ -375,17 +375,17 @@ export default function CandidateProfilePage() {
                   <div key={idx}>
                     {idx > 0 && <Separator className="mb-4" />}
                     <div>
-                      <h3 className="font-semibold">{proj.name}</h3>
-                      {proj.what && <p className="text-sm mt-1">{proj.what}</p>}
+                      <h3 className="font-semibold text-white-brand">{proj.name}</h3>
+                      {proj.what && <p className="text-sm mt-1 text-white-brand">{proj.what}</p>}
                       {proj.impact && (
-                        <p className="text-sm text-muted-foreground mt-1">{proj.impact}</p>
+                        <p className="text-sm text-slate mt-1">{proj.impact}</p>
                       )}
                       {proj.link && (
                         <a
                           href={proj.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm text-primary hover:underline mt-1 inline-block"
+                          className="text-sm text-amber hover:underline mt-1 inline-block"
                         >
                           View Project →
                         </a>
@@ -400,8 +400,8 @@ export default function CandidateProfilePage() {
           {candidate.awards && candidate.awards.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5" />
+                <CardTitle className="flex items-center gap-2 text-white-brand">
+                  <Trophy className="w-5 h-5 text-amber" />
                   Awards & Recognition
                 </CardTitle>
               </CardHeader>
@@ -409,13 +409,13 @@ export default function CandidateProfilePage() {
                 <div className="space-y-3">
                   {candidate.awards.map((award: any, idx: number) => (
                     <div key={idx} className="flex items-start gap-2">
-                      <Trophy className="w-4 h-4 text-primary mt-0.5" />
+                      <Trophy className="w-4 h-4 text-amber mt-0.5" />
                       <div className="flex-1">
-                        <p className="font-medium">{award.name}</p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="font-medium text-white-brand">{award.name}</p>
+                        <p className="text-sm text-slate">
                           {award.byWhom} {award.year && `(${award.year})`}
                         </p>
-                        {award.note && <p className="text-sm mt-1">{award.note}</p>}
+                        {award.note && <p className="text-sm mt-1 text-white-brand">{award.note}</p>}
                       </div>
                     </div>
                   ))}

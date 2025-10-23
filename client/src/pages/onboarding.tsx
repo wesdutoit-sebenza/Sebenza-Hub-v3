@@ -60,20 +60,20 @@ export default function Onboarding() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen bg-charcoal flex items-center justify-center">
+        <p className="text-slate">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
       <div className="max-w-4xl w-full">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2" data-testid="text-onboarding-title">
+          <h1 className="text-3xl font-bold mb-2 text-white-brand" data-testid="text-onboarding-title">
             Welcome to Sebenza Hub
           </h1>
-          <p className="text-muted-foreground" data-testid="text-onboarding-description">
+          <p className="text-slate" data-testid="text-onboarding-description">
             How will you use the platform?
           </p>
         </div>
@@ -81,17 +81,17 @@ export default function Onboarding() {
         <div className="grid md:grid-cols-3 gap-6">
           <Card className="hover-elevate cursor-pointer" onClick={() => handleSelectRole('individual')} data-testid="card-role-individual">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <UserCircle className="h-8 w-8 text-primary" />
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-amber/10 flex items-center justify-center">
+                <UserCircle className="h-8 w-8 text-amber" />
               </div>
-              <CardTitle>Find a Job</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-white-brand">Find a Job</CardTitle>
+              <CardDescription className="text-slate">
                 I'm looking for employment opportunities
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button
-                className="w-full"
+                className="w-full bg-amber-gradient text-charcoal hover:opacity-90"
                 disabled={selectRoleMutation.isPending}
                 data-testid="button-select-individual"
               >
@@ -102,17 +102,17 @@ export default function Onboarding() {
 
           <Card className="hover-elevate cursor-pointer" onClick={() => handleSelectRole('business')} data-testid="card-role-business">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Building2 className="h-8 w-8 text-primary" />
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-amber/10 flex items-center justify-center">
+                <Building2 className="h-8 w-8 text-amber" />
               </div>
-              <CardTitle>Hire for My Company</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-white-brand">Hire for My Company</CardTitle>
+              <CardDescription className="text-slate">
                 I need to find talent for my business
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button
-                className="w-full"
+                className="w-full bg-amber-gradient text-charcoal hover:opacity-90"
                 disabled={selectRoleMutation.isPending}
                 data-testid="button-select-business"
               >
@@ -123,17 +123,17 @@ export default function Onboarding() {
 
           <Card className="hover-elevate cursor-pointer" onClick={() => handleSelectRole('recruiter')} data-testid="card-role-recruiter">
             <CardHeader className="text-center">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <Briefcase className="h-8 w-8 text-primary" />
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-amber/10 flex items-center justify-center">
+                <Briefcase className="h-8 w-8 text-amber" />
               </div>
-              <CardTitle>I'm a Recruiter</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-white-brand">I'm a Recruiter</CardTitle>
+              <CardDescription className="text-slate">
                 I run a recruiting agency or firm
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Button
-                className="w-full"
+                className="w-full bg-amber-gradient text-charcoal hover:opacity-90"
                 disabled={selectRoleMutation.isPending}
                 data-testid="button-select-recruiter"
               >

@@ -41,19 +41,19 @@ export default function Login() {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <CheckCircle className="h-6 w-6 text-primary" />
+            <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-amber/10 flex items-center justify-center">
+              <CheckCircle className="h-6 w-6 text-amber" />
             </div>
-            <CardTitle data-testid="text-email-sent-title">Check your email</CardTitle>
-            <CardDescription data-testid="text-email-sent-description">
-              We sent a magic link to <strong>{email}</strong>
+            <CardTitle className="text-white-brand" data-testid="text-email-sent-title">Check your email</CardTitle>
+            <CardDescription className="text-slate" data-testid="text-email-sent-description">
+              We sent a magic link to <strong className="text-white-brand">{email}</strong>
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-sm text-slate text-center">
               Click the link in the email to sign in. The link will expire in 10 minutes.
             </p>
             <Button
@@ -71,11 +71,11 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
       <Card className="max-w-md w-full">
         <CardHeader className="text-center">
-          <CardTitle data-testid="text-login-title">Sign in to Sebenza Hub</CardTitle>
-          <CardDescription data-testid="text-login-description">
+          <CardTitle className="text-white-brand" data-testid="text-login-title">Sign in to Sebenza Hub</CardTitle>
+          <CardDescription className="text-slate" data-testid="text-login-description">
             Enter your email to receive a magic link
           </CardDescription>
         </CardHeader>
@@ -94,7 +94,7 @@ export default function Login() {
             </div>
             <Button
               type="submit"
-              className="w-full"
+              className="w-full bg-amber-gradient text-charcoal hover:opacity-90"
               disabled={sendMagicLinkMutation.isPending}
               data-testid="button-send-magic-link"
             >
@@ -108,7 +108,7 @@ export default function Login() {
               )}
             </Button>
           </form>
-          <div className="mt-6 text-center text-sm text-muted-foreground">
+          <div className="mt-6 text-center text-sm text-slate">
             <p>No password required. We'll email you a secure link.</p>
           </div>
         </CardContent>

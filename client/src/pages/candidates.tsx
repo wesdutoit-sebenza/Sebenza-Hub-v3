@@ -45,19 +45,19 @@ export default function CandidatesPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-charcoal">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold" data-testid="heading-candidates">
+            <h1 className="text-3xl font-bold text-white-brand" data-testid="heading-candidates">
               Candidate Database
             </h1>
-            <p className="text-muted-foreground mt-1">
+            <p className="text-slate mt-1">
               Manage your talent pool and track candidates
             </p>
           </div>
           <Link href="/candidates/new">
-            <Button data-testid="button-add-candidate">
+            <Button className="bg-amber-gradient text-charcoal hover:opacity-90" data-testid="button-add-candidate">
               <UserPlus className="w-4 h-4 mr-2" />
               Add Candidate
             </Button>
@@ -82,12 +82,12 @@ export default function CandidatesPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
               <Card data-testid="card-stat-total">
                 <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Candidates</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-white-brand">Total Candidates</CardTitle>
+                  <Users className="h-4 w-4 text-amber" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold" data-testid="text-total-candidates">{stats.totalCandidates}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <div className="text-2xl font-bold text-amber" data-testid="text-total-candidates">{stats.totalCandidates}</div>
+                  <p className="text-xs text-slate mt-1">
                     in your talent pool
                   </p>
                 </CardContent>
@@ -95,12 +95,12 @@ export default function CandidatesPage() {
 
               <Card data-testid="card-stat-recent">
                 <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Recent Additions</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-white-brand">Recent Additions</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-amber" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold" data-testid="text-recent-candidates">{stats.recentCandidates}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <div className="text-2xl font-bold text-amber" data-testid="text-recent-candidates">{stats.recentCandidates}</div>
+                  <p className="text-xs text-slate mt-1">
                     added in last 7 days
                   </p>
                 </CardContent>
@@ -108,14 +108,14 @@ export default function CandidatesPage() {
 
               <Card data-testid="card-stat-skills">
                 <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Top Skills</CardTitle>
-                  <Award className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-white-brand">Top Skills</CardTitle>
+                  <Award className="h-4 w-4 text-amber" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold" data-testid="text-top-skill">
+                  <div className="text-2xl font-bold text-amber" data-testid="text-top-skill">
                     {stats.topSkills[0]?.skillName || "N/A"}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-slate mt-1">
                     {stats.topSkills[0] ? `${stats.topSkills[0].count} candidates` : "No skills data"}
                   </p>
                 </CardContent>
@@ -123,14 +123,14 @@ export default function CandidatesPage() {
 
               <Card data-testid="card-stat-locations">
                 <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Top Location</CardTitle>
-                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <CardTitle className="text-sm font-medium text-white-brand">Top Location</CardTitle>
+                  <Globe className="h-4 w-4 text-amber" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold truncate" data-testid="text-top-location">
+                  <div className="text-2xl font-bold text-amber truncate" data-testid="text-top-location">
                     {stats.topLocations[0]?.location || "N/A"}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-slate mt-1">
                     {stats.topLocations[0] ? `${stats.topLocations[0].count} candidates` : "No location data"}
                   </p>
                 </CardContent>
@@ -140,27 +140,27 @@ export default function CandidatesPage() {
             {stats.topSkills.length > 1 && (
               <Card className="mb-8">
                 <CardHeader>
-                  <CardTitle>Skills Distribution</CardTitle>
-                  <CardDescription>Most common skills across your talent pool</CardDescription>
+                  <CardTitle className="text-white-brand">Skills Distribution</CardTitle>
+                  <CardDescription className="text-slate">Most common skills across your talent pool</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {stats.topSkills.slice(0, 5).map((skill, index) => (
                       <div key={index} className="flex items-center justify-between" data-testid={`skill-${index}`}>
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <Badge variant="secondary" className="w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+                          <Badge variant="secondary" className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-amber text-charcoal">
                             {index + 1}
                           </Badge>
-                          <span className="font-medium truncate">{skill.skillName}</span>
+                          <span className="font-medium truncate text-white-brand">{skill.skillName}</span>
                         </div>
                         <div className="flex items-center gap-3 shrink-0">
-                          <div className="w-32 bg-muted rounded-full h-2">
+                          <div className="w-32 bg-graphite rounded-full h-2">
                             <div 
-                              className="bg-primary h-2 rounded-full" 
+                              className="bg-amber h-2 rounded-full" 
                               style={{ width: `${(skill.count / stats.topSkills[0].count) * 100}%` }}
                             ></div>
                           </div>
-                          <span className="text-sm text-muted-foreground w-16 text-right">{skill.count} candidates</span>
+                          <span className="text-sm text-slate w-16 text-right">{skill.count} candidates</span>
                         </div>
                       </div>
                     ))}
@@ -173,12 +173,12 @@ export default function CandidatesPage() {
 
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate w-4 h-4" />
             <Input
               placeholder="Search candidates by name, email, or headline..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-graphite border-slate text-white-brand placeholder:text-slate"
               data-testid="input-search-candidates"
             />
           </div>
@@ -202,19 +202,19 @@ export default function CandidatesPage() {
           <Card>
             <CardContent className="p-12 text-center">
               <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                  <UserPlus className="w-8 h-8 text-muted-foreground" />
+                <div className="w-16 h-16 rounded-full bg-graphite flex items-center justify-center">
+                  <UserPlus className="w-8 h-8 text-amber" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold mb-1">No candidates found</h3>
-                  <p className="text-muted-foreground mb-4">
+                  <h3 className="text-lg font-semibold mb-1 text-white-brand">No candidates found</h3>
+                  <p className="text-slate mb-4">
                     {searchQuery
                       ? "Try adjusting your search criteria"
                       : "Get started by adding your first candidate"}
                   </p>
                   {!searchQuery && (
                     <Link href="/candidates/new">
-                      <Button>
+                      <Button className="bg-amber-gradient text-charcoal hover:opacity-90">
                         <UserPlus className="w-4 h-4 mr-2" />
                         Add Candidate
                       </Button>
@@ -236,24 +236,24 @@ export default function CandidatesPage() {
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-xl truncate" data-testid="text-candidate-name">
+                        <CardTitle className="text-xl truncate text-white-brand" data-testid="text-candidate-name">
                           {candidate.fullName || "Unnamed Candidate"}
                         </CardTitle>
                         {candidate.headline && (
-                          <p className="text-sm text-muted-foreground mt-1" data-testid="text-candidate-headline">
+                          <p className="text-sm text-slate mt-1" data-testid="text-candidate-headline">
                             {candidate.headline}
                           </p>
                         )}
                       </div>
                       {candidate.workAuthorization && (
-                        <Badge variant="secondary" data-testid="badge-work-auth">
+                        <Badge variant="secondary" className="bg-amber text-charcoal" data-testid="badge-work-auth">
                           {candidate.workAuthorization}
                         </Badge>
                       )}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                    <div className="flex flex-wrap gap-4 text-sm text-slate">
                       {candidate.email && (
                         <div className="flex items-center gap-1.5" data-testid="text-candidate-email">
                           <Mail className="w-3.5 h-3.5" />
@@ -276,19 +276,19 @@ export default function CandidatesPage() {
                       )}
                     </div>
                     {candidate.summary && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mt-3" data-testid="text-candidate-summary">
+                      <p className="text-sm text-slate line-clamp-2 mt-3" data-testid="text-candidate-summary">
                         {candidate.summary}
                       </p>
                     )}
                     {(candidate.availability || candidate.salaryExpectation) && (
                       <div className="flex gap-2 mt-3">
                         {candidate.availability && (
-                          <Badge variant="outline" data-testid="badge-availability">
+                          <Badge variant="outline" className="border-amber text-amber" data-testid="badge-availability">
                             {candidate.availability}
                           </Badge>
                         )}
                         {candidate.salaryExpectation && (
-                          <Badge variant="outline" data-testid="badge-salary">
+                          <Badge variant="outline" className="border-amber text-amber" data-testid="badge-salary">
                             {candidate.salaryExpectation}
                           </Badge>
                         )}
@@ -301,7 +301,7 @@ export default function CandidatesPage() {
           </div>
         )}
 
-        <div className="mt-6 text-center text-sm text-muted-foreground">
+        <div className="mt-6 text-center text-sm text-slate">
           {filteredCandidates.length > 0 && (
             <span data-testid="text-candidate-count">
               Showing {filteredCandidates.length} of {candidates.length} candidates

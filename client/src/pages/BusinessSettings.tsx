@@ -199,10 +199,10 @@ export default function BusinessSettings() {
   });
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-6xl">
+    <div className="container mx-auto py-8 px-4 max-w-6xl bg-charcoal min-h-screen">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Business Settings</h1>
-        <p className="text-muted-foreground">Configure job templates, salary bands, and vendor management</p>
+        <h1 className="text-4xl font-bold mb-2 text-white-brand">Business Settings</h1>
+        <p className="text-slate">Configure job templates, salary bands, and vendor management</p>
       </div>
 
       <Tabs defaultValue="templates" className="space-y-6">
@@ -225,13 +225,13 @@ export default function BusinessSettings() {
         <TabsContent value="templates">
           <Card>
             <CardHeader>
-              <CardTitle>Job Templates</CardTitle>
-              <CardDescription>Create reusable job posting templates with predefined structures</CardDescription>
+              <CardTitle className="text-white-brand">Job Templates</CardTitle>
+              <CardDescription className="text-slate">Create reusable job posting templates with predefined structures</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Add Template Form */}
               <div className="space-y-4 p-4 border rounded-md">
-                <h3 className="font-semibold">Create New Template</h3>
+                <h3 className="font-semibold text-white-brand">Create New Template</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="template-name">Template Name</Label>
@@ -297,6 +297,7 @@ export default function BusinessSettings() {
                 </div>
 
                 <Button
+                  className="bg-amber-gradient text-charcoal hover:opacity-90"
                   onClick={() => addTemplateMutation.mutate(newTemplate)}
                   disabled={!newTemplate.name || addTemplateMutation.isPending}
                   data-testid="button-add-template"
@@ -309,11 +310,11 @@ export default function BusinessSettings() {
 
               {/* Templates List */}
               <div className="space-y-4">
-                <h3 className="font-semibold">Saved Templates</h3>
+                <h3 className="font-semibold text-white-brand">Saved Templates</h3>
                 {loadingTemplates ? (
-                  <p className="text-sm text-muted-foreground">Loading templates...</p>
+                  <p className="text-sm text-slate">Loading templates...</p>
                 ) : jobTemplates.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No templates created yet.</p>
+                  <p className="text-sm text-slate">No templates created yet.</p>
                 ) : (
                   <div className="space-y-3">
                     {jobTemplates.map((template) => (
@@ -324,9 +325,9 @@ export default function BusinessSettings() {
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium">{template.name}</h4>
+                            <h4 className="font-medium text-white-brand">{template.name}</h4>
                             {template.jobTitle && (
-                              <p className="text-sm text-muted-foreground mt-1">{template.jobTitle}</p>
+                              <p className="text-sm text-slate mt-1">{template.jobTitle}</p>
                             )}
                           </div>
                           <Button
@@ -340,7 +341,7 @@ export default function BusinessSettings() {
                         </div>
                         {template.requirements.length > 0 && (
                           <div>
-                            <p className="text-xs font-medium text-muted-foreground mb-1">Requirements:</p>
+                            <p className="text-xs font-medium text-slate mb-1">Requirements:</p>
                             <div className="flex gap-1 flex-wrap">
                               {template.requirements.map((req, idx) => (
                                 <Badge key={idx} variant="secondary" className="text-xs">
@@ -352,7 +353,7 @@ export default function BusinessSettings() {
                         )}
                         {template.interviewStructure.length > 0 && (
                           <div>
-                            <p className="text-xs font-medium text-muted-foreground mb-1">Interview Structure:</p>
+                            <p className="text-xs font-medium text-slate mb-1">Interview Structure:</p>
                             <div className="flex gap-1 flex-wrap">
                               {template.interviewStructure.map((stage, idx) => (
                                 <Badge key={idx} variant="outline" className="text-xs">
@@ -375,13 +376,13 @@ export default function BusinessSettings() {
         <TabsContent value="salary">
           <Card>
             <CardHeader>
-              <CardTitle>Salary Bands</CardTitle>
-              <CardDescription>Define standard salary ranges for different roles</CardDescription>
+              <CardTitle className="text-white-brand">Salary Bands</CardTitle>
+              <CardDescription className="text-slate">Define standard salary ranges for different roles</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Add Salary Band Form */}
               <div className="space-y-4 p-4 border rounded-md">
-                <h3 className="font-semibold">Add Salary Band</h3>
+                <h3 className="font-semibold text-white-brand">Add Salary Band</h3>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="band-title">Role Title</Label>
@@ -436,6 +437,7 @@ export default function BusinessSettings() {
                   </div>
                   <div className="flex items-end md:col-span-3">
                     <Button
+                      className="bg-amber-gradient text-charcoal hover:opacity-90"
                       onClick={() => addBandMutation.mutate(newBand)}
                       disabled={!newBand.title || !newBand.minSalary || !newBand.maxSalary || addBandMutation.isPending}
                       data-testid="button-add-band"
@@ -450,11 +452,11 @@ export default function BusinessSettings() {
 
               {/* Salary Bands List */}
               <div className="space-y-4">
-                <h3 className="font-semibold">Configured Salary Bands</h3>
+                <h3 className="font-semibold text-white-brand">Configured Salary Bands</h3>
                 {loadingBands ? (
-                  <p className="text-sm text-muted-foreground">Loading salary bands...</p>
+                  <p className="text-sm text-slate">Loading salary bands...</p>
                 ) : salaryBands.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No salary bands configured yet.</p>
+                  <p className="text-sm text-slate">No salary bands configured yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {salaryBands.map((band) => (
@@ -464,8 +466,8 @@ export default function BusinessSettings() {
                         data-testid={`salary-band-${band.id}`}
                       >
                         <div className="flex-1">
-                          <p className="font-medium">{band.title}</p>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="font-medium text-white-brand">{band.title}</p>
+                          <p className="text-sm text-slate">
                             {band.currency} {band.minSalary.toLocaleString()} - {band.maxSalary.toLocaleString()}
                           </p>
                         </div>
@@ -490,13 +492,13 @@ export default function BusinessSettings() {
         <TabsContent value="vendors">
           <Card>
             <CardHeader>
-              <CardTitle>Approved Vendors</CardTitle>
-              <CardDescription>Manage external recruiting agencies and vendors</CardDescription>
+              <CardTitle className="text-white-brand">Approved Vendors</CardTitle>
+              <CardDescription className="text-slate">Manage external recruiting agencies and vendors</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Add Vendor Form */}
               <div className="space-y-4 p-4 border rounded-md">
-                <h3 className="font-semibold">Add Vendor</h3>
+                <h3 className="font-semibold text-white-brand">Add Vendor</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="vendor-name">Vendor Name</Label>
@@ -548,6 +550,7 @@ export default function BusinessSettings() {
                   </div>
                   <div className="flex items-end md:col-span-2">
                     <Button
+                      className="bg-amber-gradient text-charcoal hover:opacity-90"
                       onClick={() => addVendorMutation.mutate(newVendor)}
                       disabled={!newVendor.name || addVendorMutation.isPending}
                       data-testid="button-add-vendor"
@@ -562,11 +565,11 @@ export default function BusinessSettings() {
 
               {/* Vendors List */}
               <div className="space-y-4">
-                <h3 className="font-semibold">Approved Vendors</h3>
+                <h3 className="font-semibold text-white-brand">Approved Vendors</h3>
                 {loadingVendors ? (
-                  <p className="text-sm text-muted-foreground">Loading vendors...</p>
+                  <p className="text-sm text-slate">Loading vendors...</p>
                 ) : vendors.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No vendors added yet.</p>
+                  <p className="text-sm text-slate">No vendors added yet.</p>
                 ) : (
                   <div className="space-y-2">
                     {vendors.map((vendor) => (
@@ -577,7 +580,7 @@ export default function BusinessSettings() {
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium">{vendor.name}</p>
+                            <p className="font-medium text-white-brand">{vendor.name}</p>
                             <Badge variant={vendor.status === "active" ? "default" : "secondary"}>
                               {vendor.status}
                             </Badge>
@@ -587,7 +590,7 @@ export default function BusinessSettings() {
                               </Badge>
                             )}
                           </div>
-                          <div className="flex gap-3 mt-1 text-sm text-muted-foreground">
+                          <div className="flex gap-3 mt-1 text-sm text-slate">
                             {vendor.contactEmail && <span>{vendor.contactEmail}</span>}
                             {vendor.rate && <span>• {vendor.rate}</span>}
                           </div>

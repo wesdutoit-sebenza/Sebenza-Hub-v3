@@ -104,19 +104,19 @@ export default function RoleScreening() {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className="container mx-auto py-8 px-4 max-w-7xl bg-charcoal min-h-screen">
       <div className="mb-6">
         <Button
           variant="ghost"
           onClick={() => navigate("/roles")}
-          className="mb-4"
+          className="mb-4 text-white-brand hover:text-amber"
           data-testid="button-back-to-roles"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Roles
         </Button>
-        <h1 className="text-3xl font-bold mb-2" data-testid="text-role-title">{role.jobTitle}</h1>
-        <p className="text-muted-foreground">{role.jobDescription}</p>
+        <h1 className="text-3xl font-bold mb-2 text-white-brand" data-testid="text-role-title">{role.jobTitle}</h1>
+        <p className="text-slate">{role.jobDescription}</p>
       </div>
 
       <Tabs defaultValue="screen" className="space-y-6">
@@ -130,19 +130,19 @@ export default function RoleScreening() {
         <TabsContent value="screen" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Select Candidates to Screen</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-white-brand">Select Candidates to Screen</CardTitle>
+              <CardDescription className="text-slate">
                 Choose candidates from your database to evaluate against this role
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {allCandidates.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-center py-8 text-slate">
                   <p>No candidates in your database yet.</p>
                   <Button
                     variant="ghost"
                     onClick={() => navigate("/candidates/new")}
-                    className="mt-2"
+                    className="mt-2 text-white-brand hover:text-amber"
                   >
                     Add your first candidate
                   </Button>
@@ -150,12 +150,13 @@ export default function RoleScreening() {
               ) : (
                 <>
                   <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-sm text-slate">
                       {selectedCandidates.length} of {allCandidates.length} candidates selected
                     </div>
                     <Button
                       onClick={handleScreenSelected}
                       disabled={selectedCandidates.length === 0 || screenMutation.isPending}
+                      className="bg-amber-gradient text-charcoal hover:opacity-90"
                       data-testid="button-screen-selected"
                     >
                       {screenMutation.isPending ? (
@@ -187,11 +188,11 @@ export default function RoleScreening() {
                           data-testid={`checkbox-candidate-${candidate.id}`}
                         />
                         <div className="flex-1">
-                          <div className="font-semibold">{candidate.fullName}</div>
-                          <div className="text-sm text-muted-foreground">
+                          <div className="font-semibold text-white-brand">{candidate.fullName}</div>
+                          <div className="text-sm text-slate">
                             {candidate.headline || "No headline"}
                           </div>
-                          <div className="text-xs text-muted-foreground mt-1">
+                          <div className="text-xs text-slate mt-1">
                             {[candidate.city, candidate.country].filter(Boolean).join(", ")}
                           </div>
                         </div>
@@ -212,9 +213,9 @@ export default function RoleScreening() {
           ) : screenings.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <UserCheck className="w-12 h-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No screening results yet</h3>
-                <p className="text-muted-foreground text-center mb-4">
+                <UserCheck className="w-12 h-12 text-amber mb-4" />
+                <h3 className="text-lg font-semibold mb-2 text-white-brand">No screening results yet</h3>
+                <p className="text-slate text-center mb-4">
                   Screen candidates to see their evaluation results here
                 </p>
               </CardContent>
@@ -236,8 +237,8 @@ export default function RoleScreening() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="text-2xl font-bold">#{idx + 1}</span>
-                            <CardTitle className="text-xl">{candidate.fullName}</CardTitle>
+                            <span className="text-2xl font-bold text-amber">#{idx + 1}</span>
+                            <CardTitle className="text-xl text-white-brand">{candidate.fullName}</CardTitle>
                             {isKnockout && (
                               <Badge variant="destructive">
                                 <XCircle className="w-3 h-3 mr-1" />
@@ -245,19 +246,19 @@ export default function RoleScreening() {
                               </Badge>
                             )}
                           </div>
-                          <CardDescription>
+                          <CardDescription className="text-slate">
                             {candidate.headline || "No headline"}
                           </CardDescription>
                         </div>
                         <div className="text-right">
-                          <div className="text-3xl font-bold">{score.toFixed(1)}%</div>
-                          <div className="text-xs text-muted-foreground">Total Score</div>
+                          <div className="text-3xl font-bold text-amber">{score.toFixed(1)}%</div>
+                          <div className="text-xs text-slate">Total Score</div>
                         </div>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <div className="flex items-center justify-between text-sm mb-1">
+                        <div className="flex items-center justify-between text-sm mb-1 text-white-brand">
                           <span className="font-medium">Overall Score</span>
                           <span>{score.toFixed(1)}%</span>
                         </div>
@@ -268,10 +269,10 @@ export default function RoleScreening() {
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           {Object.entries(screening.scoreBreakdown).map(([key, value]) => (
                             <div key={key} className="flex justify-between">
-                              <span className="text-muted-foreground capitalize">
+                              <span className="text-slate capitalize">
                                 {key.replace("_", " ")}
                               </span>
-                              <span className="font-medium">{(value as number).toFixed(1)}%</span>
+                              <span className="font-medium text-white-brand">{(value as number).toFixed(1)}%</span>
                             </div>
                           ))}
                         </div>
@@ -279,13 +280,13 @@ export default function RoleScreening() {
 
                       {screening.mustHavesSatisfied && screening.mustHavesSatisfied.length > 0 && (
                         <div>
-                          <div className="text-sm font-medium mb-2 flex items-center gap-1">
+                          <div className="text-sm font-medium mb-2 flex items-center gap-1 text-white-brand">
                             <CheckCircle2 className="w-4 h-4 text-green-600" />
                             Must-Haves Satisfied
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {screening.mustHavesSatisfied.map((skill: string, i: number) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
+                              <Badge key={i} variant="secondary" className="text-xs bg-amber text-charcoal">
                                 {skill}
                               </Badge>
                             ))}
@@ -295,7 +296,7 @@ export default function RoleScreening() {
 
                       {screening.missingMustHaves && screening.missingMustHaves.length > 0 && (
                         <div>
-                          <div className="text-sm font-medium mb-2 flex items-center gap-1">
+                          <div className="text-sm font-medium mb-2 flex items-center gap-1 text-white-brand">
                             <AlertTriangle className="w-4 h-4 text-yellow-600" />
                             Missing Must-Haves
                           </div>

@@ -255,10 +255,10 @@ export default function IndividualSettings() {
   ];
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-6xl">
+    <div className="container mx-auto py-8 px-4 max-w-6xl bg-charcoal min-h-screen">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2" data-testid="heading-settings">Individual Settings</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold mb-2 text-white-brand" data-testid="heading-settings">Individual Settings</h1>
+        <p className="text-slate">
           Manage your profile, job preferences, and account settings
         </p>
       </div>
@@ -287,8 +287,8 @@ export default function IndividualSettings() {
         <TabsContent value="profile">
           <Card>
             <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-white-brand">Profile Information</CardTitle>
+              <CardDescription className="text-slate">
                 Update your personal information and professional details
               </CardDescription>
             </CardHeader>
@@ -373,7 +373,7 @@ export default function IndividualSettings() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="isPublic">Public Profile</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-slate">
                     Allow recruiters to find and contact you
                   </p>
                 </div>
@@ -389,6 +389,7 @@ export default function IndividualSettings() {
 
               <div className="flex justify-end">
                 <Button
+                  className="bg-amber-gradient text-charcoal hover:opacity-90"
                   onClick={handleProfileSubmit}
                   disabled={updateProfileMutation.isPending}
                   data-testid="button-save-profile"
@@ -405,8 +406,8 @@ export default function IndividualSettings() {
         <TabsContent value="preferences">
           <Card>
             <CardHeader>
-              <CardTitle>Job Preferences</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-white-brand">Job Preferences</CardTitle>
+              <CardDescription className="text-slate">
                 Customize your job search preferences and requirements
               </CardDescription>
             </CardHeader>
@@ -419,7 +420,7 @@ export default function IndividualSettings() {
                   placeholder="Add an industry and press Enter"
                   data-testid="chip-input-industries"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-slate">
                   Suggestions: {industries.join(", ")}
                 </p>
               </div>
@@ -442,7 +443,7 @@ export default function IndividualSettings() {
                   placeholder="Add an employment type and press Enter"
                   data-testid="chip-input-employment-types"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-slate">
                   Suggestions: {employmentTypes.join(", ")}
                 </p>
               </div>
@@ -510,7 +511,7 @@ export default function IndividualSettings() {
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <Label htmlFor="relocate">Willing to Relocate</Label>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-slate">
                     Open to job opportunities in other cities
                   </p>
                 </div>
@@ -526,6 +527,7 @@ export default function IndividualSettings() {
 
               <div className="flex justify-end">
                 <Button
+                  className="bg-amber-gradient text-charcoal hover:opacity-90"
                   onClick={handlePreferencesSubmit}
                   disabled={updatePreferencesMutation.isPending}
                   data-testid="button-save-preferences"
@@ -542,19 +544,19 @@ export default function IndividualSettings() {
         <TabsContent value="notifications">
           <Card>
             <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-white-brand">Notification Settings</CardTitle>
+              <CardDescription className="text-slate">
                 Configure how you receive updates about jobs and applications
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-4">Email Notifications</h3>
+                <h3 className="text-lg font-semibold mb-4 text-white-brand">Email Notifications</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label htmlFor="emailJobAlerts">Job Alerts</Label>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-slate">
                         Get notified about new jobs matching your preferences
                       </p>
                     </div>
@@ -569,7 +571,7 @@ export default function IndividualSettings() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label htmlFor="emailApplicationUpdates">Application Updates</Label>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-slate">
                         Status changes on your job applications
                       </p>
                     </div>
@@ -584,7 +586,7 @@ export default function IndividualSettings() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label htmlFor="emailWeeklyDigest">Weekly Digest</Label>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-slate">
                         Summary of new opportunities every week
                       </p>
                     </div>
@@ -601,12 +603,12 @@ export default function IndividualSettings() {
               <Separator />
 
               <div>
-                <h3 className="text-lg font-semibold mb-4">WhatsApp Notifications</h3>
+                <h3 className="text-lg font-semibold mb-4 text-white-brand">WhatsApp Notifications</h3>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label htmlFor="whatsappJobAlerts">Job Alerts</Label>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-slate">
                         Instant job alerts on WhatsApp
                       </p>
                     </div>
@@ -621,7 +623,7 @@ export default function IndividualSettings() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label htmlFor="whatsappApplicationUpdates">Application Updates</Label>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-slate">
                         Quick updates via WhatsApp
                       </p>
                     </div>
@@ -639,6 +641,7 @@ export default function IndividualSettings() {
 
               <div className="flex justify-end">
                 <Button
+                  className="bg-amber-gradient text-charcoal hover:opacity-90"
                   onClick={handleNotificationsSubmit}
                   disabled={updateNotificationsMutation.isPending}
                   data-testid="button-save-notifications"
@@ -655,15 +658,15 @@ export default function IndividualSettings() {
         <TabsContent value="privacy">
           <Card>
             <CardHeader>
-              <CardTitle>Privacy & Account</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-white-brand">Privacy & Account</CardTitle>
+              <CardDescription className="text-slate">
                 Manage your privacy settings and account options
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold mb-2">POPIA Compliance</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+                <h3 className="text-lg font-semibold mb-2 text-white-brand">POPIA Compliance</h3>
+                <p className="text-sm text-slate mb-4">
                   Your data is protected under South Africa's Protection of Personal Information Act (POPIA).
                   You have the right to access, correct, or delete your personal information at any time.
                 </p>
@@ -672,8 +675,8 @@ export default function IndividualSettings() {
               <Separator />
 
               <div>
-                <h3 className="text-lg font-semibold mb-2">Delete Account</h3>
-                <p className="text-sm text-muted-foreground mb-4">
+                <h3 className="text-lg font-semibold mb-2 text-white-brand">Delete Account</h3>
+                <p className="text-sm text-slate mb-4">
                   Once you delete your account, there is no going back. Please be certain.
                 </p>
                 <AlertDialog>
