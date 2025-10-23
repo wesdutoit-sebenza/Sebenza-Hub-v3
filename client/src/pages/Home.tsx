@@ -73,12 +73,16 @@ export default function Home() {
   return (
     <main id="main-content">
       <section className="relative min-h-[80vh] flex items-center justify-center px-6 overflow-hidden">
-        <GradientBlob variant="violet-cyan" />
+        <div 
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${teamCollabImg})` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-black/50" />
         <div className="max-w-4xl mx-auto text-center relative z-10 py-20">
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-semibold mb-6" data-testid="text-hero-title">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-semibold mb-6 text-white" data-testid="text-hero-title">
             Hiring that actually moves.
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto" data-testid="text-hero-subtitle">
+          <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-100" data-testid="text-hero-subtitle">
             A trust layer for SA recruiting—transparent salaries, WhatsApp-first funnels, and built-in compliance.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
@@ -92,6 +96,7 @@ export default function Home() {
             <Button
               size="lg"
               variant="outline"
+              className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
               data-testid="button-hero-tour"
               onClick={() => setShowTourModal(true)}
             >
