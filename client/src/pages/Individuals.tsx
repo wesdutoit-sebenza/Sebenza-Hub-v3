@@ -38,6 +38,11 @@ export default function Individuals() {
     retry: false,
   });
 
+  const { data: profileData } = useQuery<{ profile: any | null }>({
+    queryKey: ["/api/individuals/profile"],
+    enabled: !!user,
+  });
+
   const { data: jobsData, isLoading } = useQuery<{ success: boolean; count: number; jobs: Job[] }>({
     queryKey: ["/api/jobs"],
   });
@@ -193,37 +198,63 @@ export default function Individuals() {
         </div>
 
         <div className="text-center space-y-4">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button
-              size="lg"
-              className="bg-amber-gradient text-charcoal hover:opacity-90"
-              data-testid="button-upload-resume"
-              onClick={() => {
-                if (!user) {
-                  setLocation('/login');
-                  return;
-                }
-                setShowResumeUpload(!showResumeUpload);
-                setShowCVBuilder(false);
-              }}
-            >
-              <Upload size={20} className="mr-2" />
-              {showResumeUpload ? "Hide Upload" : "Upload Resume (AI Powered)"}
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-amber text-amber hover:bg-amber/10"
-              data-testid="button-create-profile"
-              onClick={handleCreateCVClick}
-            >
-              <FileText size={20} className="mr-2" />
-              {showCVBuilder ? "Hide Builder" : "Build CV Manually"}
-            </Button>
-          </div>
-          <p className="text-xs text-slate max-w-md mx-auto">
-            Upload your existing resume for instant AI-powered profile creation, or build your CV step-by-step
-          </p>
+          {profileData?.profile ? (
+            <div className="max-w-2xl mx-auto">
+              <div className="p-6 bg-graphite/50 rounded-lg border border-amber/20">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="text-center">
+                    <h3 className="text-white-brand font-semibold text-lg mb-2">Profile Created</h3>
+                    <p className="text-slate text-sm">
+                      You already have a profile. View or edit it to update your information.
+                    </p>
+                  </div>
+                  <Button
+                    size="lg"
+                    onClick={() => setLocation('/individuals/profile')}
+                    className="bg-amber hover:bg-amber/90 text-charcoal font-semibold"
+                    data-testid="button-view-profile"
+                  >
+                    <User size={20} className="mr-2" />
+                    View My Profile
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Button
+                  size="lg"
+                  className="bg-amber-gradient text-charcoal hover:opacity-90"
+                  data-testid="button-upload-resume"
+                  onClick={() => {
+                    if (!user) {
+                      setLocation('/login');
+                      return;
+                    }
+                    setShowResumeUpload(!showResumeUpload);
+                    setShowCVBuilder(false);
+                  }}
+                >
+                  <Upload size={20} className="mr-2" />
+                  {showResumeUpload ? "Hide Upload" : "Upload Resume (AI Powered)"}
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-amber text-amber hover:bg-amber/10"
+                  data-testid="button-create-profile"
+                  onClick={handleCreateCVClick}
+                >
+                  <FileText size={20} className="mr-2" />
+                  {showCVBuilder ? "Hide Builder" : "Build CV Manually"}
+                </Button>
+              </div>
+              <p className="text-xs text-slate max-w-md mx-auto">
+                Upload your existing resume for instant AI-powered profile creation, or build your CV step-by-step
+              </p>
+            </>
+          )}
         </div>
       </Section>
 

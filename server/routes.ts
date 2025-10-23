@@ -2187,6 +2187,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get individual's own profile (complete with all details)
+  app.get("/api/individuals/profile", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      // Get candidate linked to this user
+      const [candidate] = await db.select()
+        .from(candidates)
+        .where(eq(candidates.userId, req.user!.id))
+        .limit(1);
+
+      if (!candidate) {
+        return res.json({
+          success: true,
+          profile: null,
+          message: "No profile found. Please upload your resume to create one.",
+        });
+      }
+
+      // Fetch all related data
+      const [
+        candidateExperiences,
+        candidateEducation,
+        candidateCertifications,
+        candidateProjects,
+        candidateAwards,
+        candidateSkillsData,
+      ] = await Promise.all([
+        db.select().from(experiences).where(eq(experiences.candidateId, candidate.id)),
+        db.select().from(education).where(eq(education.candidateId, candidate.id)),
+        db.select().from(certifications).where(eq(certifications.candidateId, candidate.id)),
+        db.select().from(projects).where(eq(projects.candidateId, candidate.id)),
+        db.select().from(awards).where(eq(awards.candidateId, candidate.id)),
+        db.select({
+          skillId: candidateSkills.skillId,
+          kind: candidateSkills.kind,
+          name: skills.name,
+        })
+          .from(candidateSkills)
+          .innerJoin(skills, eq(candidateSkills.skillId, skills.id))
+          .where(eq(candidateSkills.candidateId, candidate.id)),
+      ]);
+
+      res.json({
+        success: true,
+        profile: {
+          candidate,
+          experiences: candidateExperiences,
+          education: candidateEducation,
+          certifications: candidateCertifications,
+          projects: candidateProjects,
+          awards: candidateAwards,
+          skills: candidateSkillsData,
+        },
+      });
+    } catch (error: any) {
+      console.error("[Individuals] Get profile error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch profile",
+        error: error.message,
+      });
+    }
+  });
+
+  // Update individual's profile
+  app.put("/api/individuals/profile", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      // Get candidate linked to this user
+      const [candidate] = await db.select()
+        .from(candidates)
+        .where(eq(candidates.userId, req.user!.id))
+        .limit(1);
+
+      if (!candidate) {
+        return res.status(404).json({
+          success: false,
+          message: "No profile found. Please create a profile first.",
+        });
+      }
+
+      // Validate and update candidate data
+      const updateData = req.body;
+      
+      const [updatedCandidate] = await db.update(candidates)
+        .set({
+          fullName: updateData.fullName || null,
+          headline: updateData.headline || null,
+          email: updateData.email || null,
+          phone: updateData.phone || null,
+          city: updateData.city || null,
+          country: updateData.country || null,
+          links: updateData.links || {},
+          summary: updateData.summary || null,
+          workAuthorization: updateData.workAuthorization || null,
+          availability: updateData.availability || null,
+          salaryExpectation: updateData.salaryExpectation || null,
+          notes: updateData.notes || null,
+        })
+        .where(eq(candidates.id, candidate.id))
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Profile updated successfully",
+        candidate: updatedCandidate,
+      });
+    } catch (error: any) {
+      console.error("[Individuals] Update profile error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update profile",
+        error: error.message,
+      });
+    }
+  });
+
   // Individual resume parse endpoint (text paste)
   app.post("/api/individuals/resume/parse", requireAuth, async (req: AuthRequest, res) => {
     try {

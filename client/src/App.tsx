@@ -23,6 +23,8 @@ import RoleScreening from "@/pages/role-screening";
 import RecruiterSettings from "@/pages/RecruiterSettings";
 import BusinessSettings from "@/pages/BusinessSettings";
 import IndividualSettings from "@/pages/IndividualSettings";
+import IndividualProfile from "@/pages/IndividualProfile";
+import IndividualProfileEdit from "@/pages/IndividualProfileEdit";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -46,6 +48,8 @@ function Router() {
       <Route path="/settings/recruiter" component={RecruiterSettings} />
       <Route path="/settings/business" component={BusinessSettings} />
       <Route path="/settings/individual" component={IndividualSettings} />
+      <Route path="/individuals/profile" component={IndividualProfile} />
+      <Route path="/individuals/edit" component={IndividualProfileEdit} />
       <Route component={NotFound} />
     </Switch>
   );
