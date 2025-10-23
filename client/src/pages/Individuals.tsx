@@ -22,9 +22,11 @@ import {
 import PageHeader from "@/components/PageHeader";
 import Section from "@/components/Section";
 import FAQAccordion from "@/components/FAQAccordion";
+import PricingTable from "@/components/PricingTable";
 import CVBuilder from "@/components/CVBuilder";
 import ResumeUpload from "@/components/ResumeUpload";
 import InterviewCoach from "@/components/InterviewCoach";
+import { individualPricingPlans } from "@/data";
 import { User, Clock, Video, Upload, Award, Shield, Briefcase, MapPin, DollarSign, MessageCircle, Search, Filter, FileText } from "lucide-react";
 import { type Job, type User as UserType } from "@shared/schema";
 
@@ -531,6 +533,16 @@ export default function Individuals() {
             </>
           )}
         </div>
+      </Section>
+
+      <Section className="bg-graphite" id="pricing">
+        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-pricing-title">
+          Pricing for Job Seekers
+        </h2>
+        <p className="text-center text-slate mb-12 max-w-2xl mx-auto">
+          Find your next opportunity with our free or premium plans. All plans include profile creation and job search tools.
+        </p>
+        <PricingTable plans={individualPricingPlans} />
       </Section>
       
       <Section id="faq">
