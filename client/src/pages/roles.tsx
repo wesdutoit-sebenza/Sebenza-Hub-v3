@@ -11,6 +11,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { Loader2, Plus, Briefcase, MapPin, DollarSign, Users, Edit, Trash2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -696,8 +697,20 @@ function RoleForm({
         />
 
         <div className="space-y-4">
-          <h3 className="font-semibold">Scoring Weights (Total should be 100)</h3>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">Scoring Weights</h3>
+            <Badge 
+              variant={
+                Object.values(form.watch("weights") || {}).reduce((a, b) => a + b, 0) === 100 
+                  ? "default" 
+                  : "destructive"
+              }
+              data-testid="badge-weights-total"
+            >
+              Total: {Object.values(form.watch("weights") || {}).reduce((a, b) => a + b, 0)}%
+            </Badge>
+          </div>
+          <div className="space-y-6">
             {(["skills", "experience", "achievements", "education", "location_auth", "salary_availability"] as const).map((key) => (
               <FormField
                 key={key}
@@ -705,15 +718,20 @@ function RoleForm({
                 name={`weights.${key}` as any}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="capitalize">{key.replace("_", " ")}</FormLabel>
+                    <div className="flex items-center justify-between mb-2">
+                      <FormLabel className="capitalize">{key.replace("_", " ")}</FormLabel>
+                      <span className="text-sm font-medium" data-testid={`text-weight-${key}`}>
+                        {field.value}%
+                      </span>
+                    </div>
                     <FormControl>
-                      <Input
-                        {...field}
-                        type="number"
+                      <Slider
                         min={0}
                         max={100}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                        data-testid={`input-weight-${key}`}
+                        step={1}
+                        value={[field.value]}
+                        onValueChange={(values) => field.onChange(values[0])}
+                        data-testid={`slider-weight-${key}`}
                       />
                     </FormControl>
                     <FormMessage />
