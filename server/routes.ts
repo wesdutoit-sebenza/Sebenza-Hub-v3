@@ -8,7 +8,42 @@ import { eq, and, desc, sql } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { sendMagicLinkEmail } from "./resend";
 import { requireAuth, requireRole, optionalAuth, generateToken, type AuthRequest } from "./auth";
+import { screeningQueue, isQueueAvailable } from "./queue";
+import pg from "pg";
 import { z } from "zod";
+
+// Create pg pool for raw SQL queries (used by queue system)
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+
+// Helper function to enqueue screening jobs for all active roles
+async function enqueueScreeningsForCandidate(candidateId: string) {
+  if (!isQueueAvailable()) {
+    console.log(`[Auto-Screen] Queue not available, skipping auto-screening for candidate ${candidateId}`);
+    return;
+  }
+
+  try {
+    const { rows: activeRoles } = await pool.query(
+      "SELECT id FROM roles WHERE is_active = TRUE OR is_active = 1"
+    );
+    
+    if (activeRoles.length === 0) {
+      console.log(`[Auto-Screen] No active roles found, skipping screening for candidate ${candidateId}`);
+      return;
+    }
+
+    for (const role of activeRoles) {
+      await screeningQueue!.add("screen", { 
+        roleId: role.id, 
+        candidateId 
+      });
+    }
+    
+    console.log(`[Auto-Screen] Enqueued ${activeRoles.length} screening job(s) for candidate ${candidateId}`);
+  } catch (error) {
+    console.error(`[Auto-Screen] Failed to enqueue screenings for candidate ${candidateId}:`, error);
+  }
+}
 import { parseCVWithAI, evaluateCandidateWithAI, isAIConfigured } from "./ai-screening";
 import { parseCVWithAI as parseResumeWithAI, isAIConfigured as isAIConfiguredForCV } from "./ai-cv-ingestion";
 import multer from "multer";
@@ -755,6 +790,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const [candidate] = await db.insert(candidates)
         .values(validatedData)
         .returning();
+
+      // Auto-enqueue screening jobs for all active roles
+      enqueueScreeningsForCandidate(candidate.id).catch(err => {
+        console.error(`[Auto-Screen] Failed to enqueue screenings:`, err);
+      });
 
       res.json({
         success: true,
@@ -1550,6 +1590,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[ATS] Embeddings not configured, skipping embedding generation`);
       }
 
+      // Auto-enqueue screening jobs for all active roles
+      enqueueScreeningsForCandidate(candidateId).catch(err => {
+        console.error(`[Auto-Screen] Failed to enqueue screenings:`, err);
+      });
+
       res.json({
         success: true,
         message: "Resume uploaded and parsed successfully",
@@ -1749,6 +1794,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.error(`[ATS] Failed to generate embedding for candidate ${candidateId}:`, err);
           });
         }
+
+        // Auto-enqueue screening jobs for all active roles
+        enqueueScreeningsForCandidate(candidateId).catch(err => {
+          console.error(`[Auto-Screen] Failed to enqueue screenings:`, err);
+        });
 
         res.json({
           success: true,
