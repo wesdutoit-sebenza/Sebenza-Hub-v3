@@ -80,7 +80,7 @@ export default function Header() {
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors hover-elevate ${
                   isActive(link.path)
                     ? "text-amber border-b-2 border-amber"
-                    : "text-slate"
+                    : "text-white-brand"
                 }`}
               >
                 {link.label}
@@ -204,7 +204,7 @@ export default function Header() {
                   className={`block px-4 py-2 rounded-md text-sm font-medium hover-elevate ${
                     isActive(link.path)
                       ? "text-amber bg-amber/10"
-                      : "text-slate"
+                      : "text-white-brand"
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
