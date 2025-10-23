@@ -15,6 +15,9 @@ import Onboarding from "@/pages/onboarding";
 import OnboardingIndividual from "@/pages/onboarding-individual";
 import OnboardingBusiness from "@/pages/onboarding-business";
 import OnboardingRecruiter from "@/pages/onboarding-recruiter";
+import Candidates from "@/pages/candidates";
+import CandidateProfile from "@/pages/candidate-profile";
+import CandidateAdd from "@/pages/candidate-add";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -30,6 +33,9 @@ function Router() {
       <Route path="/businesses" component={Businesses} />
       <Route path="/individuals" component={Individuals} />
       <Route path="/screening" component={Screening} />
+      <Route path="/candidates" component={Candidates} />
+      <Route path="/candidates/new" component={CandidateAdd} />
+      <Route path="/candidates/:id" component={CandidateProfile} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -10,6 +10,7 @@ import { sendMagicLinkEmail } from "./resend";
 import { requireAuth, requireRole, optionalAuth, generateToken, type AuthRequest } from "./auth";
 import { z } from "zod";
 import { parseCVWithAI, evaluateCandidateWithAI, isAIConfigured } from "./ai-screening";
+import { parseCVWithAI as parseResumeWithAI, isAIConfigured as isAIConfiguredForCV } from "./ai-cv-ingestion";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/subscribe", async (req, res) => {
@@ -1239,6 +1240,276 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Delete award error:", error);
       res.status(500).json({ success: false, message: "Failed to delete award" });
+    }
+  });
+
+  // ============================================================================
+  // ATS - Skills Management
+  // ============================================================================
+
+  app.post("/api/ats/candidates/:candidateId/skills", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { candidateId } = req.params;
+      const { skillName, kind } = req.body;
+
+      if (!skillName || !kind) {
+        return res.status(400).json({
+          success: false,
+          message: "Skill name and kind are required",
+        });
+      }
+
+      // Find or create skill
+      let [skill] = await db.select()
+        .from(skills)
+        .where(eq(skills.name, skillName.trim()));
+
+      if (!skill) {
+        [skill] = await db.insert(skills)
+          .values({ name: skillName.trim() })
+          .returning();
+      }
+
+      // Link skill to candidate
+      await db.insert(candidateSkills)
+        .values({
+          candidateId,
+          skillId: skill.id,
+          kind,
+        })
+        .onConflictDoNothing();
+
+      res.json({
+        success: true,
+        message: "Skill added successfully",
+        skill: {
+          skillId: skill.id,
+          skillName: skill.name,
+          kind,
+        },
+      });
+    } catch (error: any) {
+      console.error("Add skill error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to add skill",
+      });
+    }
+  });
+
+  app.delete("/api/ats/candidates/:candidateId/skills/:skillId", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { candidateId, skillId } = req.params;
+
+      await db.delete(candidateSkills)
+        .where(and(
+          eq(candidateSkills.candidateId, candidateId),
+          eq(candidateSkills.skillId, skillId)
+        ));
+
+      res.json({
+        success: true,
+        message: "Skill removed successfully",
+      });
+    } catch (error) {
+      console.error("Remove skill error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to remove skill",
+      });
+    }
+  });
+
+  // ============================================================================
+  // ATS - Resume Upload and AI Parsing
+  // ============================================================================
+
+  app.post("/api/ats/resumes/parse", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      // Check if AI is configured
+      if (!isAIConfiguredForCV()) {
+        return res.status(503).json({
+          success: false,
+          message: "AI integration is not configured. Please set up OpenAI integration.",
+        });
+      }
+
+      const { filename, rawText, createCandidate } = req.body;
+
+      if (!filename || !rawText) {
+        return res.status(400).json({
+          success: false,
+          message: "Filename and raw text are required",
+        });
+      }
+
+      // Parse CV with AI
+      const parsedResult = await parseResumeWithAI(
+        rawText,
+        filename,
+        Buffer.byteLength(rawText, 'utf8')
+      );
+
+      // If createCandidate=true, create the candidate and all related records
+      if (createCandidate) {
+        const { candidate: parsedCandidate } = parsedResult;
+
+        // Create candidate
+        const [newCandidate] = await db.insert(candidates)
+          .values({
+            fullName: parsedCandidate.full_name || null,
+            headline: parsedCandidate.headline || null,
+            email: parsedCandidate.contact?.email || null,
+            phone: parsedCandidate.contact?.phone || null,
+            city: parsedCandidate.contact?.city || null,
+            country: parsedCandidate.contact?.country || null,
+            links: parsedCandidate.links || {},
+            summary: parsedCandidate.summary || null,
+            workAuthorization: parsedCandidate.work_authorization || null,
+            availability: parsedCandidate.availability || null,
+            salaryExpectation: parsedCandidate.salary_expectation || null,
+            notes: parsedCandidate.notes || null,
+          })
+          .returning();
+
+        const candidateId = newCandidate.id;
+
+        // Create resume record
+        await db.insert(resumes).values({
+          candidateId,
+          filename: parsedResult.source_meta.filename,
+          filesizeBytes: parsedResult.source_meta.filesize_bytes,
+          parsedOk: parsedResult.source_meta.parsed_ok ? 1 : 0,
+          parseNotes: parsedResult.source_meta.parse_notes,
+          rawText,
+        });
+
+        // Create experiences
+        if (parsedCandidate.experience && parsedCandidate.experience.length > 0) {
+          for (const exp of parsedCandidate.experience) {
+            await db.insert(experiences).values({
+              candidateId,
+              title: exp.title || null,
+              company: exp.company || null,
+              industry: exp.industry || null,
+              location: exp.location || null,
+              startDate: exp.start_date || null,
+              endDate: exp.end_date || null,
+              isCurrent: exp.is_current ? 1 : 0,
+              bullets: exp.bullets || [],
+            });
+          }
+        }
+
+        // Create education
+        if (parsedCandidate.education && parsedCandidate.education.length > 0) {
+          for (const edu of parsedCandidate.education) {
+            await db.insert(education).values({
+              candidateId,
+              institution: edu.institution || null,
+              qualification: edu.qualification || null,
+              location: edu.location || null,
+              gradDate: edu.grad_date || null,
+            });
+          }
+        }
+
+        // Create certifications
+        if (parsedCandidate.certifications && parsedCandidate.certifications.length > 0) {
+          for (const cert of parsedCandidate.certifications) {
+            await db.insert(certifications).values({
+              candidateId,
+              name: cert.name || null,
+              issuer: cert.issuer || null,
+              year: cert.year || null,
+            });
+          }
+        }
+
+        // Create projects
+        if (parsedCandidate.projects && parsedCandidate.projects.length > 0) {
+          for (const proj of parsedCandidate.projects) {
+            await db.insert(projects).values({
+              candidateId,
+              name: proj.name || null,
+              what: proj.what || null,
+              impact: proj.impact || null,
+              link: proj.link || null,
+            });
+          }
+        }
+
+        // Create awards
+        if (parsedCandidate.awards && parsedCandidate.awards.length > 0) {
+          for (const award of parsedCandidate.awards) {
+            await db.insert(awards).values({
+              candidateId,
+              name: award.name || null,
+              byWhom: award.by || null,
+              year: award.year || null,
+              note: award.note || null,
+            });
+          }
+        }
+
+        // Create skills
+        if (parsedCandidate.skills) {
+          const allSkills: Array<{ name: string; kind: string }> = [];
+
+          if (parsedCandidate.skills.technical) {
+            allSkills.push(...parsedCandidate.skills.technical.map(s => ({ name: s, kind: 'technical' })));
+          }
+          if (parsedCandidate.skills.tools) {
+            allSkills.push(...parsedCandidate.skills.tools.map(s => ({ name: s, kind: 'tools' })));
+          }
+          if (parsedCandidate.skills.soft) {
+            allSkills.push(...parsedCandidate.skills.soft.map(s => ({ name: s, kind: 'soft' })));
+          }
+
+          for (const { name, kind } of allSkills) {
+            // Find or create skill
+            let [skill] = await db.select()
+              .from(skills)
+              .where(eq(skills.name, name.trim()));
+
+            if (!skill) {
+              [skill] = await db.insert(skills)
+                .values({ name: name.trim() })
+                .returning();
+            }
+
+            // Link to candidate
+            await db.insert(candidateSkills)
+              .values({
+                candidateId,
+                skillId: skill.id,
+                kind,
+              })
+              .onConflictDoNothing();
+          }
+        }
+
+        res.json({
+          success: true,
+          message: "CV parsed and candidate created successfully",
+          candidate: newCandidate,
+          parsed: parsedResult,
+        });
+      } else {
+        // Just return parsed data without creating candidate
+        res.json({
+          success: true,
+          message: "CV parsed successfully",
+          parsed: parsedResult,
+        });
+      }
+    } catch (error: any) {
+      console.error("Resume parse error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to parse resume",
+        error: error.message,
+      });
     }
   });
 

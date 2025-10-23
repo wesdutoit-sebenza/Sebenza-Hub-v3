@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User as UserIcon, LogOut } from "lucide-react";
+import { Menu, X, User as UserIcon, LogOut, Database, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -99,6 +99,23 @@ export default function Header() {
                   <DropdownMenuLabel data-testid="text-user-email">
                     {user.email}
                   </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => setLocation('/screening')}
+                    className="gap-2 cursor-pointer"
+                    data-testid="link-screening"
+                  >
+                    <Sparkles size={16} />
+                    CV Screening
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setLocation('/candidates')}
+                    className="gap-2 cursor-pointer"
+                    data-testid="link-candidates"
+                  >
+                    <Database size={16} />
+                    Candidate Database
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}
