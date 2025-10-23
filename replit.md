@@ -128,6 +128,7 @@ Preferred communication style: Simple, everyday language.
 - No passwords stored - users sign in via email magic links (10-minute expiry)
 - JWT tokens in httpOnly cookies (7-day expiry, SESSION_SECRET required)
 - Email delivery via Resend integration (configured connector)
+- **Development Mode:** Magic links logged to console instead of sent via email for faster testing
 
 **Multi-Role User System:**
 - Single users table with roles array: `['individual', 'business', 'recruiter']`
@@ -153,14 +154,20 @@ Preferred communication style: Simple, everyday language.
 
 **Onboarding Flow:**
 1. User enters email at `/login`
-2. Magic link sent to email
+2. Magic link sent to email (or logged to console in development mode)
 3. User clicks link → verified → redirected to `/onboarding`
-4. Role selection screen (Individual/Business/Recruiter)
+4. Role selection screen (Individual/Business/Recruiter) - calls POST /api/me/role to add selected role
 5. Role-specific onboarding form:
-   - **Individual** (`/onboarding/individual`) - COMPLETE: Name, location, job title, experience, skills, visibility, POPIA consent
-   - **Business** (`/onboarding/business`) - STUB: Placeholder "coming soon" page
-   - **Recruiter** (`/onboarding/recruiter`) - STUB: Placeholder "coming soon" page
-6. After onboarding → redirect to relevant dashboard
+   - **Individual** (`/onboarding/individual`) - COMPLETE: Name, location, job title, experience, skills, visibility, POPIA consent → redirects to /individuals
+   - **Business** (`/onboarding/business`) - COMPLETE: Organization name, type (employer/agency), location, industry, size, website → redirects to /
+   - **Recruiter** (`/onboarding/recruiter`) - COMPLETE: Industry sectors, proof URL (optional), verification pending → redirects to /
+6. After onboarding → redirect to relevant page based on role
+
+**User Session Management:**
+- Header displays user menu with email and logout when authenticated
+- User menu fetches current user from GET /api/me
+- Logout clears session cookie and immediately updates UI to show Sign In/Get Started buttons
+- Query cache explicitly cleared on logout to prevent stale UI state
 
 **POPIA Compliance:**
 - Candidate profiles require explicit data consent (checkbox + server validation)
