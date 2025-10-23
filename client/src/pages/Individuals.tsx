@@ -12,6 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import PageHeader from "@/components/PageHeader";
 import Section from "@/components/Section";
 import FAQAccordion from "@/components/FAQAccordion";
@@ -287,24 +294,24 @@ export default function Individuals() {
               real-time feedback, and improve your interview skills.
             </p>
             
-            {!showInterviewCoach ? (
-              <Button
-                size="lg"
-                className="bg-amber hover:bg-amber/90 text-charcoal font-semibold"
-                onClick={() => {
-                  if (!user) {
-                    setLocation('/login');
-                    return;
-                  }
-                  setShowInterviewCoach(true);
-                }}
-                data-testid="button-start-coach"
-              >
-                <MessageCircle size={20} className="mr-2" />
-                Start Interview Practice
-              </Button>
-            ) : (
-              <div className="mt-8">
+            <Button
+              size="lg"
+              className="bg-amber hover:bg-amber/90 text-charcoal font-semibold"
+              onClick={() => {
+                if (!user) {
+                  setLocation('/login');
+                  return;
+                }
+                setShowInterviewCoach(true);
+              }}
+              data-testid="button-start-coach"
+            >
+              <MessageCircle size={20} className="mr-2" />
+              Start Interview Practice
+            </Button>
+            
+            <Dialog open={showInterviewCoach} onOpenChange={setShowInterviewCoach}>
+              <DialogContent className="max-w-4xl h-[80vh]">
                 <InterviewCoach
                   candidateProfile={profileData?.profile ? JSON.stringify({
                     name: profileData.profile.candidate?.fullName,
@@ -316,8 +323,8 @@ export default function Individuals() {
                   }) : undefined}
                   onClose={() => setShowInterviewCoach(false)}
                 />
-              </div>
-            )}
+              </DialogContent>
+            </Dialog>
           </div>
         </Section>
       )}
