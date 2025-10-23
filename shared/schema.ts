@@ -885,3 +885,52 @@ export const approvedVendorPatchSchema = z.object({
   ndaSigned: z.number().int().min(0).max(1).optional(),
   status: z.enum(['active', 'inactive']).optional(),
 });
+
+// Individual Preferences - job search and application preferences
+export const individualPreferences = pgTable("individual_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  preferredIndustries: text("preferred_industries").array().notNull().default(sql`'{}'::text[]`),
+  preferredLocations: text("preferred_locations").array().notNull().default(sql`'{}'::text[]`),
+  preferredEmploymentTypes: text("preferred_employment_types").array().notNull().default(sql`'{}'::text[]`), // Permanent, Contract, etc
+  desiredSalaryMin: integer("desired_salary_min"),
+  desiredSalaryMax: integer("desired_salary_max"),
+  salaryCurrency: text("salary_currency").notNull().default('ZAR'),
+  availability: text("availability"), // Immediate, 1 month, 2 months, etc
+  willingToRelocate: integer("willing_to_relocate").notNull().default(0), // 0 = no, 1 = yes
+  remotePreference: text("remote_preference").notNull().default('any'), // 'remote_only', 'hybrid', 'office', 'any'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertIndividualPreferencesSchema = createInsertSchema(individualPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertIndividualPreferences = z.infer<typeof insertIndividualPreferencesSchema>;
+export type IndividualPreferences = typeof individualPreferences.$inferSelect;
+
+// Individual Notification Settings
+export const individualNotificationSettings = pgTable("individual_notification_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(),
+  emailJobAlerts: integer("email_job_alerts").notNull().default(1), // 0 = off, 1 = on
+  emailApplicationUpdates: integer("email_application_updates").notNull().default(1),
+  emailWeeklyDigest: integer("email_weekly_digest").notNull().default(0),
+  whatsappJobAlerts: integer("whatsapp_job_alerts").notNull().default(0),
+  whatsappApplicationUpdates: integer("whatsapp_application_updates").notNull().default(0),
+  smsJobAlerts: integer("sms_job_alerts").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertIndividualNotificationSettingsSchema = createInsertSchema(individualNotificationSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertIndividualNotificationSettings = z.infer<typeof insertIndividualNotificationSettingsSchema>;
+export type IndividualNotificationSettings = typeof individualNotificationSettings.$inferSelect;

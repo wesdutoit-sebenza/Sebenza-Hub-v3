@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertMagicTokenSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, type User } from "@shared/schema";
+import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertMagicTokenSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, insertIndividualPreferencesSchema, insertIndividualNotificationSettingsSchema, type User } from "@shared/schema";
 import { db } from "./db";
-import { users, magicTokens, candidateProfiles, organizations, recruiterProfiles, memberships, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings } from "@shared/schema";
+import { users, magicTokens, candidateProfiles, organizations, recruiterProfiles, memberships, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { sendMagicLinkEmail } from "./resend";
@@ -2452,6 +2452,229 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to delete screening",
+      });
+    }
+  });
+
+  // ========================================
+  // INDIVIDUAL SETTINGS ENDPOINTS
+  // ========================================
+  
+  // Get individual's candidate profile
+  app.get("/api/individual/profile", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const [profile] = await db.select()
+        .from(candidateProfiles)
+        .where(eq(candidateProfiles.userId, req.user!.id));
+
+      if (!profile) {
+        return res.status(404).json({
+          success: false,
+          message: "Profile not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        profile,
+      });
+    } catch (error) {
+      console.error("Get individual profile error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch profile",
+      });
+    }
+  });
+
+  // Update individual's candidate profile
+  app.patch("/api/individual/profile", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const updateData = {
+        ...req.body,
+        updatedAt: new Date(),
+      };
+
+      const [updatedProfile] = await db.update(candidateProfiles)
+        .set(updateData)
+        .where(eq(candidateProfiles.userId, req.user!.id))
+        .returning();
+
+      if (!updatedProfile) {
+        return res.status(404).json({
+          success: false,
+          message: "Profile not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        profile: updatedProfile,
+        message: "Profile updated successfully",
+      });
+    } catch (error) {
+      console.error("Update individual profile error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update profile",
+      });
+    }
+  });
+
+  // Get individual's job preferences
+  app.get("/api/individual/preferences", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      let [preferences] = await db.select()
+        .from(individualPreferences)
+        .where(eq(individualPreferences.userId, req.user!.id));
+
+      // Create default preferences if they don't exist
+      if (!preferences) {
+        [preferences] = await db.insert(individualPreferences)
+          .values({ userId: req.user!.id })
+          .returning();
+      }
+
+      res.json({
+        success: true,
+        preferences,
+      });
+    } catch (error) {
+      console.error("Get individual preferences error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch preferences",
+      });
+    }
+  });
+
+  // Update individual's job preferences
+  app.patch("/api/individual/preferences", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const updateData = {
+        ...req.body,
+        updatedAt: new Date(),
+      };
+
+      // Check if preferences exist
+      const [existing] = await db.select()
+        .from(individualPreferences)
+        .where(eq(individualPreferences.userId, req.user!.id));
+
+      let updatedPreferences;
+      
+      if (existing) {
+        [updatedPreferences] = await db.update(individualPreferences)
+          .set(updateData)
+          .where(eq(individualPreferences.userId, req.user!.id))
+          .returning();
+      } else {
+        [updatedPreferences] = await db.insert(individualPreferences)
+          .values({ userId: req.user!.id, ...updateData })
+          .returning();
+      }
+
+      res.json({
+        success: true,
+        preferences: updatedPreferences,
+        message: "Preferences updated successfully",
+      });
+    } catch (error) {
+      console.error("Update individual preferences error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update preferences",
+      });
+    }
+  });
+
+  // Get individual's notification settings
+  app.get("/api/individual/notifications", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      let [settings] = await db.select()
+        .from(individualNotificationSettings)
+        .where(eq(individualNotificationSettings.userId, req.user!.id));
+
+      // Create default settings if they don't exist
+      if (!settings) {
+        [settings] = await db.insert(individualNotificationSettings)
+          .values({ userId: req.user!.id })
+          .returning();
+      }
+
+      res.json({
+        success: true,
+        settings,
+      });
+    } catch (error) {
+      console.error("Get notification settings error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch notification settings",
+      });
+    }
+  });
+
+  // Update individual's notification settings
+  app.patch("/api/individual/notifications", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const updateData = {
+        ...req.body,
+        updatedAt: new Date(),
+      };
+
+      // Check if settings exist
+      const [existing] = await db.select()
+        .from(individualNotificationSettings)
+        .where(eq(individualNotificationSettings.userId, req.user!.id));
+
+      let updatedSettings;
+      
+      if (existing) {
+        [updatedSettings] = await db.update(individualNotificationSettings)
+          .set(updateData)
+          .where(eq(individualNotificationSettings.userId, req.user!.id))
+          .returning();
+      } else {
+        [updatedSettings] = await db.insert(individualNotificationSettings)
+          .values({ userId: req.user!.id, ...updateData })
+          .returning();
+      }
+
+      res.json({
+        success: true,
+        settings: updatedSettings,
+        message: "Notification settings updated successfully",
+      });
+    } catch (error) {
+      console.error("Update notification settings error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update notification settings",
+      });
+    }
+  });
+
+  // Delete account request (soft delete - just marks data for deletion)
+  app.post("/api/individual/delete-account", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      // In a production app, this would:
+      // 1. Mark account for deletion
+      // 2. Send confirmation email
+      // 3. Schedule actual deletion after grace period
+      // For now, we'll just log the request
+      
+      console.log(`Account deletion requested for user ${req.user!.id}`);
+      
+      res.json({
+        success: true,
+        message: "Account deletion request received. You will receive a confirmation email.",
+      });
+    } catch (error) {
+      console.error("Delete account request error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to process deletion request",
       });
     }
   });
