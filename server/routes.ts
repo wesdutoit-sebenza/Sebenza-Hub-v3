@@ -559,6 +559,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get screening dashboard statistics
+  app.get("/api/screening/stats", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const jobs = await db.select()
+        .from(screeningJobs)
+        .where(eq(screeningJobs.userId, req.user!.id));
+
+      const draftJobs = jobs.filter(j => j.status === 'draft');
+      const processingJobs = jobs.filter(j => j.status === 'processing');
+      const completedJobs = jobs.filter(j => j.status === 'completed');
+      const failedJobs = jobs.filter(j => j.status === 'failed');
+
+      // Recent jobs (last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const recentJobs = jobs.filter(j => 
+        j.createdAt && new Date(j.createdAt) >= sevenDaysAgo
+      );
+
+      // Calculate success rate
+      const totalProcessedJobs = completedJobs.length + failedJobs.length;
+      const successRate = totalProcessedJobs > 0 
+        ? Math.round((completedJobs.length / totalProcessedJobs) * 100) 
+        : 0;
+
+      res.json({
+        success: true,
+        stats: {
+          totalJobs: jobs.length,
+          draftJobs: draftJobs.length,
+          processingJobs: processingJobs.length,
+          completedJobs: completedJobs.length,
+          failedJobs: failedJobs.length,
+          recentJobs: recentJobs.length,
+          successRate,
+        },
+      });
+    } catch (error) {
+      console.error("Get screening stats error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch screening statistics",
+      });
+    }
+  });
+
   // Get a specific screening job with results
   app.get("/api/screening/jobs/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
@@ -873,6 +919,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to fetch candidates",
+      });
+    }
+  });
+
+  // Get candidates dashboard statistics
+  app.get("/api/ats/stats", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const allCandidates = await db.select().from(candidates);
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      // Recent candidates (last 7 days)
+      const recentCandidates = allCandidates.filter(c => 
+        c.createdAt && new Date(c.createdAt) >= sevenDaysAgo
+      );
+
+      // Get all skills with counts
+      const skillsData = await db.select({
+        skillName: skills.name,
+        count: sql<number>`count(${candidateSkills.candidateId})::int`,
+      })
+        .from(candidateSkills)
+        .innerJoin(skills, eq(candidateSkills.skillId, skills.id))
+        .groupBy(skills.name)
+        .orderBy(sql`count(${candidateSkills.candidateId}) desc`)
+        .limit(10);
+
+      // Location distribution
+      const locationData = allCandidates.reduce((acc: Record<string, number>, c) => {
+        const location = c.city && c.country ? `${c.city}, ${c.country}` : c.country || 'Unknown';
+        acc[location] = (acc[location] || 0) + 1;
+        return acc;
+      }, {});
+
+      const topLocations = Object.entries(locationData)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5)
+        .map(([location, count]) => ({ location, count }));
+
+      res.json({
+        success: true,
+        stats: {
+          totalCandidates: allCandidates.length,
+          recentCandidates: recentCandidates.length,
+          topSkills: skillsData,
+          topLocations,
+        },
+      });
+    } catch (error) {
+      console.error("Get candidates stats error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch candidates statistics",
       });
     }
   });
@@ -1912,6 +2011,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Failed to fetch roles",
+      });
+    }
+  });
+
+  // Get roles dashboard statistics
+  app.get("/api/roles/stats", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const allRoles = await db.select().from(roles);
+      const activeRoles = allRoles.filter(r => r.isActive === 1);
+      const inactiveRoles = allRoles.filter(r => r.isActive === 0);
+
+      // Get total screenings count
+      const screeningsCount = await db.select({
+        count: sql<number>`count(*)::int`,
+      })
+        .from(screenings);
+
+      // Get screenings by role (top 5)
+      const screeningsByRole = await db.select({
+        roleId: screenings.roleId,
+        roleTitle: roles.jobTitle,
+        count: sql<number>`count(*)::int`,
+        avgScore: sql<number>`avg(${screenings.scoreTotal})::int`,
+      })
+        .from(screenings)
+        .innerJoin(roles, eq(screenings.roleId, roles.id))
+        .groupBy(screenings.roleId, roles.jobTitle)
+        .orderBy(sql`count(*) desc`)
+        .limit(5);
+
+      // Recent roles (last 7 days)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const recentRoles = allRoles.filter(r => 
+        r.createdAt && new Date(r.createdAt) >= sevenDaysAgo
+      );
+
+      res.json({
+        success: true,
+        stats: {
+          totalRoles: allRoles.length,
+          activeRoles: activeRoles.length,
+          inactiveRoles: inactiveRoles.length,
+          totalScreenings: screeningsCount[0]?.count || 0,
+          recentRoles: recentRoles.length,
+          topRoles: screeningsByRole,
+        },
+      });
+    } catch (error) {
+      console.error("Get roles stats error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch roles statistics",
       });
     }
   });
