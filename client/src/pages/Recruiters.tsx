@@ -632,8 +632,8 @@ export default function Recruiters() {
         </div>
       </Section>
 
-      <Section className="bg-card" id="faq">
-        <h2 className="text-3xl font-serif font-semibold text-center mb-12" data-testid="text-faq-title">
+      <Section className="bg-graphite" id="faq">
+        <h2 className="text-3xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-faq-title">
           Recruiter FAQs
         </h2>
         <div className="max-w-3xl mx-auto">
