@@ -2302,6 +2302,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ===== INTERVIEW COACH ENDPOINTS =====
+  
+  // Start interview coach session
+  app.post("/api/interview-coach/start", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { config, context } = req.body;
+      
+      const { startInterviewSession } = await import("./interview-coach");
+      const result = await startInterviewSession(config, context);
+      
+      res.json({
+        success: true,
+        sessionId: result.sessionId,
+        response: result.response,
+      });
+    } catch (error: any) {
+      console.error("[Interview Coach] Start session error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to start interview session",
+      });
+    }
+  });
+
+  // Send message to interview coach
+  app.post("/api/interview-coach/chat", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { sessionId, message } = req.body;
+      
+      if (!sessionId || !message) {
+        return res.status(400).json({
+          success: false,
+          message: "Session ID and message are required",
+        });
+      }
+      
+      const { sendMessage } = await import("./interview-coach");
+      const response = await sendMessage(sessionId, message);
+      
+      res.json({
+        success: true,
+        response,
+      });
+    } catch (error: any) {
+      console.error("[Interview Coach] Chat error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to process message",
+      });
+    }
+  });
+
+  // Get session transcript
+  app.get("/api/interview-coach/transcript/:sessionId", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { sessionId } = req.params;
+      
+      const { getSessionTranscript } = await import("./interview-coach");
+      const transcript = getSessionTranscript(sessionId);
+      
+      res.json({
+        success: true,
+        transcript,
+      });
+    } catch (error: any) {
+      console.error("[Interview Coach] Transcript error:", error);
+      res.status(404).json({
+        success: false,
+        message: error.message || "Session not found",
+      });
+    }
+  });
+
+  // End interview coach session
+  app.post("/api/interview-coach/end", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { sessionId } = req.body;
+      
+      const { endSession } = await import("./interview-coach");
+      endSession(sessionId);
+      
+      res.json({
+        success: true,
+        message: "Session ended",
+      });
+    } catch (error: any) {
+      console.error("[Interview Coach] End session error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to end session",
+      });
+    }
+  });
+
   // Individual resume parse endpoint (text paste)
   app.post("/api/individuals/resume/parse", requireAuth, async (req: AuthRequest, res) => {
     try {
