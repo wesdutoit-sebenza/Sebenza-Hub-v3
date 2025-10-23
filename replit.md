@@ -34,7 +34,13 @@ Preferred communication style: Simple, everyday language.
 - **Design System**: Features a base color palette with strategic accents, Inter and Newsreader typography, custom theming with light/dark mode, and mobile-first responsive design.
 - **Key Features**:
     - **Recruiters Page**: Job posting form, numeric salary inputs, WhatsApp integration, employment type, and industry categorization.
-    - **Individuals Page**: Job search and filtering, multi-step CV builder wizard (7 steps) with professional CV preview, and `react-hook-form` with Zod validation.
+    - **Individuals Page**: 
+        - **Unified CV Upload**: Individuals upload resumes (file or text) that populate the same ATS candidate database used by recruiters
+        - **AI Resume Parsing**: Uses OpenAI GPT-4o to extract structured data (personal info, experiences, education, skills, etc.)
+        - **Profile Viewing**: Users can view their parsed CV data in a structured, read-only profile page
+        - **Profile Editing**: Users can edit their personal information, contact details, and work preferences
+        - **User Linking**: Candidate profiles are linked to user accounts via userId foreign key
+        - Legacy: Multi-step CV builder wizard (7 steps) with professional CV preview, and `react-hook-form` with Zod validation
     - **CV Screening Page (Legacy)**: AI-powered candidate evaluation using OpenAI GPT-5. Includes job creation with configurable scoring weights, text file CV processing, and detailed results display with ranking, AI reasoning, and knockout warnings. Supports Draft, Processing, and Completed/Failed states.
     - **Integrated Roles & Screening**: Modern screening system that bridges ATS and AI evaluation:
         - **Role Management**: Create, edit, and manage hiring roles with job details, required skills, salary ranges, location requirements, and custom knockout criteria
@@ -61,7 +67,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend
 - **Server Framework**: Express.js with TypeScript, integrated with Vite middleware for development and static file serving for production.
-- **API Endpoints**: Handles subscriptions, job postings, CV management, legacy AI screening, integrated roles/screening system (CRUD + evaluation), comprehensive ATS candidate management (30+ endpoints), and organization settings (40+ endpoints for team members, pipeline stages, interview settings, compliance, integrations, job templates, salary bands, and vendors).
+- **API Endpoints**: Handles subscriptions, job postings, CV management, legacy AI screening, integrated roles/screening system (CRUD + evaluation), comprehensive ATS candidate management (30+ endpoints), organization settings (40+ endpoints), and **individual CV management** (GET/POST/PUT endpoints for profile viewing and editing, scoped to authenticated user).
 - **Request/Response**: JSON body parsing, custom logging, and structured JSON error responses.
 - **AI Integration**: Two separate AI systems - CV screening for job-specific evaluation and resume ingestion for structured data extraction.
 - **Background Job Processing**: BullMQ with Redis for asynchronous screening jobs:
