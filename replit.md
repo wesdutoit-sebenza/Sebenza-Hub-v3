@@ -40,6 +40,12 @@ Preferred communication style: Simple, everyday language.
         - **Profile Viewing**: Users can view their parsed CV data in a structured, read-only profile page
         - **Profile Editing**: Users can edit their personal information, contact details, and work preferences
         - **User Linking**: Candidate profiles are linked to user accounts via userId foreign key
+        - **AI Interview Coach**: Interactive chatbot named "Jabu" that helps candidates practice for interviews with:
+            - Configurable interview type (behavioral, technical, mixed) and difficulty (easy, standard, hard)
+            - Personalized questions tailored to job description and candidate profile
+            - Real-time feedback with 0-5 scoring rubric across multiple dimensions
+            - Detailed analysis of strengths, improvements, and sample upgrades
+            - Session-based chat with in-memory storage (2-hour TTL)
         - Legacy: Multi-step CV builder wizard (7 steps) with professional CV preview, and `react-hook-form` with Zod validation
     - **CV Screening Page (Legacy)**: AI-powered candidate evaluation using OpenAI GPT-5. Includes job creation with configurable scoring weights, text file CV processing, and detailed results display with ranking, AI reasoning, and knockout warnings. Supports Draft, Processing, and Completed/Failed states.
     - **Integrated Roles & Screening**: Modern screening system that bridges ATS and AI evaluation:
@@ -67,9 +73,9 @@ Preferred communication style: Simple, everyday language.
 
 ### Backend
 - **Server Framework**: Express.js with TypeScript, integrated with Vite middleware for development and static file serving for production.
-- **API Endpoints**: Handles subscriptions, job postings, CV management, legacy AI screening, integrated roles/screening system (CRUD + evaluation), comprehensive ATS candidate management (30+ endpoints), organization settings (40+ endpoints), and **individual CV management** (GET/POST/PUT endpoints for profile viewing and editing, scoped to authenticated user).
+- **API Endpoints**: Handles subscriptions, job postings, CV management, legacy AI screening, integrated roles/screening system (CRUD + evaluation), comprehensive ATS candidate management (30+ endpoints), organization settings (40+ endpoints), **individual CV management** (GET/POST/PUT endpoints for profile viewing and editing, scoped to authenticated user), and **interview coach** (start session, send message, get transcript, end session).
 - **Request/Response**: JSON body parsing, custom logging, and structured JSON error responses.
-- **AI Integration**: Two separate AI systems - CV screening for job-specific evaluation and resume ingestion for structured data extraction.
+- **AI Integration**: Three separate AI systems - CV screening for job-specific evaluation, resume ingestion for structured data extraction, and interview coaching with real-time feedback and scoring.
 - **Background Job Processing**: BullMQ with Redis for asynchronous screening jobs:
     - **Auto-Screening**: Automatically screens new candidates against all active roles when they're added via any endpoint (direct creation, file upload, or text parsing)
     - **Worker Process**: Separate worker (server/worker.ts) processes screening jobs with configurable concurrency (5 concurrent jobs)
