@@ -1950,6 +1950,458 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================================================
+  // Individuals - CV Upload for Job Seekers
+  // ============================================================================
+
+  // Individual resume upload endpoint (file upload)
+  app.post("/api/individuals/resume/upload", requireAuth, upload.single('file'), async (req: AuthRequest, res) => {
+    const uploadedFile = req.file;
+
+    try {
+      // Check if AI is configured
+      if (!isAIConfiguredForCV()) {
+        return res.status(503).json({
+          success: false,
+          message: "AI integration is not configured. Please set up OpenAI integration.",
+        });
+      }
+
+      if (!uploadedFile) {
+        return res.status(400).json({
+          success: false,
+          message: "No file uploaded",
+        });
+      }
+
+      // Check if user already has a candidate profile
+      const existingCandidate = await db.select()
+        .from(candidates)
+        .where(eq(candidates.userId, req.user!.id))
+        .limit(1);
+
+      if (existingCandidate.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "You already have a profile. Please edit your existing profile instead.",
+          candidateId: existingCandidate[0].id,
+        });
+      }
+
+      console.log(`[Individuals] Processing uploaded file: ${uploadedFile.originalname} (${uploadedFile.size} bytes)`);
+
+      // Read file content
+      let fileContent: string;
+      
+      if (uploadedFile.mimetype === 'text/plain') {
+        fileContent = await fs.readFile(uploadedFile.path, 'utf-8');
+      } else {
+        const fileBuffer = await fs.readFile(uploadedFile.path);
+        fileContent = fileBuffer.toString('base64');
+      }
+
+      // Parse CV with AI
+      const parsedResult = await parseResumeWithAI(
+        fileContent,
+        uploadedFile.originalname,
+        uploadedFile.size
+      );
+
+      const { candidate: parsedCandidate } = parsedResult;
+
+      // Create candidate and all related records
+      const [newCandidate] = await db.insert(candidates)
+        .values({
+          userId: req.user!.id, // Link to authenticated user
+          fullName: parsedCandidate.full_name || null,
+          headline: parsedCandidate.headline || null,
+          email: parsedCandidate.contact?.email || req.user!.email || null,
+          phone: parsedCandidate.contact?.phone || null,
+          city: parsedCandidate.contact?.city || null,
+          country: parsedCandidate.contact?.country || null,
+          links: parsedCandidate.links || {},
+          summary: parsedCandidate.summary || null,
+          workAuthorization: parsedCandidate.work_authorization || null,
+          availability: parsedCandidate.availability || null,
+          salaryExpectation: parsedCandidate.salary_expectation || null,
+          notes: parsedCandidate.notes || null,
+        })
+        .returning();
+
+      const candidateId = newCandidate.id;
+
+      // Create resume record
+      await db.insert(resumes).values({
+        candidateId,
+        filename: uploadedFile.originalname,
+        filesizeBytes: uploadedFile.size,
+        parsedOk: parsedResult.source_meta.parsed_ok ? 1 : 0,
+        parseNotes: parsedResult.source_meta.parse_notes,
+        rawText: uploadedFile.mimetype === 'text/plain' ? fileContent : null,
+      });
+
+      // Create experiences
+      if (parsedCandidate.experience && parsedCandidate.experience.length > 0) {
+        for (const exp of parsedCandidate.experience) {
+          await db.insert(experiences).values({
+            candidateId,
+            title: exp.title || null,
+            company: exp.company || null,
+            industry: exp.industry || null,
+            location: exp.location || null,
+            startDate: exp.start_date || null,
+            endDate: exp.end_date || null,
+            isCurrent: exp.is_current ? 1 : 0,
+            bullets: exp.bullets || [],
+          });
+        }
+      }
+
+      // Create education
+      if (parsedCandidate.education && parsedCandidate.education.length > 0) {
+        for (const edu of parsedCandidate.education) {
+          await db.insert(education).values({
+            candidateId,
+            institution: edu.institution || null,
+            qualification: edu.qualification || null,
+            location: edu.location || null,
+            gradDate: edu.grad_date || null,
+          });
+        }
+      }
+
+      // Create certifications
+      if (parsedCandidate.certifications && parsedCandidate.certifications.length > 0) {
+        for (const cert of parsedCandidate.certifications) {
+          await db.insert(certifications).values({
+            candidateId,
+            name: cert.name || null,
+            issuer: cert.issuer || null,
+            year: cert.year || null,
+          });
+        }
+      }
+
+      // Create projects
+      if (parsedCandidate.projects && parsedCandidate.projects.length > 0) {
+        for (const proj of parsedCandidate.projects) {
+          await db.insert(projects).values({
+            candidateId,
+            name: proj.name || null,
+            what: proj.what || null,
+            impact: proj.impact || null,
+            link: proj.link || null,
+          });
+        }
+      }
+
+      // Create awards
+      if (parsedCandidate.awards && parsedCandidate.awards.length > 0) {
+        for (const award of parsedCandidate.awards) {
+          await db.insert(awards).values({
+            candidateId,
+            name: award.name || null,
+            byWhom: award.by || null,
+            year: award.year || null,
+            note: award.note || null,
+          });
+        }
+      }
+
+      // Create skills
+      if (parsedCandidate.skills) {
+        const allSkills: Array<{ name: string; kind: string }> = [];
+
+        if (parsedCandidate.skills.technical) {
+          allSkills.push(...parsedCandidate.skills.technical.map(s => ({ name: s, kind: 'technical' })));
+        }
+        if (parsedCandidate.skills.tools) {
+          allSkills.push(...parsedCandidate.skills.tools.map(s => ({ name: s, kind: 'tools' })));
+        }
+        if (parsedCandidate.skills.soft) {
+          allSkills.push(...parsedCandidate.skills.soft.map(s => ({ name: s, kind: 'soft' })));
+        }
+
+        for (const { name, kind } of allSkills) {
+          if (!name?.trim()) continue;
+
+          // Find or create skill
+          let [skill] = await db.select()
+            .from(skills)
+            .where(eq(skills.name, name.trim()));
+
+          if (!skill) {
+            [skill] = await db.insert(skills)
+              .values({ name: name.trim() })
+              .returning();
+          }
+
+          // Link to candidate
+          await db.insert(candidateSkills)
+            .values({
+              candidateId,
+              skillId: skill.id,
+              kind,
+            })
+            .onConflictDoNothing();
+        }
+      }
+
+      console.log(`[Individuals] Successfully created profile: ${newCandidate.fullName} (${candidateId})`);
+
+      // Generate embeddings asynchronously (non-blocking)
+      const { indexCandidate, isEmbeddingsConfigured } = await import("./embeddings");
+      if (isEmbeddingsConfigured()) {
+        indexCandidate(candidateId).catch(err => {
+          console.error(`[Individuals] Failed to generate embedding for candidate ${candidateId}:`, err);
+        });
+      }
+
+      // Auto-enqueue screening jobs for all active roles
+      enqueueScreeningsForCandidate(candidateId).catch(err => {
+        console.error(`[Auto-Screen] Failed to enqueue screenings:`, err);
+      });
+
+      res.json({
+        success: true,
+        message: "Resume uploaded and profile created successfully",
+        candidateId: candidateId,
+        candidate: newCandidate,
+      });
+    } catch (error: any) {
+      console.error("[Individuals] Resume upload error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to process resume",
+        error: error.message,
+      });
+    } finally {
+      // Clean up uploaded file
+      if (uploadedFile) {
+        try {
+          await fs.unlink(uploadedFile.path);
+          console.log(`[Individuals] Cleaned up temporary file: ${uploadedFile.path}`);
+        } catch (err) {
+          console.error(`[Individuals] Failed to delete temporary file: ${uploadedFile.path}`, err);
+        }
+      }
+    }
+  });
+
+  // Individual resume parse endpoint (text paste)
+  app.post("/api/individuals/resume/parse", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      // Check if AI is configured
+      if (!isAIConfiguredForCV()) {
+        return res.status(503).json({
+          success: false,
+          message: "AI integration is not configured. Please set up OpenAI integration.",
+        });
+      }
+
+      // Check if user already has a candidate profile
+      const existingCandidate = await db.select()
+        .from(candidates)
+        .where(eq(candidates.userId, req.user!.id))
+        .limit(1);
+
+      if (existingCandidate.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: "You already have a profile. Please edit your existing profile instead.",
+          candidateId: existingCandidate[0].id,
+        });
+      }
+
+      const { resumeText } = req.body;
+
+      if (!resumeText || !resumeText.trim()) {
+        return res.status(400).json({
+          success: false,
+          message: "Resume text is required",
+        });
+      }
+
+      console.log(`[Individuals] Parsing resume text (${Buffer.byteLength(resumeText, 'utf8')} bytes)`);
+
+      // Parse CV with AI
+      const parsedResult = await parseResumeWithAI(
+        resumeText,
+        'pasted-resume.txt',
+        Buffer.byteLength(resumeText, 'utf8')
+      );
+
+      const { candidate: parsedCandidate } = parsedResult;
+
+      // Create candidate and all related records
+      const [newCandidate] = await db.insert(candidates)
+        .values({
+          userId: req.user!.id, // Link to authenticated user
+          fullName: parsedCandidate.full_name || null,
+          headline: parsedCandidate.headline || null,
+          email: parsedCandidate.contact?.email || req.user!.email || null,
+          phone: parsedCandidate.contact?.phone || null,
+          city: parsedCandidate.contact?.city || null,
+          country: parsedCandidate.contact?.country || null,
+          links: parsedCandidate.links || {},
+          summary: parsedCandidate.summary || null,
+          workAuthorization: parsedCandidate.work_authorization || null,
+          availability: parsedCandidate.availability || null,
+          salaryExpectation: parsedCandidate.salary_expectation || null,
+          notes: parsedCandidate.notes || null,
+        })
+        .returning();
+
+      const candidateId = newCandidate.id;
+
+      // Create resume record
+      await db.insert(resumes).values({
+        candidateId,
+        filename: 'pasted-resume.txt',
+        filesizeBytes: Buffer.byteLength(resumeText, 'utf8'),
+        parsedOk: parsedResult.source_meta.parsed_ok ? 1 : 0,
+        parseNotes: parsedResult.source_meta.parse_notes,
+        rawText: resumeText,
+      });
+
+      // Create experiences
+      if (parsedCandidate.experience && parsedCandidate.experience.length > 0) {
+        for (const exp of parsedCandidate.experience) {
+          await db.insert(experiences).values({
+            candidateId,
+            title: exp.title || null,
+            company: exp.company || null,
+            industry: exp.industry || null,
+            location: exp.location || null,
+            startDate: exp.start_date || null,
+            endDate: exp.end_date || null,
+            isCurrent: exp.is_current ? 1 : 0,
+            bullets: exp.bullets || [],
+          });
+        }
+      }
+
+      // Create education
+      if (parsedCandidate.education && parsedCandidate.education.length > 0) {
+        for (const edu of parsedCandidate.education) {
+          await db.insert(education).values({
+            candidateId,
+            institution: edu.institution || null,
+            qualification: edu.qualification || null,
+            location: edu.location || null,
+            gradDate: edu.grad_date || null,
+          });
+        }
+      }
+
+      // Create certifications
+      if (parsedCandidate.certifications && parsedCandidate.certifications.length > 0) {
+        for (const cert of parsedCandidate.certifications) {
+          await db.insert(certifications).values({
+            candidateId,
+            name: cert.name || null,
+            issuer: cert.issuer || null,
+            year: cert.year || null,
+          });
+        }
+      }
+
+      // Create projects
+      if (parsedCandidate.projects && parsedCandidate.projects.length > 0) {
+        for (const proj of parsedCandidate.projects) {
+          await db.insert(projects).values({
+            candidateId,
+            name: proj.name || null,
+            what: proj.what || null,
+            impact: proj.impact || null,
+            link: proj.link || null,
+          });
+        }
+      }
+
+      // Create awards
+      if (parsedCandidate.awards && parsedCandidate.awards.length > 0) {
+        for (const award of parsedCandidate.awards) {
+          await db.insert(awards).values({
+            candidateId,
+            name: award.name || null,
+            byWhom: award.by || null,
+            year: award.year || null,
+            note: award.note || null,
+          });
+        }
+      }
+
+      // Create skills
+      if (parsedCandidate.skills) {
+        const allSkills: Array<{ name: string; kind: string }> = [];
+
+        if (parsedCandidate.skills.technical) {
+          allSkills.push(...parsedCandidate.skills.technical.map(s => ({ name: s, kind: 'technical' })));
+        }
+        if (parsedCandidate.skills.tools) {
+          allSkills.push(...parsedCandidate.skills.tools.map(s => ({ name: s, kind: 'tools' })));
+        }
+        if (parsedCandidate.skills.soft) {
+          allSkills.push(...parsedCandidate.skills.soft.map(s => ({ name: s, kind: 'soft' })));
+        }
+
+        for (const { name, kind } of allSkills) {
+          if (!name?.trim()) continue;
+
+          // Find or create skill
+          let [skill] = await db.select()
+            .from(skills)
+            .where(eq(skills.name, name.trim()));
+
+          if (!skill) {
+            [skill] = await db.insert(skills)
+              .values({ name: name.trim() })
+              .returning();
+          }
+
+          // Link to candidate
+          await db.insert(candidateSkills)
+            .values({
+              candidateId,
+              skillId: skill.id,
+              kind,
+            })
+            .onConflictDoNothing();
+        }
+      }
+
+      console.log(`[Individuals] Successfully created profile: ${newCandidate.fullName} (${candidateId})`);
+
+      // Generate embeddings asynchronously (non-blocking)
+      const { indexCandidate, isEmbeddingsConfigured } = await import("./embeddings");
+      if (isEmbeddingsConfigured()) {
+        indexCandidate(candidateId).catch(err => {
+          console.error(`[Individuals] Failed to generate embedding for candidate ${candidateId}:`, err);
+        });
+      }
+
+      // Auto-enqueue screening jobs for all active roles
+      enqueueScreeningsForCandidate(candidateId).catch(err => {
+        console.error(`[Auto-Screen] Failed to enqueue screenings:`, err);
+      });
+
+      res.json({
+        success: true,
+        message: "Resume parsed and profile created successfully",
+        candidateId: candidateId,
+        candidate: newCandidate,
+      });
+    } catch (error: any) {
+      console.error("[Individuals] Resume parse error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to process resume",
+        error: error.message,
+      });
+    }
+  });
+
+  // ============================================================================
   // Integrated Roles & Screenings - Links roles directly to ATS candidates
   // ============================================================================
 

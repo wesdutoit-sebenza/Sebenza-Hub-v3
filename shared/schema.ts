@@ -395,6 +395,7 @@ export type Screening = typeof screenings.$inferSelect;
 // Core candidate table
 export const candidates = pgTable("candidates", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id), // Link to user account (for self-submitted profiles)
   fullName: text("full_name"),
   headline: text("headline"),
   email: text("email"),
