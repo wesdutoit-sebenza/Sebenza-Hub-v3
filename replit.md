@@ -23,7 +23,7 @@ Preferred communication style: Simple, everyday language.
         - Full candidate profiles with experiences, education, skills, certifications, projects, and awards
         - Normalized data model for efficient querying
         - **Security**: Strict MIME type validation, file size limits, automatic file cleanup after processing
-        - Semantic search capabilities via pgvector embeddings (infrastructure in place)
+        - **Semantic Search**: Automatic embedding generation using OpenAI text-embedding-3-small, comprehensive text representation (headline, summary, location, skills, experiences, education, projects), stored in candidate_embeddings table for future vector search
 
 ### Backend
 - **Server Framework**: Express.js with TypeScript, integrated with Vite middleware for development and static file serving for production.
@@ -58,6 +58,6 @@ Preferred communication style: Simple, everyday language.
 - **Database**: Drizzle ORM, @neondatabase/serverless.
 - **File Upload**: Multer (multipart/form-data middleware with file validation).
 - **Utilities**: date-fns, clsx, tailwind-merge, class-variance-authority.
-- **AI**: OpenAI GPT-4o (for ATS resume parsing), OpenAI GPT-5 (for CV screening).
+- **AI**: OpenAI GPT-4o (for ATS resume parsing), OpenAI GPT-5 (for CV screening), OpenAI text-embedding-3-small (for semantic search embeddings).
 - **Email**: Resend (for magic link delivery).
 - **Replit Plugins**: `@replit/vite-plugin-runtime-error-modal`, `@replit/vite-plugin-cartographer`, `@replit/vite-plugin-dev-banner`.
