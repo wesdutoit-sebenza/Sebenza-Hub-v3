@@ -49,6 +49,7 @@ import { parseCVWithAI as parseResumeWithAI, isAIConfigured as isAIConfiguredFor
 import multer from "multer";
 import { promises as fs } from "fs";
 import path from "path";
+import shortlistRoutes from "./shortlist.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/subscribe", async (req, res) => {
@@ -2061,36 +2062,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const candidateForEvaluation = {
           full_name: candidate.fullName || '',
           contact: {
-            email: candidate.email,
-            phone: candidate.phone,
-            city: candidate.city,
-            country: candidate.country,
+            email: candidate.email ?? undefined,
+            phone: candidate.phone ?? undefined,
+            city: candidate.city ?? undefined,
+            country: candidate.country ?? undefined,
           },
-          headline: candidate.headline,
-          skills: candidateSkillsData.map(s => s.skillName),
+          headline: candidate.headline ?? undefined,
+          skills: candidateSkillsData.map(s => s.skillName || ''),
           experience: candidateExperiences.map(exp => ({
             title: exp.title || '',
             company: exp.company || '',
-            industry: exp.industry,
-            location: exp.location,
-            start_date: exp.startDate,
-            end_date: exp.endDate,
+            industry: exp.industry ?? undefined,
+            location: exp.location ?? undefined,
+            start_date: exp.startDate ?? undefined,
+            end_date: exp.endDate ?? undefined,
+            is_current: exp.isCurrent === 1,
             bullets: exp.bullets || [],
           })),
           education: candidateEducation.map(edu => ({
             institution: edu.institution || '',
             qualification: edu.qualification || '',
-            grad_date: edu.gradDate,
+            location: edu.location ?? undefined,
+            grad_date: edu.gradDate ?? undefined,
           })),
           certifications: candidateCertifications.map(cert => ({
             name: cert.name || '',
-            issuer: cert.issuer,
-            year: cert.year,
+            issuer: cert.issuer ?? undefined,
+            year: cert.year ?? undefined,
           })),
-          achievements: [], // ATS doesn't store achievements separately yet
-          work_authorization: candidate.workAuthorization,
-          salary_expectation: candidate.salaryExpectation,
-          availability: candidate.availability,
+          projects: [],
+          awards: [],
+          achievements: [],
+          work_authorization: candidate.workAuthorization ?? undefined,
+          salary_expectation: candidate.salaryExpectation ?? undefined,
+          availability: candidate.availability ?? undefined,
+          summary: candidate.summary ?? undefined,
+          links: candidate.links || {},
         };
 
         // Evaluate candidate against role
@@ -2099,19 +2106,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           {
             job_title: role.jobTitle,
             job_description: role.jobDescription,
-            seniority: role.seniority,
-            employment_type: role.employmentType,
+            seniority: role.seniority ?? undefined,
+            employment_type: role.employmentType ?? undefined,
             location: {
-              city: role.locationCity,
-              country: role.locationCountry,
-              work_type: role.workType,
+              city: role.locationCity ?? undefined,
+              country: role.locationCountry ?? undefined,
+              work_type: role.workType ?? undefined,
             },
             must_have_skills: role.mustHaveSkills,
             nice_to_have_skills: role.niceToHaveSkills,
             salary_range: {
-              min: role.salaryMin,
-              max: role.salaryMax,
-              currency: role.salaryCurrency,
+              min: role.salaryMin ?? undefined,
+              max: role.salaryMax ?? undefined,
+              currency: role.salaryCurrency ?? undefined,
             },
             knockouts: role.knockouts,
             weights: role.weights as any,
@@ -2271,6 +2278,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Mount shortlist routes
+  app.use("/api", shortlistRoutes);
 
   const httpServer = createServer(app);
 
