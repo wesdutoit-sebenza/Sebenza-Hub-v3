@@ -79,5 +79,10 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
+    
+    // Start background workers if Redis is available
+    import('./start-workers.js').catch(err => {
+      console.log('[Workers] Background workers not started:', err.message);
+    });
   });
 })();

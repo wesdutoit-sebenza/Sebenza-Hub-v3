@@ -11,7 +11,11 @@ if (!isQueueAvailable() || !connection) {
 }
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
+const openai = new OpenAI({
+  baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+  apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+});
 
 const SYSTEM_PROMPT = process.env.SCREENING_SYSTEM_PROMPT || `You are an expert technical recruiter and talent evaluator.
 
