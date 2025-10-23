@@ -341,7 +341,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get("/api/me", requireAuth, async (req: AuthRequest, res) => {
-    res.json({ user: req.user });
+    res.json(req.user);
   });
 
   app.get("/api/my-membership", requireAuth, async (req: AuthRequest, res) => {

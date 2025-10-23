@@ -25,6 +25,13 @@ export default function Header() {
     retry: false,
   });
 
+  // Debug: log user roles
+  if (user) {
+    console.log('Header: User object:', user);
+    console.log('Header: User roles:', user.roles);
+    console.log('Header: Has admin role?', user.roles?.includes('admin'));
+  }
+
   const logoutMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest('POST', '/auth/logout');
