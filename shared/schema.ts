@@ -562,3 +562,162 @@ export const insertCandidateEmbeddingSchema = createInsertSchema(candidateEmbedd
 
 export type InsertCandidateEmbedding = z.infer<typeof insertCandidateEmbeddingSchema>;
 export type CandidateEmbedding = typeof candidateEmbeddings.$inferSelect;
+
+// Team Members - for organization collaboration
+export const teamMembers = pgTable("team_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull(),
+  email: text("email").notNull(),
+  role: text("role").notNull(), // 'recruiter', 'hiring_manager', 'admin'
+  permissions: text("permissions").array().notNull().default(sql`'{}'::text[]`), // e.g., ['create_job', 'view_candidates', 'interview']
+  status: text("status").notNull().default('pending'), // 'pending', 'active', 'inactive'
+  invitedAt: timestamp("invited_at").notNull().defaultNow(),
+  acceptedAt: timestamp("accepted_at"),
+});
+
+export const insertTeamMemberSchema = createInsertSchema(teamMembers).omit({
+  id: true,
+  invitedAt: true,
+});
+
+export type InsertTeamMember = z.infer<typeof insertTeamMemberSchema>;
+export type TeamMember = typeof teamMembers.$inferSelect;
+
+// Pipeline Stages - customizable hiring stages per organization
+export const pipelineStages = pgTable("pipeline_stages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull(),
+  name: text("name").notNull(),
+  order: integer("order").notNull(),
+  isDefault: integer("is_default").notNull().default(0), // 0 = custom, 1 = default stage
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertPipelineStageSchema = createInsertSchema(pipelineStages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPipelineStage = z.infer<typeof insertPipelineStageSchema>;
+export type PipelineStage = typeof pipelineStages.$inferSelect;
+
+// Interview Settings - per organization
+export const interviewSettings = pgTable("interview_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull().unique(),
+  calendarProvider: text("calendar_provider"), // 'google', 'outlook', 'none'
+  videoProvider: text("video_provider"), // 'zoom', 'meet', 'teams', 'none'
+  panelTemplates: text("panel_templates").array().notNull().default(sql`'{}'::text[]`),
+  feedbackFormTemplate: text("feedback_form_template"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertInterviewSettingsSchema = createInsertSchema(interviewSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertInterviewSettings = z.infer<typeof insertInterviewSettingsSchema>;
+export type InterviewSettings = typeof interviewSettings.$inferSelect;
+
+// Compliance Settings - POPIA and EE compliance per organization
+export const complianceSettings = pgTable("compliance_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull().unique(),
+  eeDataCapture: text("ee_data_capture").notNull().default('optional'), // 'optional', 'required', 'off'
+  consentText: text("consent_text").notNull().default('By applying you consent to processing your personal data for recruitment purposes in compliance with POPIA.'),
+  dataRetentionDays: integer("data_retention_days").notNull().default(365),
+  popiaOfficer: text("popia_officer"),
+  dataDeletionContact: text("data_deletion_contact"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertComplianceSettingsSchema = createInsertSchema(complianceSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertComplianceSettings = z.infer<typeof insertComplianceSettingsSchema>;
+export type ComplianceSettings = typeof complianceSettings.$inferSelect;
+
+// Organization Integrations - external service connections
+export const organizationIntegrations = pgTable("organization_integrations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull().unique(),
+  slackWebhook: text("slack_webhook"),
+  msTeamsWebhook: text("ms_teams_webhook"),
+  atsProvider: text("ats_provider"), // 'workday', 'greenhouse', 'lever', 'none'
+  atsApiKey: text("ats_api_key"),
+  sourcingChannels: text("sourcing_channels").array().notNull().default(sql`'{}'::text[]`),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertOrganizationIntegrationsSchema = createInsertSchema(organizationIntegrations).omit({
+  id: true,
+  updatedAt: true,
+});
+
+export type InsertOrganizationIntegrations = z.infer<typeof insertOrganizationIntegrationsSchema>;
+export type OrganizationIntegrations = typeof organizationIntegrations.$inferSelect;
+
+// Job Templates - reusable job posting templates
+export const jobTemplates = pgTable("job_templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull(),
+  name: text("name").notNull(),
+  jobTitle: text("job_title"),
+  jobDescription: text("job_description"),
+  requirements: text("requirements").array().notNull().default(sql`'{}'::text[]`),
+  interviewStructure: text("interview_structure").array().notNull().default(sql`'{}'::text[]`), // e.g., ['HR Screen', 'Panel Interview', 'Case Study']
+  approvalChain: text("approval_chain").array().notNull().default(sql`'{}'::text[]`), // e.g., ['Hiring Manager', 'Finance', 'HR Director']
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertJobTemplateSchema = createInsertSchema(jobTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertJobTemplate = z.infer<typeof insertJobTemplateSchema>;
+export type JobTemplate = typeof jobTemplates.$inferSelect;
+
+// Salary Bands - predefined salary ranges per organization
+export const salaryBands = pgTable("salary_bands", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull(),
+  title: text("title").notNull(), // e.g., 'Senior Training Manager'
+  minSalary: integer("min_salary").notNull(),
+  maxSalary: integer("max_salary").notNull(),
+  currency: text("currency").notNull().default('ZAR'),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertSalaryBandSchema = createInsertSchema(salaryBands).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertSalaryBand = z.infer<typeof insertSalaryBandSchema>;
+export type SalaryBand = typeof salaryBands.$inferSelect;
+
+// Approved Vendors - for businesses managing external recruiters
+export const approvedVendors = pgTable("approved_vendors", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull(),
+  name: text("name").notNull(),
+  contactEmail: text("contact_email"),
+  rate: text("rate"), // e.g., '18% perm', 'R500/hour'
+  ndaSigned: integer("nda_signed").notNull().default(0), // 0 = no, 1 = yes
+  status: text("status").notNull().default('active'), // 'active', 'inactive'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertApprovedVendorSchema = createInsertSchema(approvedVendors).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertApprovedVendor = z.infer<typeof insertApprovedVendorSchema>;
+export type ApprovedVendor = typeof approvedVendors.$inferSelect;
