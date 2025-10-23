@@ -297,13 +297,7 @@ export default function Individuals() {
             <Button
               size="lg"
               className="bg-amber hover:bg-amber/90 text-charcoal font-semibold"
-              onClick={() => {
-                if (!user) {
-                  setLocation('/login');
-                  return;
-                }
-                setShowInterviewCoach(true);
-              }}
+              onClick={() => setShowInterviewCoach(true)}
               data-testid="button-start-coach"
             >
               <MessageCircle size={20} className="mr-2" />
@@ -312,17 +306,38 @@ export default function Individuals() {
             
             <Dialog open={showInterviewCoach} onOpenChange={setShowInterviewCoach}>
               <DialogContent className="max-w-4xl h-[80vh]">
-                <InterviewCoach
-                  candidateProfile={profileData?.profile ? JSON.stringify({
-                    name: profileData.profile.candidate?.fullName,
-                    headline: profileData.profile.candidate?.headline,
-                    summary: profileData.profile.candidate?.summary,
-                    experience: profileData.profile.experiences,
-                    education: profileData.profile.education,
-                    skills: profileData.profile.skills,
-                  }) : undefined}
-                  onClose={() => setShowInterviewCoach(false)}
-                />
+                {!user ? (
+                  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                    <MessageCircle className="h-16 w-16 text-amber mb-6" />
+                    <h2 className="text-2xl font-bold mb-4">Sign In Required</h2>
+                    <p className="text-slate mb-6 max-w-md">
+                      You need to be signed in to use the AI Interview Coach. Create a free account or sign in to start practicing your interview skills with Jabu.
+                    </p>
+                    <Button
+                      size="lg"
+                      className="bg-amber hover:bg-amber/90 text-charcoal font-semibold"
+                      onClick={() => {
+                        setShowInterviewCoach(false);
+                        setLocation('/login');
+                      }}
+                      data-testid="button-goto-login"
+                    >
+                      Sign In to Continue
+                    </Button>
+                  </div>
+                ) : (
+                  <InterviewCoach
+                    candidateProfile={profileData?.profile ? JSON.stringify({
+                      name: profileData.profile.candidate?.fullName,
+                      headline: profileData.profile.candidate?.headline,
+                      summary: profileData.profile.candidate?.summary,
+                      experience: profileData.profile.experiences,
+                      education: profileData.profile.education,
+                      skills: profileData.profile.skills,
+                    }) : undefined}
+                    onClose={() => setShowInterviewCoach(false)}
+                  />
+                )}
               </DialogContent>
             </Dialog>
           </div>
