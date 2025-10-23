@@ -25,6 +25,7 @@ import BusinessSettings from "@/pages/BusinessSettings";
 import IndividualSettings from "@/pages/IndividualSettings";
 import IndividualProfile from "@/pages/IndividualProfile";
 import IndividualProfileEdit from "@/pages/IndividualProfileEdit";
+import TestCoach from "@/pages/TestCoach";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -50,6 +51,7 @@ function Router() {
       <Route path="/settings/individual" component={IndividualSettings} />
       <Route path="/individuals/profile" component={IndividualProfile} />
       <Route path="/individuals/edit" component={IndividualProfileEdit} />
+      <Route path="/test-coach" component={TestCoach} />
       <Route component={NotFound} />
     </Switch>
   );
