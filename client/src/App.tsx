@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
@@ -28,6 +28,39 @@ import IndividualProfileEdit from "@/pages/IndividualProfileEdit";
 import TestCoach from "@/pages/TestCoach";
 import NotFound from "@/pages/not-found";
 
+// Admin pages
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import AdminOverview from "@/pages/admin/Overview";
+import AdminRecruiters from "@/pages/admin/Recruiters";
+import AdminBusinesses from "@/pages/admin/Businesses";
+import AdminIndividuals from "@/pages/admin/Individuals";
+import AdminCandidates from "@/pages/admin/Candidates";
+import AdminRoles from "@/pages/admin/Roles";
+import AdminCVs from "@/pages/admin/CVs";
+import AdminFraudDetection from "@/pages/admin/FraudDetection";
+
+function AdminRouter() {
+  return (
+    <AdminLayout>
+      <Switch>
+        <Route path="/admin/overview" component={AdminOverview} />
+        <Route path="/admin/recruiters" component={AdminRecruiters} />
+        <Route path="/admin/businesses" component={AdminBusinesses} />
+        <Route path="/admin/individuals" component={AdminIndividuals} />
+        <Route path="/admin/candidates" component={AdminCandidates} />
+        <Route path="/admin/roles" component={AdminRoles} />
+        <Route path="/admin/cvs" component={AdminCVs} />
+        <Route path="/admin/fraud" component={AdminFraudDetection} />
+        <Route path="/admin" component={() => {
+          const [, navigate] = useLocation();
+          navigate("/admin/overview");
+          return null;
+        }} />
+      </Switch>
+    </AdminLayout>
+  );
+}
+
 function Router() {
   return (
     <Switch>
@@ -52,6 +85,7 @@ function Router() {
       <Route path="/individuals/profile" component={IndividualProfile} />
       <Route path="/individuals/edit" component={IndividualProfileEdit} />
       <Route path="/test-coach" component={TestCoach} />
+      <Route path="/admin/:rest*" component={AdminRouter} />
       <Route component={NotFound} />
     </Switch>
   );

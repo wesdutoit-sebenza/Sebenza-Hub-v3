@@ -52,6 +52,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import shortlistRoutes from "./shortlist.routes";
 import organizationSettingsRoutes from "./organization-settings.routes";
+import adminRoutes from "./admin.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/subscribe", async (req, res) => {
@@ -3549,6 +3550,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Mount organization settings routes
   app.use("/api", organizationSettingsRoutes);
+  
+  // Admin routes
+  app.use("/api/admin", adminRoutes);
 
   const httpServer = createServer(app);
 

@@ -71,6 +71,23 @@ export function requireRole(...allowedRoles: string[]) {
   };
 }
 
+export async function requireAdmin(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    const userRoles = req.user.roles || [];
+    if (!userRoles.includes('admin')) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(403).json({ error: 'Admin authorization failed' });
+  }
+}
+
 export function optionalAuth(req: AuthRequest, res: Response, next: NextFunction) {
   const token = req.cookies.auth_token;
 
