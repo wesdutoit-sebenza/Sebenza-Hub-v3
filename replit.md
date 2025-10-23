@@ -40,9 +40,15 @@ Preferred communication style: Simple, everyday language.
 - **Background Job Processing**: BullMQ with Redis for asynchronous screening jobs:
     - **Auto-Screening**: Automatically screens new candidates against all active roles when they're added via any endpoint (direct creation, file upload, or text parsing)
     - **Worker Process**: Separate worker (server/worker.ts) processes screening jobs with configurable concurrency (5 concurrent jobs)
+    - **Job Types**:
+        - `screen`: Evaluates a single candidate against a role using AI (GPT-4o-mini) with deterministic fallback
+        - `seed-role-screenings`: Bulk screening job that uses semantic search to find top 300 most relevant candidates for a role via embeddings
+    - **Semantic Search**: Uses OpenAI text-embedding-3-small to find candidates most similar to role requirements
+    - **AI Evaluation**: Configurable via SCREENING_SYSTEM_PROMPT environment variable, evaluates candidates on skills, experience, achievements, education, location/auth, and salary/availability
     - **Graceful Degradation**: System continues to function without Redis - auto-screening is disabled with console warnings when REDIS_URL is not configured
     - **Upsert Logic**: Re-screening the same candidate for the same role updates existing results rather than creating duplicates
     - **Non-Blocking**: Candidate creation never fails due to screening errors - failures are logged and jobs can be retried
+    - **Fallback Scoring**: Deterministic algorithm used when AI is unavailable, analyzing must-have skills, experience years, quantifiable achievements, and education
 
 ### Data Storage
 - **Database**: PostgreSQL (Neon) with Drizzle ORM for schema management, pgvector extension for semantic search capabilities.
