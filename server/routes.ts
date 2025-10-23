@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertMagicTokenSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, type User } from "@shared/schema";
+import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertMagicTokenSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, type User } from "@shared/schema";
 import { db } from "./db";
-import { users, magicTokens, candidateProfiles, organizations, recruiterProfiles, memberships, screeningJobs, screeningCandidates, screeningEvaluations } from "@shared/schema";
+import { users, magicTokens, candidateProfiles, organizations, recruiterProfiles, memberships, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes } from "@shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { sendMagicLinkEmail } from "./resend";
@@ -737,6 +737,508 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         message: "Failed to export results",
       });
+    }
+  });
+
+  // ============================================================================
+  // ATS (Applicant Tracking System) - Candidate Management API
+  // ============================================================================
+
+  // Create new candidate
+  app.post("/api/ats/candidates", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const validatedData = insertCandidateSchema.parse(req.body);
+      const [candidate] = await db.insert(candidates)
+        .values(validatedData)
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Candidate created successfully",
+        candidate,
+      });
+    } catch (error: any) {
+      console.error("Create candidate error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to create candidate",
+        errors: error.errors,
+      });
+    }
+  });
+
+  // List all candidates with optional search/filter
+  app.get("/api/ats/candidates", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const searchQuery = req.query.search as string || '';
+      const city = req.query.city as string || '';
+      const country = req.query.country as string || '';
+      
+      // For now, get all candidates (pagination and filtering can be added later)
+      const allCandidates = await db.select().from(candidates);
+      
+      // Simple filtering
+      let filtered = allCandidates;
+      if (searchQuery) {
+        filtered = filtered.filter(c => 
+          c.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          c.headline?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
+      if (city) {
+        filtered = filtered.filter(c => c.city?.toLowerCase() === city.toLowerCase());
+      }
+      if (country) {
+        filtered = filtered.filter(c => c.country?.toLowerCase() === country.toLowerCase());
+      }
+
+      res.json({
+        success: true,
+        count: filtered.length,
+        candidates: filtered,
+      });
+    } catch (error) {
+      console.error("List candidates error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch candidates",
+      });
+    }
+  });
+
+  // Get single candidate with all related data
+  app.get("/api/ats/candidates/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const candidateId = req.params.id;
+
+      const [candidate] = await db.select()
+        .from(candidates)
+        .where(eq(candidates.id, candidateId));
+
+      if (!candidate) {
+        return res.status(404).json({
+          success: false,
+          message: "Candidate not found",
+        });
+      }
+
+      // Get all related data
+      const candidateExperiences = await db.select()
+        .from(experiences)
+        .where(eq(experiences.candidateId, candidateId));
+
+      const candidateEducation = await db.select()
+        .from(education)
+        .where(eq(education.candidateId, candidateId));
+
+      const candidateCertifications = await db.select()
+        .from(certifications)
+        .where(eq(certifications.candidateId, candidateId));
+
+      const candidateProjects = await db.select()
+        .from(projects)
+        .where(eq(projects.candidateId, candidateId));
+
+      const candidateAwards = await db.select()
+        .from(awards)
+        .where(eq(awards.candidateId, candidateId));
+
+      // Get skills with names
+      const candidateSkillsData = await db.select({
+        skillId: candidateSkills.skillId,
+        skillName: skills.name,
+        kind: candidateSkills.kind,
+      })
+        .from(candidateSkills)
+        .innerJoin(skills, eq(candidateSkills.skillId, skills.id))
+        .where(eq(candidateSkills.candidateId, candidateId));
+
+      const candidateResumes = await db.select()
+        .from(resumes)
+        .where(eq(resumes.candidateId, candidateId));
+
+      res.json({
+        success: true,
+        candidate: {
+          ...candidate,
+          experiences: candidateExperiences,
+          education: candidateEducation,
+          certifications: candidateCertifications,
+          projects: candidateProjects,
+          awards: candidateAwards,
+          skills: candidateSkillsData,
+          resumes: candidateResumes,
+        },
+      });
+    } catch (error) {
+      console.error("Get candidate error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch candidate",
+      });
+    }
+  });
+
+  // Update candidate
+  app.put("/api/ats/candidates/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const candidateId = req.params.id;
+      const validatedData = insertCandidateSchema.partial().parse(req.body);
+
+      const [updated] = await db.update(candidates)
+        .set(validatedData)
+        .where(eq(candidates.id, candidateId))
+        .returning();
+
+      if (!updated) {
+        return res.status(404).json({
+          success: false,
+          message: "Candidate not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Candidate updated successfully",
+        candidate: updated,
+      });
+    } catch (error: any) {
+      console.error("Update candidate error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to update candidate",
+        errors: error.errors,
+      });
+    }
+  });
+
+  // Delete candidate (cascades to all related records)
+  app.delete("/api/ats/candidates/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const candidateId = req.params.id;
+
+      const [deleted] = await db.delete(candidates)
+        .where(eq(candidates.id, candidateId))
+        .returning();
+
+      if (!deleted) {
+        return res.status(404).json({
+          success: false,
+          message: "Candidate not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Candidate deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete candidate error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete candidate",
+      });
+    }
+  });
+
+  // ============================================================================
+  // ATS - Experiences Management
+  // ============================================================================
+
+  app.post("/api/ats/candidates/:candidateId/experiences", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { candidateId } = req.params;
+      const validatedData = insertExperienceSchema.parse({
+        ...req.body,
+        candidateId,
+      });
+
+      const [experience] = await db.insert(experiences)
+        .values(validatedData)
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Experience added successfully",
+        experience,
+      });
+    } catch (error: any) {
+      console.error("Add experience error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to add experience",
+        errors: error.errors,
+      });
+    }
+  });
+
+  app.put("/api/ats/experiences/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = insertExperienceSchema.partial().parse(req.body);
+
+      const [updated] = await db.update(experiences)
+        .set(validatedData)
+        .where(eq(experiences.id, id))
+        .returning();
+
+      if (!updated) {
+        return res.status(404).json({
+          success: false,
+          message: "Experience not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Experience updated successfully",
+        experience: updated,
+      });
+    } catch (error: any) {
+      console.error("Update experience error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to update experience",
+        errors: error.errors,
+      });
+    }
+  });
+
+  app.delete("/api/ats/experiences/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+
+      const [deleted] = await db.delete(experiences)
+        .where(eq(experiences.id, id))
+        .returning();
+
+      if (!deleted) {
+        return res.status(404).json({
+          success: false,
+          message: "Experience not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Experience deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete experience error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete experience",
+      });
+    }
+  });
+
+  // ============================================================================
+  // ATS - Education Management
+  // ============================================================================
+
+  app.post("/api/ats/candidates/:candidateId/education", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { candidateId } = req.params;
+      const validatedData = insertEducationSchema.parse({
+        ...req.body,
+        candidateId,
+      });
+
+      const [edu] = await db.insert(education)
+        .values(validatedData)
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Education added successfully",
+        education: edu,
+      });
+    } catch (error: any) {
+      console.error("Add education error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to add education",
+        errors: error.errors,
+      });
+    }
+  });
+
+  app.put("/api/ats/education/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = insertEducationSchema.partial().parse(req.body);
+
+      const [updated] = await db.update(education)
+        .set(validatedData)
+        .where(eq(education.id, id))
+        .returning();
+
+      if (!updated) {
+        return res.status(404).json({
+          success: false,
+          message: "Education not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Education updated successfully",
+        education: updated,
+      });
+    } catch (error: any) {
+      console.error("Update education error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to update education",
+        errors: error.errors,
+      });
+    }
+  });
+
+  app.delete("/api/ats/education/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+
+      const [deleted] = await db.delete(education)
+        .where(eq(education.id, id))
+        .returning();
+
+      if (!deleted) {
+        return res.status(404).json({
+          success: false,
+          message: "Education not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Education deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete education error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete education",
+      });
+    }
+  });
+
+  // ============================================================================
+  // ATS - Certifications, Projects, Awards Management
+  // ============================================================================
+
+  app.post("/api/ats/candidates/:candidateId/certifications", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { candidateId } = req.params;
+      const validatedData = insertCertificationSchema.parse({
+        ...req.body,
+        candidateId,
+      });
+
+      const [cert] = await db.insert(certifications)
+        .values(validatedData)
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Certification added successfully",
+        certification: cert,
+      });
+    } catch (error: any) {
+      console.error("Add certification error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to add certification",
+        errors: error.errors,
+      });
+    }
+  });
+
+  app.delete("/api/ats/certifications/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      await db.delete(certifications).where(eq(certifications.id, id));
+      res.json({ success: true, message: "Certification deleted" });
+    } catch (error) {
+      console.error("Delete certification error:", error);
+      res.status(500).json({ success: false, message: "Failed to delete certification" });
+    }
+  });
+
+  app.post("/api/ats/candidates/:candidateId/projects", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { candidateId } = req.params;
+      const validatedData = insertProjectSchema.parse({
+        ...req.body,
+        candidateId,
+      });
+
+      const [project] = await db.insert(projects)
+        .values(validatedData)
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Project added successfully",
+        project,
+      });
+    } catch (error: any) {
+      console.error("Add project error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to add project",
+        errors: error.errors,
+      });
+    }
+  });
+
+  app.delete("/api/ats/projects/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      await db.delete(projects).where(eq(projects.id, id));
+      res.json({ success: true, message: "Project deleted" });
+    } catch (error) {
+      console.error("Delete project error:", error);
+      res.status(500).json({ success: false, message: "Failed to delete project" });
+    }
+  });
+
+  app.post("/api/ats/candidates/:candidateId/awards", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { candidateId } = req.params;
+      const validatedData = insertAwardSchema.parse({
+        ...req.body,
+        candidateId,
+      });
+
+      const [award] = await db.insert(awards)
+        .values(validatedData)
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Award added successfully",
+        award,
+      });
+    } catch (error: any) {
+      console.error("Add award error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to add award",
+        errors: error.errors,
+      });
+    }
+  });
+
+  app.delete("/api/ats/awards/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { id } = req.params;
+      await db.delete(awards).where(eq(awards.id, id));
+      res.json({ success: true, message: "Award deleted" });
+    } catch (error) {
+      console.error("Delete award error:", error);
+      res.status(500).json({ success: false, message: "Failed to delete award" });
     }
   });
 
