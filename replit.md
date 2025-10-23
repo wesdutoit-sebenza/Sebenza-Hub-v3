@@ -15,16 +15,28 @@ Preferred communication style: Simple, everyday language.
     - **Recruiters Page**: Job posting form, numeric salary inputs, WhatsApp integration, employment type, and industry categorization.
     - **Individuals Page**: Job search and filtering, multi-step CV builder wizard (7 steps) with professional CV preview, and `react-hook-form` with Zod validation.
     - **CV Screening Page**: AI-powered candidate evaluation using OpenAI GPT-5. Includes job creation with configurable scoring weights, text file CV processing, and detailed results display with ranking, AI reasoning, and knockout warnings. Supports Draft, Processing, and Completed/Failed states.
+    - **ATS (Applicant Tracking System)**: Comprehensive candidate management system with normalized database, AI-powered resume parsing, and full candidate lifecycle management. Features include:
+        - Candidate database with search and filtering
+        - AI resume ingestion from text files (uses OpenAI GPT-4o)
+        - Full candidate profiles with experiences, education, skills, certifications, projects, and awards
+        - Normalized data model for efficient querying
+        - Resume upload with automatic data extraction
+        - Semantic search capabilities via pgvector embeddings (infrastructure in place)
 
 ### Backend
 - **Server Framework**: Express.js with TypeScript, integrated with Vite middleware for development and static file serving for production.
-- **API Endpoints**: Handles subscriptions, job postings, CV management, and AI screening job creation/processing.
+- **API Endpoints**: Handles subscriptions, job postings, CV management, AI screening job creation/processing, and comprehensive ATS candidate management (20+ endpoints for candidates, resumes, experiences, education, skills, certifications, projects, and awards).
 - **Request/Response**: JSON body parsing, custom logging, and structured JSON error responses.
+- **AI Integration**: Two separate AI systems - CV screening for job-specific evaluation and resume ingestion for structured data extraction.
 
 ### Data Storage
-- **Database**: PostgreSQL (Neon) with Drizzle ORM for schema management.
-- **Schema Design**: Includes tables for users, magic tokens, organizations, memberships, candidate profiles, recruiter profiles, and dedicated tables for AI screening jobs, candidates, and evaluations. Uses UUID primary keys.
-- **Hybrid Storage**: Authentication, profiles, and screening data use PostgreSQL, while legacy features (subscribers, jobs, CVs) are currently in-memory, with plans for migration.
+- **Database**: PostgreSQL (Neon) with Drizzle ORM for schema management, pgvector extension for semantic search capabilities.
+- **Schema Design**: 
+    - **Core Tables**: users, magic tokens, organizations, memberships, candidate profiles, recruiter profiles
+    - **CV Screening**: Dedicated tables for AI screening jobs, screening candidates, and evaluations
+    - **ATS Module**: Normalized schema with 10 tables (ats_candidates, ats_resumes, ats_experiences, ats_education, ats_certifications, ats_projects, ats_awards, ats_skills, ats_candidate_skills, ats_candidate_embeddings)
+    - All tables use UUID primary keys for scalability
+- **Hybrid Storage**: Authentication, profiles, screening data, and ATS use PostgreSQL, while legacy features (subscribers, jobs, CVs) are currently in-memory, with plans for migration.
 
 ### Authentication & Authorization
 - **Authentication**: Passwordless magic link authentication via email (Resend integration), JWT tokens in httpOnly cookies. Magic links are logged to console in development.
