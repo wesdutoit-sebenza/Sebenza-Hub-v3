@@ -1,10 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertMagicTokenSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, type User } from "@shared/schema";
+import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertMagicTokenSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, type User } from "@shared/schema";
 import { db } from "./db";
-import { users, magicTokens, candidateProfiles, organizations, recruiterProfiles, memberships, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes } from "@shared/schema";
-import { eq, and, desc } from "drizzle-orm";
+import { users, magicTokens, candidateProfiles, organizations, recruiterProfiles, memberships, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings } from "@shared/schema";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { sendMagicLinkEmail } from "./resend";
 import { requireAuth, requireRole, optionalAuth, generateToken, type AuthRequest } from "./auth";
@@ -1770,6 +1770,454 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         message: "Failed to parse resume",
         error: error.message,
+      });
+    }
+  });
+
+  // ============================================================================
+  // Integrated Roles & Screenings - Links roles directly to ATS candidates
+  // ============================================================================
+
+  // Create a new role
+  app.post("/api/roles", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const validatedData = insertRoleSchema.parse(req.body);
+      
+      const [role] = await db.insert(roles)
+        .values({
+          ...validatedData,
+          createdBy: req.user!.id,
+        })
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Role created successfully",
+        role,
+      });
+    } catch (error: any) {
+      console.error("Create role error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to create role",
+        errors: error.errors,
+      });
+    }
+  });
+
+  // List all roles with optional filtering
+  app.get("/api/roles", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const isActiveFilter = req.query.isActive;
+      const createdBy = req.query.createdBy as string;
+
+      let query = db.select().from(roles);
+      
+      // Build filters
+      const filters = [];
+      if (isActiveFilter !== undefined) {
+        filters.push(eq(roles.isActive, isActiveFilter === 'true' ? 1 : 0));
+      }
+      if (createdBy) {
+        filters.push(eq(roles.createdBy, createdBy));
+      }
+
+      const allRoles = filters.length > 0 
+        ? await query.where(and(...filters)).orderBy(desc(roles.createdAt))
+        : await query.orderBy(desc(roles.createdAt));
+
+      res.json({
+        success: true,
+        count: allRoles.length,
+        roles: allRoles,
+      });
+    } catch (error) {
+      console.error("List roles error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch roles",
+      });
+    }
+  });
+
+  // Get a single role by ID
+  app.get("/api/roles/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const roleId = req.params.id;
+
+      const [role] = await db.select()
+        .from(roles)
+        .where(eq(roles.id, roleId));
+
+      if (!role) {
+        return res.status(404).json({
+          success: false,
+          message: "Role not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        role,
+      });
+    } catch (error) {
+      console.error("Get role error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch role",
+      });
+    }
+  });
+
+  // Update a role
+  app.patch("/api/roles/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const roleId = req.params.id;
+      const updates = req.body;
+
+      // Don't allow updating id, createdBy, or createdAt
+      delete updates.id;
+      delete updates.createdBy;
+      delete updates.createdAt;
+
+      const [updatedRole] = await db.update(roles)
+        .set(updates)
+        .where(eq(roles.id, roleId))
+        .returning();
+
+      if (!updatedRole) {
+        return res.status(404).json({
+          success: false,
+          message: "Role not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Role updated successfully",
+        role: updatedRole,
+      });
+    } catch (error: any) {
+      console.error("Update role error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to update role",
+        errors: error.errors,
+      });
+    }
+  });
+
+  // Soft delete a role (set isActive = 0)
+  app.delete("/api/roles/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const roleId = req.params.id;
+
+      const [deactivatedRole] = await db.update(roles)
+        .set({ isActive: 0 })
+        .where(eq(roles.id, roleId))
+        .returning();
+
+      if (!deactivatedRole) {
+        return res.status(404).json({
+          success: false,
+          message: "Role not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Role deactivated successfully",
+        role: deactivatedRole,
+      });
+    } catch (error) {
+      console.error("Delete role error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to deactivate role",
+      });
+    }
+  });
+
+  // Screen ATS candidates against a role
+  app.post("/api/roles/:roleId/screen", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const roleId = req.params.roleId;
+      const { candidateIds } = req.body; // Array of candidate IDs to screen
+
+      if (!candidateIds || !Array.isArray(candidateIds) || candidateIds.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "candidateIds array is required",
+        });
+      }
+
+      // Check if AI is configured
+      if (!isAIConfigured()) {
+        return res.status(503).json({
+          success: false,
+          message: "AI integration is not configured. Please set up OpenAI integration.",
+        });
+      }
+
+      // Fetch the role
+      const [role] = await db.select()
+        .from(roles)
+        .where(eq(roles.id, roleId));
+
+      if (!role) {
+        return res.status(404).json({
+          success: false,
+          message: "Role not found",
+        });
+      }
+
+      const screeningResults = [];
+
+      // Screen each candidate
+      for (const candidateId of candidateIds) {
+        // Fetch candidate with all related data
+        const [candidate] = await db.select()
+          .from(candidates)
+          .where(eq(candidates.id, candidateId));
+
+        if (!candidate) {
+          console.warn(`Candidate ${candidateId} not found, skipping`);
+          continue;
+        }
+
+        // Get related data
+        const candidateExperiences = await db.select()
+          .from(experiences)
+          .where(eq(experiences.candidateId, candidateId));
+
+        const candidateEducation = await db.select()
+          .from(education)
+          .where(eq(education.candidateId, candidateId));
+
+        const candidateCertifications = await db.select()
+          .from(certifications)
+          .where(eq(certifications.candidateId, candidateId));
+
+        const candidateSkillsData = await db.select({
+          skillId: candidateSkills.skillId,
+          skillName: skills.name,
+          kind: candidateSkills.kind,
+        })
+          .from(candidateSkills)
+          .innerJoin(skills, eq(candidateSkills.skillId, skills.id))
+          .where(eq(candidateSkills.candidateId, candidateId));
+
+        // Transform to format expected by AI evaluation
+        const candidateForEvaluation = {
+          full_name: candidate.fullName || '',
+          contact: {
+            email: candidate.email,
+            phone: candidate.phone,
+            city: candidate.city,
+            country: candidate.country,
+          },
+          headline: candidate.headline,
+          skills: candidateSkillsData.map(s => s.skillName),
+          experience: candidateExperiences.map(exp => ({
+            title: exp.title || '',
+            company: exp.company || '',
+            industry: exp.industry,
+            location: exp.location,
+            start_date: exp.startDate,
+            end_date: exp.endDate,
+            bullets: exp.bullets || [],
+          })),
+          education: candidateEducation.map(edu => ({
+            institution: edu.institution || '',
+            qualification: edu.qualification || '',
+            grad_date: edu.gradDate,
+          })),
+          certifications: candidateCertifications.map(cert => ({
+            name: cert.name || '',
+            issuer: cert.issuer,
+            year: cert.year,
+          })),
+          achievements: [], // ATS doesn't store achievements separately yet
+          work_authorization: candidate.workAuthorization,
+          salary_expectation: candidate.salaryExpectation,
+          availability: candidate.availability,
+        };
+
+        // Evaluate candidate against role
+        const evaluation = await evaluateCandidateWithAI(
+          candidateForEvaluation,
+          {
+            job_title: role.jobTitle,
+            job_description: role.jobDescription,
+            seniority: role.seniority,
+            employment_type: role.employmentType,
+            location: {
+              city: role.locationCity,
+              country: role.locationCountry,
+              work_type: role.workType,
+            },
+            must_have_skills: role.mustHaveSkills,
+            nice_to_have_skills: role.niceToHaveSkills,
+            salary_range: {
+              min: role.salaryMin,
+              max: role.salaryMax,
+              currency: role.salaryCurrency,
+            },
+            knockouts: role.knockouts,
+            weights: role.weights as any,
+          }
+        );
+
+        // Store screening result (upsert to handle re-screening)
+        const [screening] = await db.insert(screenings)
+          .values({
+            roleId,
+            candidateId,
+            scoreTotal: evaluation.score_total,
+            scoreBreakdown: evaluation.score_breakdown,
+            mustHavesSatisfied: evaluation.must_haves_satisfied,
+            missingMustHaves: evaluation.missing_must_haves,
+            knockout: evaluation.knockout,
+            reasons: evaluation.reasons,
+            flags: evaluation.flags,
+          })
+          .onConflictDoUpdate({
+            target: [screenings.roleId, screenings.candidateId],
+            set: {
+              scoreTotal: evaluation.score_total,
+              scoreBreakdown: evaluation.score_breakdown,
+              mustHavesSatisfied: evaluation.must_haves_satisfied,
+              missingMustHaves: evaluation.missing_must_haves,
+              knockout: evaluation.knockout,
+              reasons: evaluation.reasons,
+              flags: evaluation.flags,
+              createdAt: sql`now()`,
+            },
+          })
+          .returning();
+
+        screeningResults.push({
+          screening,
+          candidate: {
+            id: candidate.id,
+            fullName: candidate.fullName,
+            headline: candidate.headline,
+          },
+        });
+      }
+
+      res.json({
+        success: true,
+        message: `Screened ${screeningResults.length} candidate(s)`,
+        screenings: screeningResults,
+      });
+    } catch (error: any) {
+      console.error("Screen candidates error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to screen candidates",
+        error: error.message,
+      });
+    }
+  });
+
+  // Get all screenings for a role (ranked by score)
+  app.get("/api/roles/:roleId/screenings", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const roleId = req.params.roleId;
+
+      const allScreenings = await db.select({
+        screening: screenings,
+        candidate: {
+          id: candidates.id,
+          fullName: candidates.fullName,
+          headline: candidates.headline,
+          email: candidates.email,
+          phone: candidates.phone,
+          city: candidates.city,
+          country: candidates.country,
+        },
+      })
+        .from(screenings)
+        .innerJoin(candidates, eq(screenings.candidateId, candidates.id))
+        .where(eq(screenings.roleId, roleId))
+        .orderBy(desc(screenings.scoreTotal));
+
+      res.json({
+        success: true,
+        count: allScreenings.length,
+        screenings: allScreenings,
+      });
+    } catch (error) {
+      console.error("Get role screenings error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch screenings",
+      });
+    }
+  });
+
+  // Get all screenings for a candidate
+  app.get("/api/candidates/:candidateId/screenings", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const candidateId = req.params.candidateId;
+
+      const allScreenings = await db.select({
+        screening: screenings,
+        role: {
+          id: roles.id,
+          jobTitle: roles.jobTitle,
+          companyId: roles.companyId,
+          seniority: roles.seniority,
+          employmentType: roles.employmentType,
+          locationCity: roles.locationCity,
+          locationCountry: roles.locationCountry,
+        },
+      })
+        .from(screenings)
+        .innerJoin(roles, eq(screenings.roleId, roles.id))
+        .where(eq(screenings.candidateId, candidateId))
+        .orderBy(desc(screenings.createdAt));
+
+      res.json({
+        success: true,
+        count: allScreenings.length,
+        screenings: allScreenings,
+      });
+    } catch (error) {
+      console.error("Get candidate screenings error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch screenings",
+      });
+    }
+  });
+
+  // Delete a screening result
+  app.delete("/api/screenings/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const screeningId = req.params.id;
+
+      const deletedScreening = await db.delete(screenings)
+        .where(eq(screenings.id, screeningId))
+        .returning();
+
+      if (!deletedScreening.length) {
+        return res.status(404).json({
+          success: false,
+          message: "Screening not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        message: "Screening deleted successfully",
+      });
+    } catch (error) {
+      console.error("Delete screening error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete screening",
       });
     }
   });
