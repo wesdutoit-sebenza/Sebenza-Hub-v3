@@ -426,9 +426,17 @@ export default function InterviewCoach({ candidateProfile, onClose }: InterviewC
 
         {!sessionId && !showConfig && (
           <div className="flex-1 flex items-center justify-center p-6">
-            <div className="text-center text-muted-foreground">
-              <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Click "Start Interview Practice" to begin</p>
+            <div className="text-center">
+              <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50 text-muted-foreground" />
+              <p className="text-muted-foreground mb-4">Ready to practice your interview skills?</p>
+              <Button
+                onClick={() => setShowConfig(true)}
+                className="bg-amber hover:bg-amber/90 text-charcoal font-semibold"
+                data-testid="button-show-config"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Configure Interview
+              </Button>
             </div>
           </div>
         )}
