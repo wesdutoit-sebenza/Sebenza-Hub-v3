@@ -3,10 +3,20 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, UserPlus, Mail, Phone, MapPin, FileText } from "lucide-react";
+import { Search, UserPlus, Mail, Phone, MapPin, Users, TrendingUp, Award, Globe } from "lucide-react";
 import type { Candidate } from "@shared/schema";
+
+interface StatsData {
+  success: boolean;
+  stats: {
+    totalCandidates: number;
+    recentCandidates: number;
+    topSkills: Array<{ skillName: string; count: number }>;
+    topLocations: Array<{ location: string; count: number }>;
+  };
+}
 
 export default function CandidatesPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -19,7 +29,12 @@ export default function CandidatesPage() {
     queryKey: ["/api/ats/candidates"],
   });
 
+  const { data: statsData, isLoading: statsLoading } = useQuery<StatsData>({
+    queryKey: ["/api/ats/stats"],
+  });
+
   const candidates = candidatesData?.candidates || [];
+  const stats = statsData?.stats;
   
   const filteredCandidates = candidates.filter((candidate) =>
     searchQuery
@@ -48,6 +63,113 @@ export default function CandidatesPage() {
             </Button>
           </Link>
         </div>
+
+        {statsLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i}>
+                <CardHeader className="pb-3">
+                  <div className="animate-pulse space-y-2">
+                    <div className="h-4 bg-muted rounded w-24"></div>
+                    <div className="h-8 bg-muted rounded w-16"></div>
+                  </div>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        ) : stats && (
+          <>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+              <Card data-testid="card-stat-total">
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Candidates</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="text-total-candidates">{stats.totalCandidates}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    in your talent pool
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card data-testid="card-stat-recent">
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Recent Additions</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="text-recent-candidates">{stats.recentCandidates}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    added in last 7 days
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card data-testid="card-stat-skills">
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Top Skills</CardTitle>
+                  <Award className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold" data-testid="text-top-skill">
+                    {stats.topSkills[0]?.skillName || "N/A"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.topSkills[0] ? `${stats.topSkills[0].count} candidates` : "No skills data"}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card data-testid="card-stat-locations">
+                <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Top Location</CardTitle>
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold truncate" data-testid="text-top-location">
+                    {stats.topLocations[0]?.location || "N/A"}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.topLocations[0] ? `${stats.topLocations[0].count} candidates` : "No location data"}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {stats.topSkills.length > 1 && (
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle>Skills Distribution</CardTitle>
+                  <CardDescription>Most common skills across your talent pool</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {stats.topSkills.slice(0, 5).map((skill, index) => (
+                      <div key={index} className="flex items-center justify-between" data-testid={`skill-${index}`}>
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <Badge variant="secondary" className="w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+                            {index + 1}
+                          </Badge>
+                          <span className="font-medium truncate">{skill.skillName}</span>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <div className="w-32 bg-muted rounded-full h-2">
+                            <div 
+                              className="bg-primary h-2 rounded-full" 
+                              style={{ width: `${(skill.count / stats.topSkills[0].count) * 100}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm text-muted-foreground w-16 text-right">{skill.count} candidates</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
 
         <div className="mb-6">
           <div className="relative">

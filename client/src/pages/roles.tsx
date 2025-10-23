@@ -12,11 +12,28 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Loader2, Plus, Briefcase, MapPin, DollarSign, Users, Edit, Trash2 } from "lucide-react";
+import { Loader2, Plus, Briefcase, MapPin, DollarSign, Users, Edit, Trash2, CheckCircle2, XCircle, TrendingUp, Target } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertRoleSchema } from "@shared/schema";
 import { z } from "zod";
+
+interface RolesStatsData {
+  success: boolean;
+  stats: {
+    totalRoles: number;
+    activeRoles: number;
+    inactiveRoles: number;
+    totalScreenings: number;
+    recentRoles: number;
+    topRoles: Array<{
+      roleId: string;
+      roleTitle: string;
+      count: number;
+      avgScore: number;
+    }>;
+  };
+}
 
 const roleFormSchema = insertRoleSchema.extend({
   mustHaveSkills: z.array(z.string()).default([]),
@@ -51,7 +68,12 @@ export default function Roles() {
     queryKey: ["/api/roles"],
   });
 
+  const { data: statsData, isLoading: statsLoading } = useQuery<RolesStatsData>({
+    queryKey: ["/api/roles/stats"],
+  });
+
   const roles = (rolesData as any)?.roles || [];
+  const stats = statsData?.stats;
 
   const createRoleMutation = useMutation({
     mutationFn: async (data: RoleFormValues) => {
@@ -143,6 +165,108 @@ export default function Roles() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {statsLoading ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardHeader className="pb-3">
+                <div className="animate-pulse space-y-2">
+                  <div className="h-4 bg-muted rounded w-24"></div>
+                  <div className="h-8 bg-muted rounded w-16"></div>
+                </div>
+              </CardHeader>
+            </Card>
+          ))}
+        </div>
+      ) : stats && (
+        <>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+            <Card data-testid="card-stat-total">
+              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Roles</CardTitle>
+                <Briefcase className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold" data-testid="text-total-roles">{stats.totalRoles}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stats.activeRoles} active, {stats.inactiveRoles} inactive
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card data-testid="card-stat-active">
+              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Active Roles</CardTitle>
+                <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold" data-testid="text-active-roles">{stats.activeRoles}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  ready for screening
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card data-testid="card-stat-screenings">
+              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Screenings</CardTitle>
+                <Target className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold" data-testid="text-total-screenings">{stats.totalScreenings}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  candidates evaluated
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card data-testid="card-stat-recent">
+              <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Recent Roles</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold" data-testid="text-recent-roles">{stats.recentRoles}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  added in last 7 days
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {stats.topRoles && stats.topRoles.length > 0 && (
+            <Card className="mb-8">
+              <CardHeader>
+                <CardTitle>Top Roles by Screening Activity</CardTitle>
+                <CardDescription>Roles with the most candidate evaluations</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {stats.topRoles.map((role, index) => (
+                    <div key={index} className="flex items-center justify-between" data-testid={`top-role-${index}`}>
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <Badge variant="secondary" className="w-8 h-8 rounded-full flex items-center justify-center shrink-0">
+                          {index + 1}
+                        </Badge>
+                        <span className="font-medium truncate">{role.roleTitle}</span>
+                      </div>
+                      <div className="flex items-center gap-4 shrink-0">
+                        <div className="text-sm text-muted-foreground">
+                          {role.count} screenings
+                        </div>
+                        <Badge variant="outline">
+                          Avg: {role.avgScore}%
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
