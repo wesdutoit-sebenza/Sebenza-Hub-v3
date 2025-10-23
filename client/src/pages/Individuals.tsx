@@ -16,6 +16,7 @@ import PageHeader from "@/components/PageHeader";
 import Section from "@/components/Section";
 import FAQAccordion from "@/components/FAQAccordion";
 import CVBuilder from "@/components/CVBuilder";
+import ResumeUpload from "@/components/ResumeUpload";
 import { User, Clock, Video, Upload, Award, Shield, Briefcase, MapPin, DollarSign, MessageCircle, Search, Filter, FileText } from "lucide-react";
 import { type Job, type User as UserType } from "@shared/schema";
 
@@ -26,6 +27,7 @@ export default function Individuals() {
   const [industryFilter, setIndustryFilter] = useState("all");
   const [employmentTypeFilter, setEmploymentTypeFilter] = useState("all");
   const [showCVBuilder, setShowCVBuilder] = useState(false);
+  const [showResumeUpload, setShowResumeUpload] = useState(false);
 
   useEffect(() => {
     document.title = "For Individuals | One profile. Verified skills. Transparent pay.";
@@ -190,18 +192,46 @@ export default function Individuals() {
           </Card>
         </div>
 
-        <div className="text-center">
-          <Button
-            size="lg"
-            className="bg-amber-gradient text-charcoal hover:opacity-90"
-            data-testid="button-create-profile"
-            onClick={handleCreateCVClick}
-          >
-            <FileText size={20} className="mr-2" />
-            {showCVBuilder ? "Back to Profile" : "Create Your CV"}
-          </Button>
+        <div className="text-center space-y-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button
+              size="lg"
+              className="bg-amber-gradient text-charcoal hover:opacity-90"
+              data-testid="button-upload-resume"
+              onClick={() => {
+                if (!user) {
+                  setLocation('/login');
+                  return;
+                }
+                setShowResumeUpload(!showResumeUpload);
+                setShowCVBuilder(false);
+              }}
+            >
+              <Upload size={20} className="mr-2" />
+              {showResumeUpload ? "Hide Upload" : "Upload Resume (AI Powered)"}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-amber text-amber hover:bg-amber/10"
+              data-testid="button-create-profile"
+              onClick={handleCreateCVClick}
+            >
+              <FileText size={20} className="mr-2" />
+              {showCVBuilder ? "Hide Builder" : "Build CV Manually"}
+            </Button>
+          </div>
+          <p className="text-xs text-slate max-w-md mx-auto">
+            Upload your existing resume for instant AI-powered profile creation, or build your CV step-by-step
+          </p>
         </div>
       </Section>
+
+      {showResumeUpload && (
+        <Section>
+          <ResumeUpload onSuccess={() => setShowResumeUpload(false)} />
+        </Section>
+      )}
 
       {showCVBuilder && (
         <Section>
@@ -209,7 +239,7 @@ export default function Individuals() {
         </Section>
       )}
 
-      {!showCVBuilder && (<>
+      {!showCVBuilder && !showResumeUpload && (<>
         <Section className="bg-graphite" id="jobs">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-8">
