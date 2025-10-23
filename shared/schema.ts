@@ -721,3 +721,167 @@ export const insertApprovedVendorSchema = createInsertSchema(approvedVendors).om
 
 export type InsertApprovedVendor = z.infer<typeof insertApprovedVendorSchema>;
 export type ApprovedVendor = typeof approvedVendors.$inferSelect;
+
+// ========================================
+// VALIDATION SCHEMAS FOR ORGANIZATION SETTINGS
+// These add runtime validation constraints beyond the base insert schemas
+// ========================================
+
+// Team Member validation with strict enums and constraints
+export const teamMemberValidationSchema = insertTeamMemberSchema.extend({
+  email: z.string().email().min(1, "Email is required"),
+  role: z.enum(['recruiter', 'hiring_manager', 'admin'], {
+    errorMap: () => ({ message: "Role must be recruiter, hiring_manager, or admin" })
+  }),
+  permissions: z.array(z.string()).min(0).default([]),
+  status: z.enum(['pending', 'active', 'inactive']).default('pending'),
+  organizationId: z.string().min(1, "Organization ID is required"),
+});
+
+export type TeamMemberValidation = z.infer<typeof teamMemberValidationSchema>;
+
+// Pipeline Stage validation
+export const pipelineStageValidationSchema = insertPipelineStageSchema.extend({
+  name: z.string().min(1, "Stage name is required").max(100, "Stage name too long"),
+  order: z.number().int().min(0, "Order must be non-negative"),
+  isDefault: z.number().int().min(0).max(1).default(0),
+  organizationId: z.string().min(1, "Organization ID is required"),
+});
+
+export type PipelineStageValidation = z.infer<typeof pipelineStageValidationSchema>;
+
+// Interview Settings validation
+export const interviewSettingsValidationSchema = insertInterviewSettingsSchema.extend({
+  organizationId: z.string().min(1, "Organization ID is required"),
+  calendarProvider: z.enum(['google', 'outlook', 'none', '']).nullable().optional(),
+  videoProvider: z.enum(['zoom', 'meet', 'teams', 'none', '']).nullable().optional(),
+  panelTemplates: z.array(z.string()).min(0).default([]),
+  feedbackFormTemplate: z.string().nullable().optional(),
+});
+
+export type InterviewSettingsValidation = z.infer<typeof interviewSettingsValidationSchema>;
+
+// Compliance Settings validation
+export const complianceSettingsValidationSchema = insertComplianceSettingsSchema.extend({
+  organizationId: z.string().min(1, "Organization ID is required"),
+  eeDataCapture: z.enum(['optional', 'required', 'off']).default('optional'),
+  consentText: z.string().min(1, "Consent text is required").max(1000, "Consent text too long"),
+  dataRetentionDays: z.number().int().min(1, "Data retention must be at least 1 day").max(3650, "Data retention cannot exceed 10 years"),
+  popiaOfficer: z.string().nullable().optional(),
+  dataDeletionContact: z.string().nullable().optional(),
+});
+
+export type ComplianceSettingsValidation = z.infer<typeof complianceSettingsValidationSchema>;
+
+// Organization Integrations validation
+export const organizationIntegrationsValidationSchema = insertOrganizationIntegrationsSchema.extend({
+  organizationId: z.string().min(1, "Organization ID is required"),
+  slackWebhook: z.string().url("Invalid Slack webhook URL").nullable().optional().or(z.literal('')),
+  msTeamsWebhook: z.string().url("Invalid MS Teams webhook URL").nullable().optional().or(z.literal('')),
+  atsProvider: z.enum(['workday', 'greenhouse', 'lever', 'none', '']).nullable().optional(),
+  atsApiKey: z.string().nullable().optional(),
+  sourcingChannels: z.array(z.string()).min(0).default([]),
+});
+
+export type OrganizationIntegrationsValidation = z.infer<typeof organizationIntegrationsValidationSchema>;
+
+// Job Template validation
+export const jobTemplateValidationSchema = insertJobTemplateSchema.extend({
+  organizationId: z.string().min(1, "Organization ID is required"),
+  name: z.string().min(1, "Template name is required").max(200, "Template name too long"),
+  jobTitle: z.string().nullable().optional(),
+  jobDescription: z.string().nullable().optional(),
+  requirements: z.array(z.string()).min(0).default([]),
+  interviewStructure: z.array(z.string()).min(0).default([]),
+  approvalChain: z.array(z.string()).min(0).default([]),
+});
+
+export type JobTemplateValidation = z.infer<typeof jobTemplateValidationSchema>;
+
+// Salary Band validation with min < max constraint
+export const salaryBandValidationSchema = insertSalaryBandSchema.extend({
+  organizationId: z.string().min(1, "Organization ID is required"),
+  title: z.string().min(1, "Title is required").max(200, "Title too long"),
+  minSalary: z.number().int().min(0, "Minimum salary must be non-negative"),
+  maxSalary: z.number().int().min(0, "Maximum salary must be non-negative"),
+  currency: z.string().length(3, "Currency must be 3 characters (e.g., ZAR, USD)").default('ZAR'),
+}).refine(
+  (data) => data.minSalary <= data.maxSalary,
+  { message: "Minimum salary must be less than or equal to maximum salary", path: ["minSalary"] }
+);
+
+export type SalaryBandValidation = z.infer<typeof salaryBandValidationSchema>;
+
+// Approved Vendor validation
+export const approvedVendorValidationSchema = insertApprovedVendorSchema.extend({
+  organizationId: z.string().min(1, "Organization ID is required"),
+  name: z.string().min(1, "Vendor name is required").max(200, "Vendor name too long"),
+  contactEmail: z.string().email("Invalid email address").nullable().optional().or(z.literal('')),
+  rate: z.string().nullable().optional(),
+  ndaSigned: z.number().int().min(0).max(1).default(0),
+  status: z.enum(['active', 'inactive']).default('active'),
+});
+
+export type ApprovedVendorValidation = z.infer<typeof approvedVendorValidationSchema>;
+
+// ========================================
+// PATCH-SPECIFIC SCHEMAS (NO DEFAULTS)
+// These prevent regression where defaults overwrite existing values during partial updates
+// ========================================
+
+// Team Member PATCH schema - no defaults to prevent overwriting existing data
+export const teamMemberPatchSchema = z.object({
+  organizationId: z.string().min(1).optional(),
+  email: z.string().email().min(1).optional(),
+  role: z.enum(['recruiter', 'hiring_manager', 'admin']).optional(),
+  permissions: z.array(z.string()).optional(),
+  status: z.enum(['pending', 'active', 'inactive']).optional(),
+  acceptedAt: z.string().datetime().nullable().optional(),
+});
+
+// Pipeline Stage PATCH schema - no defaults
+export const pipelineStagePatchSchema = z.object({
+  organizationId: z.string().min(1).optional(),
+  name: z.string().min(1).max(100).optional(),
+  order: z.number().int().min(0).optional(),
+  isDefault: z.number().int().min(0).max(1).optional(),
+});
+
+// Job Template PATCH schema - no defaults
+export const jobTemplatePatchSchema = z.object({
+  organizationId: z.string().min(1).optional(),
+  name: z.string().min(1).max(200).optional(),
+  jobTitle: z.string().nullable().optional(),
+  jobDescription: z.string().nullable().optional(),
+  requirements: z.array(z.string()).optional(),
+  interviewStructure: z.array(z.string()).optional(),
+  approvalChain: z.array(z.string()).optional(),
+});
+
+// Salary Band PATCH schema - with min <= max validation only when both present
+export const salaryBandPatchSchema = z.object({
+  organizationId: z.string().min(1).optional(),
+  title: z.string().min(1).max(200).optional(),
+  minSalary: z.number().int().min(0).optional(),
+  maxSalary: z.number().int().min(0).optional(),
+  currency: z.string().length(3).optional(),
+}).refine(
+  (data) => {
+    // Only validate min <= max if both are present
+    if (data.minSalary !== undefined && data.maxSalary !== undefined) {
+      return data.minSalary <= data.maxSalary;
+    }
+    return true;
+  },
+  { message: "Minimum salary must be less than or equal to maximum salary", path: ["minSalary"] }
+);
+
+// Approved Vendor PATCH schema - no defaults
+export const approvedVendorPatchSchema = z.object({
+  organizationId: z.string().min(1).optional(),
+  name: z.string().min(1).max(200).optional(),
+  contactEmail: z.string().email().nullable().optional().or(z.literal('')),
+  rate: z.string().nullable().optional(),
+  ndaSigned: z.number().int().min(0).max(1).optional(),
+  status: z.enum(['active', 'inactive']).optional(),
+});

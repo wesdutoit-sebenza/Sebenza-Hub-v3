@@ -1,12 +1,42 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import pg from "pg";
 import { z } from "zod";
+import { fromZodError } from "zod-validation-error";
 import { requireAuth, type AuthRequest } from "./auth";
+import {
+  teamMemberValidationSchema,
+  teamMemberPatchSchema,
+  pipelineStageValidationSchema,
+  pipelineStagePatchSchema,
+  interviewSettingsValidationSchema,
+  complianceSettingsValidationSchema,
+  organizationIntegrationsValidationSchema,
+  jobTemplateValidationSchema,
+  jobTemplatePatchSchema,
+  salaryBandValidationSchema,
+  salaryBandPatchSchema,
+  approvedVendorValidationSchema,
+  approvedVendorPatchSchema,
+} from "../shared/schema";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const router = Router();
 
+// Helper function to validate request body with Zod schema
+function validateBody<T extends z.ZodType>(schema: T, data: unknown): z.infer<T> | { error: string } {
+  try {
+    return schema.parse(data);
+  } catch (err) {
+    if (err instanceof z.ZodError) {
+      const validationError = fromZodError(err);
+      return { error: validationError.toString() };
+    }
+    return { error: "Validation failed" };
+  }
+}
+
 // Middleware to validate organization membership
+// Optionally enforces role requirements for write operations
 async function requireOrgMembership(req: AuthRequest, res: Response, next: NextFunction) {
   const { orgId } = req.params;
   const userId = req.user?.id;
@@ -23,6 +53,18 @@ async function requireOrgMembership(req: AuthRequest, res: Response, next: NextF
 
   if (rows.length === 0) {
     return res.status(403).json({ error: "Access denied to this organization" });
+  }
+
+  const userRole = rows[0].role;
+
+  // For write operations (POST, PATCH, PUT, DELETE), require admin or higher
+  const isWriteOperation = ['POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method);
+  const isAdmin = ['admin', 'owner'].includes(userRole);
+
+  if (isWriteOperation && !isAdmin) {
+    return res.status(403).json({ 
+      error: "Insufficient permissions. Admin or owner role required for this operation." 
+    });
   }
 
   next();
@@ -43,19 +85,33 @@ router.get("/organizations/:orgId/team-members", requireAuth, requireOrgMembersh
 
 router.post("/organizations/:orgId/team-members", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
-  const { email, role, permissions, status } = req.body;
+  
+  // Validate request body
+  const validated = validateBody(teamMemberValidationSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { email, role, permissions, status } = validated;
   const { rows } = await pool.query(
     `INSERT INTO team_members(organization_id, email, role, permissions, status)
      VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [orgId, email, role, permissions || [], status || 'pending']
+    [orgId, email, role, permissions, status]
   );
   res.json(rows[0]);
 });
 
 router.patch("/organizations/:orgId/team-members/:memberId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, memberId } = req.params;
-  const { email, role, permissions, status, acceptedAt } = req.body;
+  
+  // Validate request body (PATCH-specific schema without defaults)
+  const validated = validateBody(teamMemberPatchSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { email, role, permissions, status, acceptedAt } = validated;
   
   const updates: string[] = [];
   const values: any[] = [];
@@ -130,19 +186,33 @@ router.get("/organizations/:orgId/pipeline-stages", requireAuth, requireOrgMembe
 
 router.post("/organizations/:orgId/pipeline-stages", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
-  const { name, order, isDefault } = req.body;
+  
+  // Validate request body
+  const validated = validateBody(pipelineStageValidationSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { name, order, isDefault } = validated;
   const { rows } = await pool.query(
     `INSERT INTO pipeline_stages(organization_id, name, "order", is_default)
      VALUES ($1, $2, $3, $4)
      RETURNING *`,
-    [orgId, name, order, isDefault || 0]
+    [orgId, name, order, isDefault]
   );
   res.json(rows[0]);
 });
 
 router.patch("/organizations/:orgId/pipeline-stages/:stageId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, stageId } = req.params;
-  const { name, order, isDefault } = req.body;
+  
+  // Validate request body (PATCH-specific schema without defaults)
+  const validated = validateBody(pipelineStagePatchSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { name, order, isDefault } = validated;
   
   const updates: string[] = [];
   const values: any[] = [];
@@ -166,7 +236,7 @@ router.patch("/organizations/:orgId/pipeline-stages/:stageId", requireAuth, requ
   }
   
   values.push(stageId, orgId);
-  const { rows } = await pool.query(
+  const { rows} = await pool.query(
     `UPDATE pipeline_stages SET ${updates.join(', ')}
      WHERE id = $${paramCount} AND organization_id = $${paramCount + 1}
      RETURNING *`,
@@ -220,7 +290,14 @@ router.get("/organizations/:orgId/interview-settings", requireAuth, requireOrgMe
 
 router.put("/organizations/:orgId/interview-settings", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
-  const { calendarProvider, videoProvider, panelTemplates, feedbackFormTemplate } = req.body;
+  
+  // Validate request body
+  const validated = validateBody(interviewSettingsValidationSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { calendarProvider, videoProvider, panelTemplates, feedbackFormTemplate } = validated;
   
   const { rows: existing } = await pool.query(
     `SELECT id FROM interview_settings WHERE organization_id = $1`,
@@ -232,7 +309,7 @@ router.put("/organizations/:orgId/interview-settings", requireAuth, requireOrgMe
       `INSERT INTO interview_settings(organization_id, calendar_provider, video_provider, panel_templates, feedback_form_template)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
-      [orgId, calendarProvider || 'none', videoProvider || 'none', panelTemplates || [], feedbackFormTemplate || '']
+      [orgId, calendarProvider, videoProvider, panelTemplates, feedbackFormTemplate]
     );
     return res.json(rows[0]);
   }
@@ -243,7 +320,7 @@ router.put("/organizations/:orgId/interview-settings", requireAuth, requireOrgMe
          feedback_form_template = $4, updated_at = NOW()
      WHERE organization_id = $5
      RETURNING *`,
-    [calendarProvider, videoProvider, panelTemplates || [], feedbackFormTemplate || '', orgId]
+    [calendarProvider, videoProvider, panelTemplates, feedbackFormTemplate, orgId]
   );
   
   res.json(rows[0]);
@@ -275,7 +352,14 @@ router.get("/organizations/:orgId/compliance-settings", requireAuth, requireOrgM
 
 router.put("/organizations/:orgId/compliance-settings", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
-  const { eeDataCapture, consentText, dataRetentionDays, popiaOfficer, dataDeletionContact } = req.body;
+  
+  // Validate request body
+  const validated = validateBody(complianceSettingsValidationSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { eeDataCapture, consentText, dataRetentionDays, popiaOfficer, dataDeletionContact } = validated;
   
   const { rows: existing } = await pool.query(
     `SELECT id FROM compliance_settings WHERE organization_id = $1`,
@@ -288,7 +372,7 @@ router.put("/organizations/:orgId/compliance-settings", requireAuth, requireOrgM
                                         data_retention_days, popia_officer, data_deletion_contact)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [orgId, eeDataCapture || 'optional', consentText, dataRetentionDays || 365, popiaOfficer, dataDeletionContact]
+      [orgId, eeDataCapture, consentText, dataRetentionDays, popiaOfficer, dataDeletionContact]
     );
     return res.json(rows[0]);
   }
@@ -331,7 +415,14 @@ router.get("/organizations/:orgId/integrations", requireAuth, requireOrgMembersh
 
 router.put("/organizations/:orgId/integrations", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
-  const { slackWebhook, msTeamsWebhook, atsProvider, atsApiKey, sourcingChannels } = req.body;
+  
+  // Validate request body
+  const validated = validateBody(organizationIntegrationsValidationSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { slackWebhook, msTeamsWebhook, atsProvider, atsApiKey, sourcingChannels } = validated;
   
   const { rows: existing } = await pool.query(
     `SELECT id FROM organization_integrations WHERE organization_id = $1`,
@@ -344,7 +435,7 @@ router.put("/organizations/:orgId/integrations", requireAuth, requireOrgMembersh
                                               ats_provider, ats_api_key, sourcing_channels)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [orgId, slackWebhook, msTeamsWebhook, atsProvider, atsApiKey, sourcingChannels || []]
+      [orgId, slackWebhook, msTeamsWebhook, atsProvider, atsApiKey, sourcingChannels]
     );
     return res.json(rows[0]);
   }
@@ -376,20 +467,34 @@ router.get("/organizations/:orgId/job-templates", requireAuth, requireOrgMembers
 
 router.post("/organizations/:orgId/job-templates", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
-  const { name, jobTitle, jobDescription, requirements, interviewStructure, approvalChain } = req.body;
+  
+  // Validate request body
+  const validated = validateBody(jobTemplateValidationSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { name, jobTitle, jobDescription, requirements, interviewStructure, approvalChain } = validated;
   const { rows } = await pool.query(
     `INSERT INTO job_templates(organization_id, name, job_title, job_description, 
                                 requirements, interview_structure, approval_chain)
      VALUES ($1, $2, $3, $4, $5, $6, $7)
      RETURNING *`,
-    [orgId, name, jobTitle, jobDescription, requirements || [], interviewStructure || [], approvalChain || []]
+    [orgId, name, jobTitle, jobDescription, requirements, interviewStructure, approvalChain]
   );
   res.json(rows[0]);
 });
 
 router.patch("/organizations/:orgId/job-templates/:templateId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, templateId } = req.params;
-  const { name, jobTitle, jobDescription, requirements, interviewStructure, approvalChain } = req.body;
+  
+  // Validate request body (PATCH-specific schema without defaults)
+  const validated = validateBody(jobTemplatePatchSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { name, jobTitle, jobDescription, requirements, interviewStructure, approvalChain } = validated;
   
   const updates: string[] = [];
   const values: any[] = [];
@@ -469,19 +574,33 @@ router.get("/organizations/:orgId/salary-bands", requireAuth, requireOrgMembersh
 
 router.post("/organizations/:orgId/salary-bands", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
-  const { title, minSalary, maxSalary, currency } = req.body;
+  
+  // Validate request body (enforces min <= max constraint)
+  const validated = validateBody(salaryBandValidationSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { title, minSalary, maxSalary, currency } = validated;
   const { rows } = await pool.query(
     `INSERT INTO salary_bands(organization_id, title, min_salary, max_salary, currency)
      VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [orgId, title, minSalary, maxSalary, currency || 'ZAR']
+    [orgId, title, minSalary, maxSalary, currency]
   );
   res.json(rows[0]);
 });
 
 router.patch("/organizations/:orgId/salary-bands/:bandId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, bandId } = req.params;
-  const { title, minSalary, maxSalary, currency } = req.body;
+  
+  // Validate request body (PATCH-specific schema without defaults, enforces min <= max if both present)
+  const validated = validateBody(salaryBandPatchSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { title, minSalary, maxSalary, currency } = validated;
   
   const updates: string[] = [];
   const values: any[] = [];
@@ -552,19 +671,33 @@ router.get("/organizations/:orgId/vendors", requireAuth, requireOrgMembership, a
 
 router.post("/organizations/:orgId/vendors", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId } = req.params;
-  const { name, contactEmail, rate, ndaSigned, status } = req.body;
+  
+  // Validate request body
+  const validated = validateBody(approvedVendorValidationSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { name, contactEmail, rate, ndaSigned, status } = validated;
   const { rows } = await pool.query(
     `INSERT INTO approved_vendors(organization_id, name, contact_email, rate, nda_signed, status)
      VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [orgId, name, contactEmail, rate, ndaSigned || 0, status || 'active']
+    [orgId, name, contactEmail, rate, ndaSigned, status]
   );
   res.json(rows[0]);
 });
 
 router.patch("/organizations/:orgId/vendors/:vendorId", requireAuth, requireOrgMembership, async (req: AuthRequest, res) => {
   const { orgId, vendorId } = req.params;
-  const { name, contactEmail, rate, ndaSigned, status } = req.body;
+  
+  // Validate request body (PATCH-specific schema without defaults)
+  const validated = validateBody(approvedVendorPatchSchema, { ...req.body, organizationId: orgId });
+  if ('error' in validated) {
+    return res.status(400).json({ error: validated.error });
+  }
+  
+  const { name, contactEmail, rate, ndaSigned, status } = validated;
   
   const updates: string[] = [];
   const values: any[] = [];

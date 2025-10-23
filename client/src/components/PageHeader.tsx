@@ -16,8 +16,12 @@ export default function PageHeader({ title, description, breadcrumb, gradientVar
       <div className="max-w-7xl mx-auto relative z-10">
         {breadcrumb && (
           <nav className="mb-4 flex items-center gap-2 text-sm text-muted-foreground" aria-label="Breadcrumb">
-            <Link href="/">
-              <a data-testid="link-breadcrumb-home" className="hover:text-foreground hover-elevate px-2 py-1 rounded-md">Home</a>
+            <Link 
+              href="/" 
+              data-testid="link-breadcrumb-home" 
+              className="hover:text-foreground hover-elevate px-2 py-1 rounded-md"
+            >
+              Home
             </Link>
             <ChevronRight size={16} />
             <span data-testid="text-breadcrumb-current">{breadcrumb}</span>
