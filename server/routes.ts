@@ -1,7 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertSubscriberSchema, insertJobSchema, insertCVSchema } from "@shared/schema";
+import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertMagicTokenSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, type User } from "@shared/schema";
+import { db } from "./db";
+import { users, magicTokens, candidateProfiles, organizations, recruiterProfiles, memberships } from "@shared/schema";
+import { eq, and } from "drizzle-orm";
+import { randomBytes } from "crypto";
+import { sendMagicLinkEmail } from "./resend";
+import { requireAuth, requireRole, optionalAuth, generateToken, type AuthRequest } from "./auth";
+import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/subscribe", async (req, res) => {
@@ -186,6 +193,238 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Error fetching CVs.",
+      });
+    }
+  });
+
+  // Auth routes
+  app.post("/auth/magic/start", async (req, res) => {
+    try {
+      const { email } = z.object({
+        email: z.string().email(),
+      }).parse(req.body);
+
+      const token = randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      await db.delete(magicTokens).where(eq(magicTokens.email, email));
+
+      await db.insert(magicTokens).values({
+        token,
+        email,
+        expiresAt,
+      });
+
+      await sendMagicLinkEmail(email, token);
+
+      res.json({
+        success: true,
+        message: "Magic link sent to your email!",
+      });
+    } catch (error: any) {
+      console.error("Magic link error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to send magic link. Please check your email address.",
+      });
+    }
+  });
+
+  app.get("/auth/verify", async (req, res) => {
+    try {
+      const { token } = z.object({
+        token: z.string(),
+      }).parse(req.query);
+
+      const [magicToken] = await db.select()
+        .from(magicTokens)
+        .where(eq(magicTokens.token, token));
+
+      if (!magicToken) {
+        return res.redirect('/?error=invalid_token');
+      }
+
+      if (new Date() > magicToken.expiresAt) {
+        await db.delete(magicTokens).where(eq(magicTokens.id, magicToken.id));
+        return res.redirect('/?error=expired_token');
+      }
+
+      let [user] = await db.select()
+        .from(users)
+        .where(eq(users.email, magicToken.email));
+
+      if (!user) {
+        [user] = await db.insert(users)
+          .values({
+            email: magicToken.email,
+            roles: [],
+            onboardingComplete: {},
+          })
+          .returning();
+      }
+
+      await db.delete(magicTokens).where(eq(magicTokens.id, magicToken.id));
+
+      const authToken = generateToken(user.id);
+      res.cookie('auth_token', authToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        sameSite: 'lax',
+      });
+
+      res.redirect('/onboarding');
+    } catch (error: any) {
+      console.error("Verification error:", error);
+      res.redirect('/?error=verification_failed');
+    }
+  });
+
+  app.post("/auth/logout", (req, res) => {
+    res.clearCookie('auth_token');
+    res.json({ success: true, message: "Logged out successfully" });
+  });
+
+  app.get("/api/me", requireAuth, async (req: AuthRequest, res) => {
+    res.json({ user: req.user });
+  });
+
+  app.post("/api/me/role", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { role } = z.object({
+        role: z.enum(['individual', 'business', 'recruiter']),
+      }).parse(req.body);
+
+      const currentRoles = req.user!.roles || [];
+      if (!currentRoles.includes(role)) {
+        currentRoles.push(role);
+      }
+
+      await db.update(users)
+        .set({ roles: currentRoles })
+        .where(eq(users.id, req.user!.id));
+
+      res.json({ success: true, message: "Role added successfully" });
+    } catch (error: any) {
+      console.error("Role update error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to update role",
+      });
+    }
+  });
+
+  app.post("/api/profile/candidate", requireAuth, requireRole('individual'), async (req: AuthRequest, res) => {
+    try {
+      const validatedData = insertCandidateProfileSchema.parse({
+        ...req.body,
+        userId: req.user!.id,
+      });
+
+      const [existing] = await db.select()
+        .from(candidateProfiles)
+        .where(eq(candidateProfiles.userId, req.user!.id));
+
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: "Candidate profile already exists",
+        });
+      }
+
+      const [profile] = await db.insert(candidateProfiles)
+        .values(validatedData)
+        .returning();
+
+      const onboardingComplete = req.user!.onboardingComplete as any || {};
+      onboardingComplete.individual = true;
+
+      await db.update(users)
+        .set({ onboardingComplete })
+        .where(eq(users.id, req.user!.id));
+
+      res.json({
+        success: true,
+        message: "Candidate profile created successfully",
+        profile,
+      });
+    } catch (error: any) {
+      console.error("Candidate profile error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to create candidate profile",
+      });
+    }
+  });
+
+  app.post("/api/organizations", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const validatedData = insertOrganizationSchema.parse(req.body);
+
+      const [organization] = await db.insert(organizations)
+        .values(validatedData)
+        .returning();
+
+      await db.insert(memberships).values({
+        userId: req.user!.id,
+        organizationId: organization.id,
+        role: 'owner',
+      });
+
+      const roleType = organization.type === 'employer' ? 'business' : 'recruiter';
+      const onboardingComplete = req.user!.onboardingComplete as any || {};
+      onboardingComplete[roleType] = true;
+
+      await db.update(users)
+        .set({ onboardingComplete })
+        .where(eq(users.id, req.user!.id));
+
+      res.json({
+        success: true,
+        message: "Organization created successfully",
+        organization,
+      });
+    } catch (error: any) {
+      console.error("Organization creation error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to create organization",
+      });
+    }
+  });
+
+  app.post("/api/profile/recruiter", requireAuth, requireRole('recruiter'), async (req: AuthRequest, res) => {
+    try {
+      const validatedData = insertRecruiterProfileSchema.parse({
+        ...req.body,
+        userId: req.user!.id,
+      });
+
+      const [existing] = await db.select()
+        .from(recruiterProfiles)
+        .where(eq(recruiterProfiles.userId, req.user!.id));
+
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: "Recruiter profile already exists",
+        });
+      }
+
+      const [profile] = await db.insert(recruiterProfiles)
+        .values(validatedData)
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Recruiter profile created successfully",
+        profile,
+      });
+    } catch (error: any) {
+      console.error("Recruiter profile error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to create recruiter profile",
       });
     }
   });
