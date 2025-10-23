@@ -1,7 +1,28 @@
 # Sebenza Hub - South African Recruiting Platform
 
 ## Overview
-Sebenza Hub is a marketing website for a South African recruiting platform focused on transparency, compliance, and WhatsApp-first hiring. It targets recruiters, businesses, and job seekers with distinct landing pages. The platform aims to capture early-access subscribers and showcases a modern, minimal design with strategic color accents, built for performance, accessibility, and mobile-first responsiveness. It is a full-stack TypeScript application utilizing a React frontend and an Express backend. The project's ambition is to become a leading recruiting solution in South Africa, streamlining hiring processes and enhancing candidate experience.
+Sebenza Hub is a marketing website for a South African recruiting platform focused on transparency, compliance, and WhatsApp-first hiring. It targets recruiters, businesses, and job seekers with distinct landing pages. The platform aims to capture early-access subscribers and showcases a modern, minimal design with charcoal/amber brand palette, built for performance, accessibility, and mobile-first responsiveness. It is a full-stack TypeScript application utilizing a React frontend and an Express backend. The project's ambition is to become a leading recruiting solution in South Africa, streamlining hiring processes and enhancing candidate experience.
+
+## Brand Identity
+**Color Palette (Charcoal/Amber Theme):**
+- **Primary Charcoal**: #2e2f31 to #3a3b3d (backgrounds, depth)
+- **Accent Amber**: #f4a300 to #ffb43b (CTAs, highlights, "HUB" branding)
+- **White Brand**: #ffffff (headings, "Sebenza" logo text)
+- **Slate Tones**: #5c6369 to #70787e (body text, secondary elements)
+- **Graphite**: #4a4d50 (section backgrounds, transitions)
+- **Deep Black**: #1f1f20 (depth and shadows)
+
+**Typography:**
+- **Logo**: "Sebenza" (white) + "HUB" (amber), serif font
+- **Headings**: White for maximum contrast on dark backgrounds
+- **Body Text**: Slate for comfortable reading
+
+**Available Utility Classes:**
+- Gradients: `.bg-charcoal-gradient`, `.bg-amber-gradient`, `.bg-slate-gradient`
+- Backgrounds: `.bg-charcoal`, `.bg-amber`, `.bg-graphite`
+- Text: `.text-amber`, `.text-white-brand`, `.text-slate`
+- Borders: `.border-amber`, `.border-slate`
+- Logo: `.logo-sebenza` (white), `.logo-hub` (amber)
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

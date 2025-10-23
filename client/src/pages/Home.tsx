@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, Layout, MessageCircle, Award, ArrowRight } from "lucide-react";
-import GradientBlob from "@/components/GradientBlob";
 import Section from "@/components/Section";
 import Modal from "@/components/Modal";
 import PricingTable from "@/components/PricingTable";

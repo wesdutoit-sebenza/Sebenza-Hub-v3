@@ -186,7 +186,6 @@ export default function Recruiters() {
         title="Less noise. Faster shortlists."
         description="Purpose-built tools for SA recruiters. Verify employers, require salary transparency, and export to all major job boards."
         breadcrumb="For Recruiters"
-        gradientVariant="cyan"
       />
 
       <Section>

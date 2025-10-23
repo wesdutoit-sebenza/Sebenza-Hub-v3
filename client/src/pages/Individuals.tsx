@@ -109,7 +109,6 @@ export default function Individuals() {
         title="One profile. Real salary ranges."
         description="Stop wasting time on mystery jobs. See transparent salaries, apply via WhatsApp, and prove your skills with quick assessments."
         breadcrumb="For Individuals"
-        gradientVariant="amber"
       />
 
       <Section>

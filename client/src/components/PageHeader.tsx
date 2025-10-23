@@ -1,6 +1,5 @@
 import { Link } from "wouter";
 import { ChevronRight } from "lucide-react";
-import GradientBlob from "./GradientBlob";
 
 interface PageHeaderProps {
   title: string;

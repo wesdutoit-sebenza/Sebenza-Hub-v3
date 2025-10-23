@@ -41,7 +41,6 @@ export default function Businesses() {
         title="Hiring that fits SME realities."
         description="No enterprise complexity. Just the tools you need to hire right—POPIA-compliant, WhatsApp-first, and built for South Africa."
         breadcrumb="For Businesses"
-        gradientVariant="green"
       />
 
       <Section>
