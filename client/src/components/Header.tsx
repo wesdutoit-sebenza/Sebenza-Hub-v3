@@ -55,7 +55,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b">
+    <header className="sticky top-0 z-50 bg-charcoal-gradient border-b border-slate">
       <a
         href="#main-content"
         data-testid="link-skip-to-content"
@@ -66,7 +66,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex items-center justify-between h-16">
           <Link href="/" data-testid="link-home" className="font-serif font-semibold text-xl hover-elevate px-2 py-1 rounded-md">
-            Sebenza Hub
+            <span className="logo-sebenza">Sebenza</span> <span className="logo-hub">HUB</span>
           </Link>
 
           <nav className="hidden md:flex items-center gap-1">
@@ -77,8 +77,8 @@ export default function Header() {
                 data-testid={`link-nav-${link.label.toLowerCase().replace(/\s+/g, '-')}`}
                 className={`px-4 py-2 rounded-md text-sm font-medium transition-colors hover-elevate ${
                   isActive(link.path)
-                    ? "text-primary border-b-2 border-primary"
-                    : "text-muted-foreground"
+                    ? "text-amber border-b-2 border-amber"
+                    : "text-slate"
                 }`}
               >
                 {link.label}
@@ -90,7 +90,7 @@ export default function Header() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="gap-2" data-testid="button-user-menu">
+                  <Button variant="ghost" className="gap-2 text-white-brand hover:text-amber" data-testid="button-user-menu">
                     <UserIcon size={16} />
                     {user.email}
                   </Button>
@@ -165,13 +165,14 @@ export default function Header() {
                 <Button 
                   data-testid="button-sign-in" 
                   variant="ghost"
+                  className="text-white-brand hover:text-amber"
                   onClick={() => setLocation('/login')}
                 >
                   Sign In
                 </Button>
                 <Button 
                   data-testid="button-get-access" 
-                  variant="default"
+                  className="bg-amber-gradient text-charcoal hover:opacity-90"
                   onClick={() => setLocation('/login')}
                 >
                   Get Started
@@ -182,7 +183,7 @@ export default function Header() {
 
           <button
             data-testid="button-mobile-menu"
-            className="md:hidden p-2 hover-elevate rounded-md"
+            className="md:hidden p-2 hover-elevate rounded-md text-white-brand"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle mobile menu"
           >
@@ -191,7 +192,7 @@ export default function Header() {
         </div>
 
         {mobileMenuOpen && (
-          <nav className="md:hidden py-4 border-t">
+          <nav className="md:hidden py-4 border-t border-slate">
             <div className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <Link 
@@ -200,8 +201,8 @@ export default function Header() {
                   data-testid={`link-mobile-${link.label.toLowerCase().replace(/\s+/g, '-')}`}
                   className={`block px-4 py-2 rounded-md text-sm font-medium hover-elevate ${
                     isActive(link.path)
-                      ? "text-primary bg-primary/10"
-                      : "text-muted-foreground"
+                      ? "text-amber bg-amber/10"
+                      : "text-slate"
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -210,12 +211,12 @@ export default function Header() {
               ))}
               {user ? (
                 <>
-                  <div className="mt-2 px-4 py-2 text-sm text-muted-foreground" data-testid="text-mobile-user-email">
+                  <div className="mt-2 px-4 py-2 text-sm text-slate" data-testid="text-mobile-user-email">
                     {user.email}
                   </div>
                   <Button 
                     variant="ghost" 
-                    className="gap-2"
+                    className="gap-2 text-white-brand"
                     onClick={() => {
                       handleLogout();
                       setMobileMenuOpen(false);
@@ -230,7 +231,7 @@ export default function Header() {
                 <>
                   <Button 
                     data-testid="button-mobile-sign-in" 
-                    className="mt-2" 
+                    className="mt-2 text-white-brand" 
                     variant="ghost" 
                     onClick={() => {
                       setMobileMenuOpen(false);
