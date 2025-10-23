@@ -254,3 +254,82 @@ export type CVWorkExperience = z.infer<typeof cvWorkExperienceSchema>;
 export type CVSkills = z.infer<typeof cvSkillsSchema>;
 export type CVEducation = z.infer<typeof cvEducationSchema>;
 export type CVReference = z.infer<typeof cvReferenceSchema>;
+
+// CV Screening tables for AI-powered candidate evaluation
+export const screeningJobs = pgTable("screening_jobs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  organizationId: varchar("organization_id"),
+  jobTitle: text("job_title").notNull(),
+  jobDescription: text("job_description").notNull(),
+  seniority: text("seniority"), // 'junior', 'mid', 'senior', 'lead'
+  employmentType: text("employment_type"), // 'permanent', 'contract'
+  location: jsonb("location"), // { city, country, work_type: 'remote|hybrid|on-site' }
+  mustHaveSkills: text("must_have_skills").array().notNull().default(sql`'{}'::text[]`),
+  niceToHaveSkills: text("nice_to_have_skills").array().notNull().default(sql`'{}'::text[]`),
+  salaryRange: jsonb("salary_range"), // { min, max, currency }
+  knockouts: text("knockouts").array().notNull().default(sql`'{}'::text[]`),
+  weights: jsonb("weights").notNull(), // scoring weights
+  status: text("status").notNull().default('draft'), // 'draft', 'processing', 'completed', 'failed'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertScreeningJobSchema = createInsertSchema(screeningJobs).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertScreeningJob = z.infer<typeof insertScreeningJobSchema>;
+export type ScreeningJob = typeof screeningJobs.$inferSelect;
+
+export const screeningCandidates = pgTable("screening_candidates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  screeningJobId: varchar("screening_job_id").notNull(),
+  fullName: text("full_name").notNull(),
+  contact: jsonb("contact"), // { email, phone, city, country }
+  headline: text("headline"),
+  skills: text("skills").array().notNull().default(sql`'{}'::text[]`),
+  experience: jsonb("experience"), // array of { title, company, industry, location, dates, bullets }
+  education: jsonb("education"), // array of { institution, qualification, grad_date }
+  certifications: jsonb("certifications"), // array of { name, issuer, year }
+  achievements: jsonb("achievements"), // array of { metric, value, note }
+  links: jsonb("links"), // { linkedin, portfolio, github }
+  workAuthorization: text("work_authorization"),
+  salaryExpectation: text("salary_expectation"),
+  availability: text("availability"),
+  rawCvText: text("raw_cv_text"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertScreeningCandidateSchema = createInsertSchema(screeningCandidates).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertScreeningCandidate = z.infer<typeof insertScreeningCandidateSchema>;
+export type ScreeningCandidate = typeof screeningCandidates.$inferSelect;
+
+export const screeningEvaluations = pgTable("screening_evaluations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  screeningJobId: varchar("screening_job_id").notNull(),
+  candidateId: varchar("candidate_id").notNull(),
+  scoreTotal: integer("score_total").notNull(),
+  scoreBreakdown: jsonb("score_breakdown").notNull(), // { skills, experience, achievements, education, location_auth, salary_availability }
+  mustHavesSatisfied: text("must_haves_satisfied").array().notNull().default(sql`'{}'::text[]`),
+  missingMustHaves: text("missing_must_haves").array().notNull().default(sql`'{}'::text[]`),
+  knockout: jsonb("knockout"), // { is_ko: boolean, reasons: [] }
+  reasons: text("reasons").array().notNull().default(sql`'{}'::text[]`), // reasoning bullets
+  flags: jsonb("flags"), // { red: [], yellow: [] }
+  rank: integer("rank"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertScreeningEvaluationSchema = createInsertSchema(screeningEvaluations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertScreeningEvaluation = z.infer<typeof insertScreeningEvaluationSchema>;
+export type ScreeningEvaluation = typeof screeningEvaluations.$inferSelect;

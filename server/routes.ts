@@ -1,14 +1,15 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertMagicTokenSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, type User } from "@shared/schema";
+import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertMagicTokenSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, type User } from "@shared/schema";
 import { db } from "./db";
-import { users, magicTokens, candidateProfiles, organizations, recruiterProfiles, memberships } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { users, magicTokens, candidateProfiles, organizations, recruiterProfiles, memberships, screeningJobs, screeningCandidates, screeningEvaluations } from "@shared/schema";
+import { eq, and, desc } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { sendMagicLinkEmail } from "./resend";
 import { requireAuth, requireRole, optionalAuth, generateToken, type AuthRequest } from "./auth";
 import { z } from "zod";
+import { parseCVWithAI, evaluateCandidateWithAI } from "./ai-screening";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/subscribe", async (req, res) => {
@@ -440,6 +441,240 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({
         success: false,
         message: "Failed to create recruiter profile",
+      });
+    }
+  });
+
+  // === CV SCREENING ENDPOINTS ===
+  
+  // Create a new screening job
+  app.post("/api/screening/jobs", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const validatedData = insertScreeningJobSchema.parse({
+        ...req.body,
+        userId: req.user!.id,
+      });
+
+      const [job] = await db.insert(screeningJobs)
+        .values(validatedData)
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Screening job created successfully",
+        job,
+      });
+    } catch (error: any) {
+      console.error("Screening job creation error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to create screening job",
+      });
+    }
+  });
+
+  // Get screening jobs for user
+  app.get("/api/screening/jobs", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const jobs = await db.select()
+        .from(screeningJobs)
+        .where(eq(screeningJobs.userId, req.user!.id))
+        .orderBy(desc(screeningJobs.createdAt));
+
+      res.json({
+        success: true,
+        jobs,
+      });
+    } catch (error) {
+      console.error("Error fetching screening jobs:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch screening jobs",
+      });
+    }
+  });
+
+  // Get a specific screening job with results
+  app.get("/api/screening/jobs/:id", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const [job] = await db.select()
+        .from(screeningJobs)
+        .where(and(
+          eq(screeningJobs.id, req.params.id),
+          eq(screeningJobs.userId, req.user!.id)
+        ));
+
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: "Screening job not found",
+        });
+      }
+
+      // Get candidates and evaluations for this job
+      const candidates = await db.select()
+        .from(screeningCandidates)
+        .where(eq(screeningCandidates.screeningJobId, job.id));
+
+      const evaluations = await db.select()
+        .from(screeningEvaluations)
+        .where(eq(screeningEvaluations.screeningJobId, job.id))
+        .orderBy(desc(screeningEvaluations.scoreTotal));
+
+      res.json({
+        success: true,
+        job,
+        candidates,
+        evaluations,
+      });
+    } catch (error) {
+      console.error("Error fetching screening job:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch screening job",
+      });
+    }
+  });
+
+  // Upload and process CVs for a screening job
+  app.post("/api/screening/jobs/:id/process", requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const jobId = req.params.id;
+      const { cvTexts } = req.body as { cvTexts: string[] };
+
+      if (!cvTexts || !Array.isArray(cvTexts) || cvTexts.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "CV texts array is required",
+        });
+      }
+
+      // Get the screening job
+      const [job] = await db.select()
+        .from(screeningJobs)
+        .where(and(
+          eq(screeningJobs.id, jobId),
+          eq(screeningJobs.userId, req.user!.id)
+        ));
+
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: "Screening job not found",
+        });
+      }
+
+      // Update job status to processing
+      await db.update(screeningJobs)
+        .set({ status: 'processing' })
+        .where(eq(screeningJobs.id, jobId));
+
+      const processedCandidates: Array<{ candidateId: string; evaluation: any }> = [];
+
+      // Process each CV
+      for (const cvText of cvTexts) {
+        try {
+          // Parse CV with AI
+          const parsedCandidate = await parseCVWithAI(cvText);
+
+          // Store candidate
+          const [candidate] = await db.insert(screeningCandidates)
+            .values({
+              screeningJobId: jobId,
+              fullName: parsedCandidate.full_name,
+              contact: parsedCandidate.contact,
+              headline: parsedCandidate.headline,
+              skills: parsedCandidate.skills,
+              experience: parsedCandidate.experience,
+              education: parsedCandidate.education,
+              certifications: parsedCandidate.certifications,
+              achievements: parsedCandidate.achievements,
+              links: parsedCandidate.links,
+              workAuthorization: parsedCandidate.work_authorization,
+              salaryExpectation: parsedCandidate.salary_expectation,
+              availability: parsedCandidate.availability,
+              rawCvText: cvText,
+            })
+            .returning();
+
+          // Evaluate candidate against criteria
+          const evaluation = await evaluateCandidateWithAI(parsedCandidate, {
+            job_title: job.jobTitle,
+            job_description: job.jobDescription,
+            seniority: job.seniority || undefined,
+            employment_type: job.employmentType || undefined,
+            location: job.location as any,
+            must_have_skills: job.mustHaveSkills,
+            nice_to_have_skills: job.niceToHaveSkills,
+            salary_range: job.salaryRange as any,
+            knockouts: job.knockouts,
+            weights: job.weights as any,
+          });
+
+          // Store evaluation
+          const [storedEvaluation] = await db.insert(screeningEvaluations)
+            .values({
+              screeningJobId: jobId,
+              candidateId: candidate.id,
+              scoreTotal: evaluation.score_total,
+              scoreBreakdown: evaluation.score_breakdown,
+              mustHavesSatisfied: evaluation.must_haves_satisfied,
+              missingMustHaves: evaluation.missing_must_haves,
+              knockout: evaluation.knockout,
+              reasons: evaluation.reasons,
+              flags: evaluation.flags,
+            })
+            .returning();
+
+          processedCandidates.push({
+            candidateId: candidate.id,
+            evaluation: storedEvaluation,
+          });
+        } catch (error) {
+          console.error("Error processing CV:", error);
+          // Continue with other CVs even if one fails
+        }
+      }
+
+      // Calculate rankings
+      const allEvaluations = await db.select()
+        .from(screeningEvaluations)
+        .where(eq(screeningEvaluations.screeningJobId, jobId))
+        .orderBy(desc(screeningEvaluations.scoreTotal));
+
+      // Update ranks
+      for (let i = 0; i < allEvaluations.length; i++) {
+        await db.update(screeningEvaluations)
+          .set({ rank: i + 1 })
+          .where(eq(screeningEvaluations.id, allEvaluations[i].id));
+      }
+
+      // Update job status to completed
+      await db.update(screeningJobs)
+        .set({ status: 'completed' })
+        .where(eq(screeningJobs.id, jobId));
+
+      res.json({
+        success: true,
+        message: `Processed ${processedCandidates.length} candidates`,
+        processedCount: processedCandidates.length,
+      });
+    } catch (error: any) {
+      console.error("CV processing error:", error);
+      
+      // Update job status to failed
+      try {
+        await db.update(screeningJobs)
+          .set({ status: 'failed' })
+          .where(eq(screeningJobs.id, req.params.id));
+      } catch (e) {
+        console.error("Error updating job status:", e);
+      }
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to process CVs",
+        error: error.message,
       });
     }
   });
