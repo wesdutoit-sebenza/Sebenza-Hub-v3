@@ -39,7 +39,6 @@ export default function InterviewCoach({ candidateProfile, onClose }: InterviewC
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [userInput, setUserInput] = useState("");
-  const [showConfig, setShowConfig] = useState(true);
   
   // Config state
   const [jobTitle, setJobTitle] = useState("");
@@ -83,7 +82,6 @@ export default function InterviewCoach({ candidateProfile, onClose }: InterviewC
           timestamp: new Date(),
         },
       ]);
-      setShowConfig(false);
       toast({
         title: "Interview started",
         description: "Jabu is ready to coach you!",
@@ -261,16 +259,6 @@ export default function InterviewCoach({ candidateProfile, onClose }: InterviewC
             <CardTitle>Interview Coach - Jabu</CardTitle>
           </div>
           <div className="flex items-center gap-2">
-            {sessionId && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowConfig(!showConfig)}
-                data-testid="button-toggle-config"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            )}
             {onClose && (
               <Button
                 variant="ghost"
@@ -286,7 +274,7 @@ export default function InterviewCoach({ candidateProfile, onClose }: InterviewC
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-0">
-        {showConfig && !sessionId && (
+        {!sessionId && (
           <div className="p-6 border-b bg-muted/30">
             <h3 className="font-semibold mb-4">Interview Configuration</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -422,23 +410,6 @@ export default function InterviewCoach({ candidateProfile, onClose }: InterviewC
               </p>
             </div>
           </>
-        )}
-
-        {!sessionId && !showConfig && (
-          <div className="flex-1 flex items-center justify-center p-6">
-            <div className="text-center">
-              <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50 text-muted-foreground" />
-              <p className="text-muted-foreground mb-4">Ready to practice your interview skills?</p>
-              <Button
-                onClick={() => setShowConfig(true)}
-                className="bg-amber hover:bg-amber/90 text-charcoal font-semibold"
-                data-testid="button-show-config"
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                Configure Interview
-              </Button>
-            </div>
-          </div>
         )}
       </CardContent>
     </Card>
