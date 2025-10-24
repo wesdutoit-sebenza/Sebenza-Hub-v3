@@ -11,8 +11,10 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { cvPersonalInfoSchema, type CVPersonalInfo } from "@shared/schema";
+import { cvPersonalInfoSchema, type CVPersonalInfo, type User } from "@shared/schema";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@shared/countries";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 interface Props {
   data: any;
@@ -23,6 +25,11 @@ interface Props {
 const provinces = ["Eastern Cape", "Free State", "Gauteng", "KwaZulu-Natal", "Limpopo", "Mpumalanga", "Northern Cape", "North West", "Western Cape"];
 
 export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
+  const { data: user } = useQuery<User>({
+    queryKey: ['/api/me'],
+    retry: false,
+  });
+
   const form = useForm<CVPersonalInfo>({
     resolver: zodResolver(cvPersonalInfoSchema),
     defaultValues: data.personalInfo || {
@@ -42,6 +49,13 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
   });
 
   const selectedCountry = form.watch("country");
+
+  // Pre-populate email with user's authentication email if not already set
+  useEffect(() => {
+    if (user?.email && !data.personalInfo?.contactEmail) {
+      form.setValue("contactEmail", user.email);
+    }
+  }, [user?.email, data.personalInfo?.contactEmail, form]);
 
   const onSubmit = (formData: CVPersonalInfo) => {
     updateData("personalInfo", formData);

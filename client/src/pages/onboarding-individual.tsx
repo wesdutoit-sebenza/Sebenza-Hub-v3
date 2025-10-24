@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { JOB_TITLES } from "@shared/jobTitles";
 import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@shared/countries";
+import { useEffect } from "react";
+import type { User } from "@shared/schema";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -48,6 +50,11 @@ export default function OnboardingIndividual() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
+  const { data: user } = useQuery<User>({
+    queryKey: ['/api/me'],
+    retry: false,
+  });
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -67,6 +74,13 @@ export default function OnboardingIndividual() {
       dataConsent: false,
     },
   });
+
+  // Pre-populate email with user's authentication email
+  useEffect(() => {
+    if (user?.email) {
+      form.setValue("email", user.email);
+    }
+  }, [user?.email, form]);
 
   const selectedJobTitle = form.watch("jobTitle");
   const selectedCountry = form.watch("country");
