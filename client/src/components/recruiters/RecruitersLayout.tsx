@@ -1,0 +1,111 @@
+import { Link, useLocation } from "wouter";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+} from "@/components/ui/sidebar";
+import {
+  User,
+  Briefcase,
+  Target,
+  Users,
+  ClipboardCheck,
+  Calendar,
+  CreditCard,
+  Settings,
+} from "lucide-react";
+
+const menuItems = [
+  {
+    title: "Profile",
+    url: "/dashboard/recruiter/profile",
+    icon: User,
+  },
+  {
+    title: "Job Postings",
+    url: "/dashboard/recruiter/jobs",
+    icon: Briefcase,
+  },
+  {
+    title: "Roles & Screenings",
+    url: "/dashboard/recruiter/roles",
+    icon: Target,
+  },
+  {
+    title: "Candidate Database",
+    url: "/dashboard/recruiter/candidates",
+    icon: Users,
+  },
+  {
+    title: "Competency Tests",
+    url: "/dashboard/recruiter/tests",
+    icon: ClipboardCheck,
+  },
+  {
+    title: "Interview Scheduling",
+    url: "/dashboard/recruiter/scheduling",
+    icon: Calendar,
+  },
+  {
+    title: "Billing",
+    url: "/dashboard/recruiter/billing",
+    icon: CreditCard,
+  },
+  {
+    title: "Settings",
+    url: "/dashboard/recruiter/settings",
+    icon: Settings,
+  },
+];
+
+interface RecruitersLayoutProps {
+  children: React.ReactNode;
+}
+
+export function RecruitersLayout({ children }: RecruitersLayoutProps) {
+  const [location] = useLocation();
+
+  const style = {
+    "--sidebar-width": "16rem",
+  };
+
+  return (
+    <SidebarProvider style={style as React.CSSProperties}>
+      <div className="flex min-h-screen w-full">
+        <Sidebar data-testid="recruiters-sidebar">
+          <SidebarContent className="pt-20">
+            <SidebarGroup>
+              <SidebarGroupLabel className="text-lg font-semibold px-4 mb-4">
+                Recruiter Dashboard
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {menuItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild isActive={location === item.url}>
+                        <Link href={item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                          <item.icon className="w-4 h-4" />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarContent>
+        </Sidebar>
+        
+        <main className="flex-1 overflow-auto bg-background">
+          {children}
+        </main>
+      </div>
+    </SidebarProvider>
+  );
+}
