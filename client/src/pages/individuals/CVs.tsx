@@ -12,9 +12,10 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { FileText, Plus, Eye, Trash2, Calendar } from "lucide-react";
+import { FileText, Plus, Eye, Trash2, Calendar, Upload, FilePen } from "lucide-react";
 import { type CV, type CVPersonalInfo, type CVWorkExperience } from "@shared/schema";
 import CVBuilder from "@/components/CVBuilder";
+import ResumeUpload from "@/components/ResumeUpload";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +31,7 @@ import {
 export default function IndividualCVs() {
   const { toast } = useToast();
   const [showCVBuilder, setShowCVBuilder] = useState(false);
+  const [showResumeUpload, setShowResumeUpload] = useState(false);
 
   const { data: cvsData, isLoading } = useQuery<{ success: boolean; count: number; cvs: CV[] }>({
     queryKey: ["/api/cvs"],
@@ -60,23 +62,54 @@ export default function IndividualCVs() {
     queryClient.invalidateQueries({ queryKey: ["/api/cvs"] });
   };
 
+  const handleResumeUploadSuccess = () => {
+    setShowResumeUpload(false);
+    queryClient.invalidateQueries({ queryKey: ["/api/cvs"] });
+    toast({
+      title: "Success!",
+      description: "Your CV has been created from your resume.",
+    });
+  };
+
   const handleDelete = (id: string) => {
     deleteMutation.mutate(id);
   };
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold" data-testid="text-cvs-title">
-            My CVs
-          </h1>
-          <p className="text-muted-foreground">Create and manage your CVs</p>
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-3xl font-bold" data-testid="text-cvs-title">
+              My CVs
+            </h1>
+            <p className="text-muted-foreground">Create and manage your CVs</p>
+          </div>
         </div>
-        <Button onClick={() => setShowCVBuilder(true)} data-testid="button-create-cv">
-          <Plus className="h-4 w-4 mr-2" />
-          Create New CV
-        </Button>
+        
+        {/* CV Creation Options */}
+        <div className="flex flex-col sm:flex-row gap-4 max-w-4xl mx-auto mb-8">
+          <Button 
+            onClick={() => setShowResumeUpload(true)} 
+            className="flex-1 h-auto py-6 text-lg"
+            data-testid="button-upload-resume"
+          >
+            <Upload className="h-5 w-5 mr-2" />
+            Upload Resume (AI Powered)
+          </Button>
+          <Button 
+            onClick={() => setShowCVBuilder(true)} 
+            variant="outline"
+            className="flex-1 h-auto py-6 text-lg"
+            data-testid="button-build-manually"
+          >
+            <FilePen className="h-5 w-5 mr-2" />
+            Build CV Manually
+          </Button>
+        </div>
+        <p className="text-center text-sm text-muted-foreground max-w-2xl mx-auto">
+          Upload your existing resume for instant AI-powered profile creation, or build your CV step-by-step
+        </p>
       </div>
 
       {isLoading ? (
@@ -178,25 +211,35 @@ export default function IndividualCVs() {
             <FileText className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-xl font-semibold mb-2" data-testid="text-no-cvs">No CVs Yet</h3>
             <p className="text-muted-foreground mb-4">
-              Create your first CV to get started with job applications
+              Upload your resume or build your CV manually to get started
             </p>
-            <Button onClick={() => setShowCVBuilder(true)} data-testid="button-create-first-cv">
-              <Plus className="h-4 w-4 mr-2" />
-              Create Your First CV
-            </Button>
           </CardContent>
         </Card>
       )}
 
+      {/* Manual CV Builder Dialog */}
       <Dialog open={showCVBuilder} onOpenChange={setShowCVBuilder}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New CV</DialogTitle>
+            <DialogTitle>Build CV Manually</DialogTitle>
             <DialogDescription>
               Build your professional CV step by step
             </DialogDescription>
           </DialogHeader>
           <CVBuilder onComplete={handleCVComplete} />
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Resume Upload Dialog */}
+      <Dialog open={showResumeUpload} onOpenChange={setShowResumeUpload}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Upload Resume (AI Powered)</DialogTitle>
+            <DialogDescription>
+              Upload your existing resume and let AI create your CV automatically
+            </DialogDescription>
+          </DialogHeader>
+          <ResumeUpload onSuccess={handleResumeUploadSuccess} />
         </DialogContent>
       </Dialog>
     </div>
