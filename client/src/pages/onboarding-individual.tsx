@@ -92,7 +92,13 @@ export default function OnboardingIndividual() {
     mutationFn: async (data: FormData) => {
       const fullName = `${data.firstName} ${data.surname}`;
       const finalJobTitle = data.jobTitle === "Other" ? data.customJobTitle || "" : data.jobTitle;
-      const fullTelephone = data.telephone ? `${data.countryCode} ${data.telephone}` : "";
+      
+      // Remove leading 0 from telephone number before combining with country code
+      let phoneNumber = data.telephone ? data.telephone.trim() : "";
+      if (phoneNumber.startsWith("0")) {
+        phoneNumber = phoneNumber.substring(1);
+      }
+      const fullTelephone = phoneNumber ? `${data.countryCode} ${phoneNumber}` : "";
       
       const res = await apiRequest('POST', '/api/profile/candidate', {
         fullName,

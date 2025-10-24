@@ -73,8 +73,13 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
   }, [user?.email, data.personalInfo?.contactEmail, form]);
 
   // Update combined phone number whenever country code or number changes
+  // Remove leading 0 from phone number before combining with country code
   useEffect(() => {
-    const combinedPhone = phoneNumber ? `${countryCode} ${phoneNumber}` : "";
+    let cleanedNumber = phoneNumber.trim();
+    if (cleanedNumber.startsWith("0")) {
+      cleanedNumber = cleanedNumber.substring(1);
+    }
+    const combinedPhone = cleanedNumber ? `${countryCode} ${cleanedNumber}` : "";
     form.setValue("contactPhone", combinedPhone);
   }, [countryCode, phoneNumber, form]);
 
