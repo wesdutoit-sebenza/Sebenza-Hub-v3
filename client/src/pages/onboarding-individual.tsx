@@ -22,6 +22,8 @@ const formSchema = z.object({
   postalCode: z.string().optional(),
   city: z.string().min(1, "City is required"),
   country: z.string().min(1, "Please select a country"),
+  email: z.string().email("Valid email is required").optional(),
+  telephone: z.string().optional(),
   jobTitle: z.string().min(1, "Please select a job title"),
   customJobTitle: z.string().optional(),
   experienceLevel: z.enum(['entry', 'intermediate', 'senior', 'executive']),
@@ -55,6 +57,8 @@ export default function OnboardingIndividual() {
       postalCode: "",
       city: "",
       country: DEFAULT_COUNTRY,
+      email: "",
+      telephone: "",
       jobTitle: "",
       customJobTitle: "",
       experienceLevel: "entry",
@@ -78,6 +82,8 @@ export default function OnboardingIndividual() {
         postalCode: data.postalCode,
         city: data.city,
         country: data.country,
+        email: data.email,
+        telephone: data.telephone,
         jobTitle: finalJobTitle,
         experienceLevel: data.experienceLevel,
         skills: data.skills,
@@ -232,6 +238,36 @@ export default function OnboardingIndividual() {
                           ))}
                         </SelectContent>
                       </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" placeholder="e.g., your.email@example.com" data-testid="input-email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="telephone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telephone</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="tel" placeholder="e.g., 082 123 4567" data-testid="input-telephone" />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

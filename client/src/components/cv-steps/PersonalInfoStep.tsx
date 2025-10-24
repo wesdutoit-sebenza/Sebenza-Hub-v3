@@ -73,39 +73,6 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
 
           <FormField
             control={form.control}
-            name="contactEmail"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email Address *</FormLabel>
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="e.g. your.email@example.com"
-                    data-testid="input-email"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="contactPhone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contact Phone *</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g. 082 552 0536" data-testid="input-phone" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="physicalAddress"
             render={({ field }) => (
               <FormItem>
@@ -202,6 +169,39 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
                       ))}
                     </SelectContent>
                   </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="contactEmail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email Address *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="e.g. your.email@example.com"
+                      data-testid="input-email"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="contactPhone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Telephone *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g. 082 552 0536" data-testid="input-phone" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

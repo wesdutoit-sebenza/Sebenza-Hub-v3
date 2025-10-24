@@ -88,6 +88,8 @@ export const candidateProfiles = pgTable("candidate_profiles", {
   postalCode: text("postal_code"),
   city: text("city").notNull(),
   country: text("country").notNull().default('South Africa'),
+  email: text("email"),
+  telephone: text("telephone"),
   jobTitle: text("job_title").notNull(),
   experienceLevel: text("experience_level").notNull(), // 'entry', 'intermediate', 'senior', 'executive'
   skills: text("skills").array().notNull().default(sql`'{}'::text[]`),
