@@ -61,7 +61,7 @@ export function IndividualsLayout({ children }: IndividualsLayoutProps) {
     <SidebarProvider style={style as React.CSSProperties}>
       <div className="flex min-h-screen w-full">
         <Sidebar data-testid="individuals-sidebar">
-          <SidebarContent className="pt-4">
+          <SidebarContent className="pt-12">
             <SidebarGroup>
               <SidebarGroupLabel className="text-lg font-semibold px-4 mb-2">
                 My Dashboard
