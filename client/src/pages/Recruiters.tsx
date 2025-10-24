@@ -34,9 +34,11 @@ import { recruiterPricingPlans } from "@/data";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
+import { JOB_TITLES } from "@shared/jobTitles";
 
 const formSchema = z.object({
-  title: z.string().min(1, "Job title is required"),
+  title: z.string().min(1, "Please select a job title"),
+  customTitle: z.string().optional(),
   company: z.string().min(1, "Company name is required"),
   location: z.string().min(1, "Location is required"),
   salaryMin: z.coerce.number().positive("Minimum salary must be positive"),
@@ -52,7 +54,15 @@ const formSchema = z.object({
     message: "Minimum salary must be less than or equal to maximum salary",
     path: ["salaryMax"],
   }
-);
+).refine((data) => {
+  if (data.title === "Other" && !data.customTitle) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please specify the job title",
+  path: ["customTitle"],
+});
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -73,6 +83,7 @@ export default function Recruiters() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
+      customTitle: "",
       company: "",
       location: "",
       salaryMin: 0,
@@ -85,9 +96,16 @@ export default function Recruiters() {
     },
   });
 
+  const selectedTitle = form.watch("title");
+
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const response = await apiRequest("POST", "/api/jobs", data);
+      const finalTitle = data.title === "Other" ? data.customTitle || "" : data.title;
+      const { customTitle, ...restData } = data;
+      const response = await apiRequest("POST", "/api/jobs", {
+        ...restData,
+        title: finalTitle,
+      });
       return response.json();
     },
     onSuccess: () => {
@@ -261,17 +279,44 @@ export default function Recruiters() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Job Title *</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. Senior Software Engineer"
-                              data-testid="input-job-title"
-                              {...field}
-                            />
-                          </FormControl>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-job-title">
+                                <SelectValue placeholder="Select job title" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="max-h-[300px]">
+                              {JOB_TITLES.map((title) => (
+                                <SelectItem key={title} value={title}>
+                                  {title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+
+                    {selectedTitle === "Other" && (
+                      <FormField
+                        control={form.control}
+                        name="customTitle"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Specify Job Title *</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Enter job title"
+                                data-testid="input-custom-job-title"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
 
                     <FormField
                       control={form.control}

@@ -11,19 +11,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { JOB_TITLES } from "@shared/jobTitles";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   surname: z.string().min(2, "Surname must be at least 2 characters"),
   province: z.string().min(1, "Please select a province"),
   city: z.string().min(1, "City is required"),
-  jobTitle: z.string().min(1, "Job title is required"),
+  jobTitle: z.string().min(1, "Please select a job title"),
+  customJobTitle: z.string().optional(),
   experienceLevel: z.enum(['entry', 'intermediate', 'senior', 'executive']),
   skills: z.string().min(1, "Please add at least one skill"),
   isPublic: z.boolean().default(true),
   dataConsent: z.boolean().refine((val) => val === true, {
     message: "You must agree to the data collection policy (POPIA compliance)",
   }),
+}).refine((data) => {
+  if (data.jobTitle === "Other" && !data.customJobTitle) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please specify your job title",
+  path: ["customJobTitle"],
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -40,6 +50,7 @@ export default function OnboardingIndividual() {
       province: "",
       city: "",
       jobTitle: "",
+      customJobTitle: "",
       experienceLevel: "entry",
       skills: "",
       isPublic: true,
@@ -47,16 +58,19 @@ export default function OnboardingIndividual() {
     },
   });
 
+  const selectedJobTitle = form.watch("jobTitle");
+
   const createProfileMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const skills = data.skills.split(',').map(s => s.trim()).filter(Boolean);
       const fullName = `${data.firstName} ${data.surname}`;
+      const finalJobTitle = data.jobTitle === "Other" ? data.customJobTitle || "" : data.jobTitle;
       
       const res = await apiRequest('POST', '/api/profile/candidate', {
         fullName,
         province: data.province,
         city: data.city,
-        jobTitle: data.jobTitle,
+        jobTitle: finalJobTitle,
         experienceLevel: data.experienceLevel,
         skills,
         isPublic: data.isPublic ? 1 : 0,
@@ -175,13 +189,40 @@ export default function OnboardingIndividual() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Job Title / Role</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="e.g., Software Developer" data-testid="input-job-title" />
-                    </FormControl>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-job-title">
+                          <SelectValue placeholder="Select your job title" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="max-h-[300px]">
+                        {JOB_TITLES.map((title) => (
+                          <SelectItem key={title} value={title}>
+                            {title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+
+              {selectedJobTitle === "Other" && (
+                <FormField
+                  control={form.control}
+                  name="customJobTitle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Specify Job Title</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter your job title" data-testid="input-custom-job-title" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}
