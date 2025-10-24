@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Menu, X, User as UserIcon, LogOut, Database, Sparkles, Briefcase, Settings, Shield } from "lucide-react";
+import { Menu, X, User as UserIcon, LogOut, Database, Sparkles, Briefcase, Settings, Shield, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -111,6 +111,19 @@ export default function Header() {
                       >
                         <Shield size={16} />
                         Admin Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  {user.roles?.includes('individual') && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => setLocation('/dashboard/individual/profile')}
+                        className="gap-2 cursor-pointer"
+                        data-testid="link-individual-dashboard"
+                      >
+                        <LayoutDashboard size={16} />
+                        My Dashboard
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                     </>
@@ -233,6 +246,20 @@ export default function Header() {
                     >
                       <Shield size={16} />
                       Admin Dashboard
+                    </Button>
+                  )}
+                  {user.roles?.includes('individual') && (
+                    <Button 
+                      variant="ghost" 
+                      className="gap-2 text-white-brand"
+                      onClick={() => {
+                        setLocation('/dashboard/individual/profile');
+                        setMobileMenuOpen(false);
+                      }}
+                      data-testid="link-mobile-individual-dashboard"
+                    >
+                      <LayoutDashboard size={16} />
+                      My Dashboard
                     </Button>
                   )}
                   <Button 
