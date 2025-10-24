@@ -14,6 +14,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { JOB_TITLES } from "@shared/jobTitles";
 import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@shared/countries";
+import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
 import { useEffect } from "react";
 import type { User } from "@shared/schema";
 
@@ -25,6 +26,7 @@ const formSchema = z.object({
   city: z.string().min(1, "City is required"),
   country: z.string().min(1, "Please select a country"),
   email: z.string().email("Valid email is required").optional(),
+  countryCode: z.string().default(DEFAULT_COUNTRY_CODE),
   telephone: z.string().optional(),
   jobTitle: z.string().min(1, "Please select a job title"),
   customJobTitle: z.string().optional(),
@@ -65,6 +67,7 @@ export default function OnboardingIndividual() {
       city: "",
       country: DEFAULT_COUNTRY,
       email: "",
+      countryCode: DEFAULT_COUNTRY_CODE,
       telephone: "",
       jobTitle: "",
       customJobTitle: "",
@@ -89,6 +92,7 @@ export default function OnboardingIndividual() {
     mutationFn: async (data: FormData) => {
       const fullName = `${data.firstName} ${data.surname}`;
       const finalJobTitle = data.jobTitle === "Other" ? data.customJobTitle || "" : data.jobTitle;
+      const fullTelephone = data.telephone ? `${data.countryCode} ${data.telephone}` : "";
       
       const res = await apiRequest('POST', '/api/profile/candidate', {
         fullName,
@@ -97,7 +101,7 @@ export default function OnboardingIndividual() {
         city: data.city,
         country: data.country,
         email: data.email,
-        telephone: data.telephone,
+        telephone: fullTelephone,
         jobTitle: finalJobTitle,
         experienceLevel: data.experienceLevel,
         skills: data.skills,
@@ -273,19 +277,45 @@ export default function OnboardingIndividual() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="telephone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Telephone</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="tel" placeholder="e.g., 082 123 4567" data-testid="input-telephone" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <FormItem>
+                  <FormLabel>Telephone</FormLabel>
+                  <div className="flex gap-2">
+                    <FormField
+                      control={form.control}
+                      name="countryCode"
+                      render={({ field }) => (
+                        <FormItem className="w-[140px]">
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-country-code">
+                                <SelectValue placeholder="Code" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="max-h-[300px]">
+                              {COUNTRY_CODES.map((cc) => (
+                                <SelectItem key={cc.code} value={cc.dialCode}>
+                                  {cc.dialCode} {cc.country}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="telephone"
+                      render={({ field }) => (
+                        <FormItem className="flex-1">
+                          <FormControl>
+                            <Input {...field} type="tel" placeholder="e.g., 082 123 4567" data-testid="input-telephone" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </FormItem>
               </div>
 
               <FormField

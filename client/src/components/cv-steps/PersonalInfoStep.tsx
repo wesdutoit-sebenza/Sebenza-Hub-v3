@@ -13,8 +13,9 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cvPersonalInfoSchema, type CVPersonalInfo, type User } from "@shared/schema";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@shared/countries";
+import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
   data: any;
@@ -29,6 +30,20 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
     queryKey: ['/api/me'],
     retry: false,
   });
+
+  // Parse existing phone to separate country code and number
+  const parsePhoneNumber = (phone: string) => {
+    if (!phone) return { code: DEFAULT_COUNTRY_CODE, number: "" };
+    const match = phone.match(/^(\+\d+(?:-\d+)?)\s*(.*)$/);
+    if (match) {
+      return { code: match[1], number: match[2] };
+    }
+    return { code: DEFAULT_COUNTRY_CODE, number: phone };
+  };
+
+  const initialPhone = parsePhoneNumber(data.personalInfo?.contactPhone || "");
+  const [countryCode, setCountryCode] = useState(initialPhone.code);
+  const [phoneNumber, setPhoneNumber] = useState(initialPhone.number);
 
   const form = useForm<CVPersonalInfo>({
     resolver: zodResolver(cvPersonalInfoSchema),
@@ -56,6 +71,12 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
       form.setValue("contactEmail", user.email);
     }
   }, [user?.email, data.personalInfo?.contactEmail, form]);
+
+  // Update combined phone number whenever country code or number changes
+  useEffect(() => {
+    const combinedPhone = phoneNumber ? `${countryCode} ${phoneNumber}` : "";
+    form.setValue("contactPhone", combinedPhone);
+  }, [countryCode, phoneNumber, form]);
 
   const onSubmit = (formData: CVPersonalInfo) => {
     updateData("personalInfo", formData);
@@ -207,19 +228,43 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="contactPhone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Telephone *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. 082 552 0536" data-testid="input-phone" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <FormItem>
+              <FormLabel>Telephone *</FormLabel>
+              <div className="flex gap-2">
+                <Select value={countryCode} onValueChange={setCountryCode}>
+                  <SelectTrigger className="w-[140px]" data-testid="select-country-code">
+                    <SelectValue placeholder="Code" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {COUNTRY_CODES.map((cc) => (
+                      <SelectItem key={cc.code} value={cc.dialCode}>
+                        {cc.dialCode} {cc.country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="tel"
+                  placeholder="e.g. 082 552 0536"
+                  data-testid="input-phone"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="flex-1"
+                />
+              </div>
+              <FormField
+                control={form.control}
+                name="contactPhone"
+                render={() => (
+                  <FormItem className="hidden">
+                    <FormControl>
+                      <input type="hidden" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormItem>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
