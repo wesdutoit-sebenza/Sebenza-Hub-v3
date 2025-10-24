@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
@@ -48,6 +48,11 @@ export default function OnboardingRecruiter() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fetch current user data to get email
+  const { data: userData } = useQuery({
+    queryKey: ["/api/me"],
+  });
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -60,6 +65,13 @@ export default function OnboardingRecruiter() {
       proofUrl: "",
     },
   });
+
+  // Auto-populate email when user data is loaded
+  useEffect(() => {
+    if (userData?.email) {
+      form.setValue("email", userData.email);
+    }
+  }, [userData, form]);
 
   const createRecruiterProfileMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -161,9 +173,13 @@ export default function OnboardingRecruiter() {
                         placeholder="contact@youragency.co.za" 
                         type="email"
                         {...field} 
-                        data-testid="input-email" 
+                        data-testid="input-email"
+                        disabled
                       />
                     </FormControl>
+                    <FormDescription>
+                      Auto-populated from your account email
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
