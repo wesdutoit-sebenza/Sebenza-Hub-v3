@@ -35,6 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
 import { JOB_TITLES } from "@shared/jobTitles";
+import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
 
 const formSchema = z.object({
   title: z.string().min(1, "Please select a job title"),
@@ -45,7 +46,8 @@ const formSchema = z.object({
   salaryMax: z.coerce.number().positive("Maximum salary must be positive"),
   description: z.string().min(1, "Description is required"),
   requirements: z.string().min(1, "Requirements are required"),
-  whatsappContact: z.string().min(1, "WhatsApp contact is required"),
+  countryCode: z.string().default(DEFAULT_COUNTRY_CODE),
+  whatsappContact: z.string().min(1, "WhatsApp number is required"),
   employmentType: z.string().min(1, "Employment type is required"),
   industry: z.string().min(1, "Industry is required"),
 }).refine(
@@ -90,6 +92,7 @@ export default function Recruiters() {
       salaryMax: 0,
       description: "",
       requirements: "",
+      countryCode: DEFAULT_COUNTRY_CODE,
       whatsappContact: "",
       employmentType: "",
       industry: "",
@@ -101,10 +104,19 @@ export default function Recruiters() {
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
       const finalTitle = data.title === "Other" ? data.customTitle || "" : data.title;
-      const { customTitle, ...restData } = data;
+      
+      // Remove leading 0 from WhatsApp number before combining with country code
+      let whatsappNumber = data.whatsappContact.trim();
+      if (whatsappNumber.startsWith("0")) {
+        whatsappNumber = whatsappNumber.substring(1);
+      }
+      const fullWhatsApp = whatsappNumber ? `${data.countryCode} ${whatsappNumber}` : "";
+      
+      const { customTitle, countryCode, whatsappContact, ...restData } = data;
       const response = await apiRequest("POST", "/api/jobs", {
         ...restData,
         title: finalTitle,
+        whatsappContact: fullWhatsApp,
       });
       return response.json();
     },
@@ -451,23 +463,49 @@ export default function Recruiters() {
                       )}
                     />
 
-                    <FormField
-                      control={form.control}
-                      name="whatsappContact"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>WhatsApp Number *</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. +27821234567"
-                              data-testid="input-whatsapp"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <FormItem>
+                      <FormLabel>WhatsApp Number *</FormLabel>
+                      <div className="flex gap-2">
+                        <FormField
+                          control={form.control}
+                          name="countryCode"
+                          render={({ field }) => (
+                            <FormItem className="w-[140px]">
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger data-testid="select-country-code">
+                                    <SelectValue placeholder="Code" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="max-h-[300px]">
+                                  {COUNTRY_CODES.map((cc) => (
+                                    <SelectItem key={cc.code} value={cc.dialCode}>
+                                      {cc.dialCode} {cc.country}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="whatsappContact"
+                          render={({ field }) => (
+                            <FormItem className="flex-1">
+                              <FormControl>
+                                <Input
+                                  placeholder="e.g. 082 123 4567"
+                                  data-testid="input-whatsapp"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </FormItem>
                   </div>
 
                   <FormField

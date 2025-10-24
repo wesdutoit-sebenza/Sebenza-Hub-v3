@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { User, Briefcase, MapPin, Mail, Phone, Globe, Save, X } from "lucide-react";
 import { type User as UserType } from "@shared/schema";
+import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
 
 interface ProfileData {
   candidate: {
@@ -33,6 +35,19 @@ interface ProfileData {
 export default function IndividualProfileEdit() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
+
+  // Parse existing phone to separate country code and number
+  const parsePhoneNumber = (phone: string) => {
+    if (!phone) return { code: DEFAULT_COUNTRY_CODE, number: "" };
+    const match = phone.match(/^(\+\d+(?:-\d+)?)\s*(.*)$/);
+    if (match) {
+      return { code: match[1], number: match[2] };
+    }
+    return { code: DEFAULT_COUNTRY_CODE, number: phone };
+  };
+
+  const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_CODE);
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const { data: user } = useQuery<UserType>({
     queryKey: ['/api/me'],
@@ -66,6 +81,12 @@ export default function IndividualProfileEdit() {
   useEffect(() => {
     if (data?.profile) {
       const { candidate } = data.profile;
+      
+      // Parse phone number
+      const parsedPhone = parsePhoneNumber(candidate.phone || "");
+      setCountryCode(parsedPhone.code);
+      setPhoneNumber(parsedPhone.number);
+      
       form.reset({
         fullName: candidate.fullName || "",
         headline: candidate.headline || "",
@@ -86,11 +107,18 @@ export default function IndividualProfileEdit() {
 
   const updateMutation = useMutation({
     mutationFn: async (values: any) => {
+      // Remove leading 0 from phone number before combining with country code
+      let cleanPhone = phoneNumber.trim();
+      if (cleanPhone.startsWith("0")) {
+        cleanPhone = cleanPhone.substring(1);
+      }
+      const fullPhone = cleanPhone ? `${countryCode} ${cleanPhone}` : "";
+      
       return apiRequest("PUT", "/api/individuals/profile", {
         fullName: values.fullName,
         headline: values.headline,
         email: values.email,
-        phone: values.phone,
+        phone: fullPhone,
         city: values.city,
         country: values.country,
         summary: values.summary,
@@ -246,19 +274,31 @@ export default function IndividualProfileEdit() {
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Phone</FormLabel>
-                      <FormControl>
-                        <Input {...field} type="tel" data-testid="input-phone" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <div className="flex gap-2">
+                    <Select value={countryCode} onValueChange={setCountryCode}>
+                      <SelectTrigger className="w-[140px]" data-testid="select-country-code">
+                        <SelectValue placeholder="Code" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {COUNTRY_CODES.map((cc) => (
+                          <SelectItem key={cc.code} value={cc.dialCode}>
+                            {cc.dialCode} {cc.country}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="tel"
+                      placeholder="e.g. 082 123 4567"
+                      data-testid="input-phone"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+                </FormItem>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
