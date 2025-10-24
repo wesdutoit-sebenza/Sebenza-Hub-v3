@@ -1,6 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Download } from "lucide-react";
 import type { InsertCV } from "@shared/schema";
+import { isOldSkillsFormat } from "@shared/skillsMigration";
+import { getCategoryForSkill } from "@shared/skills";
 
 interface Props {
   data: Partial<InsertCV>;
@@ -10,6 +12,10 @@ interface Props {
 
 export default function CVPreview({ data }: Props) {
   const { personalInfo, workExperience, skills, education, aboutMe } = data;
+  
+  // Handle both old and new skills format
+  const isOldFormat = skills && isOldSkillsFormat(skills);
+  const skillsArray = Array.isArray(skills) ? skills : [];
 
   return (
     <div>
@@ -95,18 +101,18 @@ export default function CVPreview({ data }: Props) {
           )}
 
           {/* Skills */}
-          {skills && (skills.softSkills || skills.technicalSkills || skills.languages) && (
+          {isOldFormat && skills && (skills.softSkills || skills.technicalSkills || skills.languages) && (
             <div>
               <h2 className="text-xl font-bold border-b-2 border-black pb-2 mb-4">SKILLS</h2>
               
               {skills.softSkills && skills.softSkills.length > 0 && (
                 <div className="mb-4">
                   <h3 className="font-semibold mb-2">Soft Skills:</h3>
-                  {skills.softSkills.map((skill, index) => (
+                  {skills.softSkills.map((skill: any, index: number) => (
                     <div key={index} className="mb-3">
                       <p className="font-semibold text-sm">{skill.category}:</p>
                       <ul className="list-disc ml-6 text-sm">
-                        {skill.items.filter(item => item.trim()).map((item, i) => (
+                        {skill.items.filter((item: string) => item.trim()).map((item: string, i: number) => (
                           <li key={i}>{item}</li>
                         ))}
                       </ul>
@@ -118,11 +124,11 @@ export default function CVPreview({ data }: Props) {
               {skills.technicalSkills && skills.technicalSkills.length > 0 && (
                 <div className="mb-4">
                   <h3 className="font-semibold mb-2">Technical Skills:</h3>
-                  {skills.technicalSkills.map((skill, index) => (
+                  {skills.technicalSkills.map((skill: any, index: number) => (
                     <div key={index} className="mb-3">
                       <p className="font-semibold text-sm">{skill.category}:</p>
                       <ul className="list-disc ml-6 text-sm">
-                        {skill.items.filter(item => item.trim()).map((item, i) => (
+                        {skill.items.filter((item: string) => item.trim()).map((item: string, i: number) => (
                           <li key={i}>{item}</li>
                         ))}
                       </ul>
@@ -135,7 +141,7 @@ export default function CVPreview({ data }: Props) {
                 <div>
                   <h3 className="font-semibold mb-2">Languages:</h3>
                   <ul className="list-disc ml-6 text-sm">
-                    {skills.languages.filter(lang => lang.trim()).map((lang, i) => (
+                    {skills.languages.filter((lang: string) => lang.trim()).map((lang: string, i: number) => (
                       <li key={i}>{lang}</li>
                     ))}
                   </ul>
@@ -143,6 +149,35 @@ export default function CVPreview({ data }: Props) {
               )}
             </div>
           )}
+          
+          {/* New Skills Format - Organized by Category */}
+          {!isOldFormat && skillsArray && skillsArray.length > 0 && (() => {
+            // Group skills by category
+            const skillsByCategory: Record<string, string[]> = {};
+            skillsArray.forEach(skill => {
+              const category = getCategoryForSkill(skill) || "Other Skills";
+              if (!skillsByCategory[category]) {
+                skillsByCategory[category] = [];
+              }
+              skillsByCategory[category].push(skill);
+            });
+
+            return (
+              <div>
+                <h2 className="text-xl font-bold border-b-2 border-black pb-2 mb-4">SKILLS</h2>
+                {Object.entries(skillsByCategory).map(([category, skills]) => (
+                  <div key={category} className="mb-4">
+                    <h3 className="font-semibold mb-2">{category}:</h3>
+                    <ul className="list-disc ml-6 text-sm">
+                      {skills.map((skill, i) => (
+                        <li key={i}>{skill}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Education */}
           {education && education.length > 0 && (

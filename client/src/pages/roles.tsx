@@ -17,6 +17,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertRoleSchema } from "@shared/schema";
 import { z } from "zod";
+import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
 
 interface RolesStatsData {
   success: boolean;
@@ -427,8 +428,6 @@ function RoleForm({
     },
   });
 
-  const [mustHaveInput, setMustHaveInput] = useState("");
-  const [niceToHaveInput, setNiceToHaveInput] = useState("");
   const [knockoutsInput, setKnockoutsInput] = useState("");
 
   return (
@@ -579,53 +578,16 @@ function RoleForm({
             <FormItem>
               <FormLabel>Must-Have Skills *</FormLabel>
               <FormControl>
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Input
-                      value={mustHaveInput}
-                      onChange={(e) => setMustHaveInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && mustHaveInput.trim()) {
-                          e.preventDefault();
-                          field.onChange([...field.value, mustHaveInput.trim()]);
-                          setMustHaveInput("");
-                        }
-                      }}
-                      placeholder="Type a skill and press Enter"
-                      data-testid="input-must-have-skills"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        if (mustHaveInput.trim()) {
-                          field.onChange([...field.value, mustHaveInput.trim()]);
-                          setMustHaveInput("");
-                        }
-                      }}
-                      data-testid="button-add-must-have-skill"
-                    >
-                      Add
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {field.value.map((skill, idx) => (
-                      <Badge key={idx} variant="secondary" data-testid={`badge-must-have-skill-${idx}`}>
-                        {skill}
-                        <button
-                          type="button"
-                          className="ml-2 hover:text-destructive"
-                          onClick={() => {
-                            field.onChange(field.value.filter((_, i) => i !== idx));
-                          }}
-                        >
-                          ×
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+                <SkillsMultiSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                  maxSkills={10}
+                  placeholder="Select must-have skills..."
+                />
               </FormControl>
+              <FormDescription>
+                Select up to 10 essential skills required for this role
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -638,53 +600,16 @@ function RoleForm({
             <FormItem>
               <FormLabel>Nice-to-Have Skills</FormLabel>
               <FormControl>
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Input
-                      value={niceToHaveInput}
-                      onChange={(e) => setNiceToHaveInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" && niceToHaveInput.trim()) {
-                          e.preventDefault();
-                          field.onChange([...field.value, niceToHaveInput.trim()]);
-                          setNiceToHaveInput("");
-                        }
-                      }}
-                      placeholder="Type a skill and press Enter"
-                      data-testid="input-nice-to-have-skills"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => {
-                        if (niceToHaveInput.trim()) {
-                          field.onChange([...field.value, niceToHaveInput.trim()]);
-                          setNiceToHaveInput("");
-                        }
-                      }}
-                      data-testid="button-add-nice-to-have-skill"
-                    >
-                      Add
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {field.value.map((skill, idx) => (
-                      <Badge key={idx} variant="outline" data-testid={`badge-nice-to-have-skill-${idx}`}>
-                        {skill}
-                        <button
-                          type="button"
-                          className="ml-2 hover:text-destructive"
-                          onClick={() => {
-                            field.onChange(field.value.filter((_, i) => i !== idx));
-                          }}
-                        >
-                          ×
-                        </button>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
+                <SkillsMultiSelect
+                  value={field.value}
+                  onChange={field.onChange}
+                  maxSkills={10}
+                  placeholder="Select nice-to-have skills..."
+                />
               </FormControl>
+              <FormDescription>
+                Select up to 10 additional skills that would be beneficial for this role
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}

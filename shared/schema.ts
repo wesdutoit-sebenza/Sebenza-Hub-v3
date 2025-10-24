@@ -204,17 +204,8 @@ export const cvWorkExperienceSchema = z.object({
   references: z.array(cvReferenceSchema).optional(),
 });
 
-export const cvSkillsSchema = z.object({
-  softSkills: z.array(z.object({
-    category: z.string().min(1, "Category is required"),
-    items: z.array(z.string().min(1, "Skill item cannot be empty")).min(1, "At least one skill item is required"),
-  })).optional(),
-  technicalSkills: z.array(z.object({
-    category: z.string().min(1, "Category is required"),
-    items: z.array(z.string().min(1, "Skill item cannot be empty")).min(1, "At least one skill item is required"),
-  })).optional(),
-  languages: z.array(z.string()).optional(),
-});
+// Simple array of skills (max 10) from the centralized skills list
+export const cvSkillsSchema = z.array(z.string()).max(10, "Maximum 10 skills allowed");
 
 export const cvEducationSchema = z.object({
   level: z.string().min(1, "Education level is required"),
