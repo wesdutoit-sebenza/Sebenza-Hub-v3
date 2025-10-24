@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { JOB_TITLES } from "@shared/jobTitles";
+import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -21,7 +22,7 @@ const formSchema = z.object({
   jobTitle: z.string().min(1, "Please select a job title"),
   customJobTitle: z.string().optional(),
   experienceLevel: z.enum(['entry', 'intermediate', 'senior', 'executive']),
-  skills: z.string().min(1, "Please add at least one skill"),
+  skills: z.array(z.string()).min(1, "Please select at least one skill").max(10, "Maximum 10 skills allowed"),
   isPublic: z.boolean().default(true),
   dataConsent: z.boolean().refine((val) => val === true, {
     message: "You must agree to the data collection policy (POPIA compliance)",
@@ -52,7 +53,7 @@ export default function OnboardingIndividual() {
       jobTitle: "",
       customJobTitle: "",
       experienceLevel: "entry",
-      skills: "",
+      skills: [],
       isPublic: true,
       dataConsent: false,
     },
@@ -62,7 +63,6 @@ export default function OnboardingIndividual() {
 
   const createProfileMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const skills = data.skills.split(',').map(s => s.trim()).filter(Boolean);
       const fullName = `${data.firstName} ${data.surname}`;
       const finalJobTitle = data.jobTitle === "Other" ? data.customJobTitle || "" : data.jobTitle;
       
@@ -72,7 +72,7 @@ export default function OnboardingIndividual() {
         city: data.city,
         jobTitle: finalJobTitle,
         experienceLevel: data.experienceLevel,
-        skills,
+        skills: data.skills,
         isPublic: data.isPublic ? 1 : 0,
         popiaConsentGiven: data.dataConsent ? 1 : 0,
       });
@@ -255,10 +255,15 @@ export default function OnboardingIndividual() {
                   <FormItem>
                     <FormLabel>Skills</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="e.g., Customer Service, Excel, Communication (comma-separated)" data-testid="input-skills" />
+                      <SkillsMultiSelect
+                        value={field.value}
+                        onChange={field.onChange}
+                        maxSkills={10}
+                        placeholder="Select your skills..."
+                      />
                     </FormControl>
                     <FormDescription>
-                      Enter your key skills separated by commas
+                      Select up to 10 skills from the list
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
