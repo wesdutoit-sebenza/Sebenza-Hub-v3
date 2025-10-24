@@ -123,6 +123,20 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control}
+              name="city"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>City</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Johannesburg" data-testid="input-city" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="province"
               render={({ field }) => (
                 <FormItem>
@@ -154,20 +168,6 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
                   <FormLabel>Postal Code</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., 2000" data-testid="input-postal-code" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="city"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>City</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Johannesburg" data-testid="input-city" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

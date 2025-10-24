@@ -152,6 +152,20 @@ export default function OnboardingIndividual() {
               <div className="grid md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City</FormLabel>
+                      <FormControl>
+                        <Input {...field} data-testid="input-city" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="province"
                   render={({ field }) => (
                     <FormItem>
@@ -174,7 +188,9 @@ export default function OnboardingIndividual() {
                     </FormItem>
                   )}
                 />
+              </div>
 
+              <div className="grid md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="postalCode"
@@ -183,22 +199,6 @@ export default function OnboardingIndividual() {
                       <FormLabel>Postal Code</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="e.g., 2000" data-testid="input-postal-code" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="city"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>City</FormLabel>
-                      <FormControl>
-                        <Input {...field} data-testid="input-city" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
