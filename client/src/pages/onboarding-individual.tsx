@@ -13,7 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
 const formSchema = z.object({
-  fullName: z.string().min(2, "Name must be at least 2 characters"),
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  surname: z.string().min(2, "Surname must be at least 2 characters"),
   province: z.string().min(1, "Please select a province"),
   city: z.string().min(1, "City is required"),
   jobTitle: z.string().min(1, "Job title is required"),
@@ -34,7 +35,8 @@ export default function OnboardingIndividual() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: "",
+      firstName: "",
+      surname: "",
       province: "",
       city: "",
       jobTitle: "",
@@ -48,9 +50,14 @@ export default function OnboardingIndividual() {
   const createProfileMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const skills = data.skills.split(',').map(s => s.trim()).filter(Boolean);
+      const fullName = `${data.firstName} ${data.surname}`;
       
       const res = await apiRequest('POST', '/api/profile/candidate', {
-        ...data,
+        fullName,
+        province: data.province,
+        city: data.city,
+        jobTitle: data.jobTitle,
+        experienceLevel: data.experienceLevel,
         skills,
         isPublic: data.isPublic ? 1 : 0,
         popiaConsentGiven: data.dataConsent ? 1 : 0,
@@ -83,7 +90,7 @@ export default function OnboardingIndividual() {
     <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
       <Card className="max-w-2xl w-full">
         <CardHeader>
-          <CardTitle className="text-white-brand" data-testid="text-onboarding-individual-title">Set Up Your Job Seeker Profile</CardTitle>
+          <CardTitle data-testid="text-onboarding-individual-title">Set Up Your Job Seeker Profile</CardTitle>
           <CardDescription className="text-slate" data-testid="text-onboarding-individual-description">
             Tell us about yourself so employers can find you
           </CardDescription>
@@ -91,19 +98,35 @@ export default function OnboardingIndividual() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="fullName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} data-testid="input-full-name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} data-testid="input-first-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="surname"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Surname</FormLabel>
+                      <FormControl>
+                        <Input {...field} data-testid="input-surname" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <div className="grid md:grid-cols-2 gap-4">
                 <FormField
