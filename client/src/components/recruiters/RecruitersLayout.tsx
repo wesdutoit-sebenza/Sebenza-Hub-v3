@@ -82,7 +82,7 @@ export function RecruitersLayout({ children }: RecruitersLayoutProps) {
           <SidebarContent className="pt-20">
             <SidebarGroup>
               <SidebarGroupLabel className="text-lg font-semibold px-4 mb-4">
-                Recruiter Dashboard
+                Recruiter's Dashboard
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>

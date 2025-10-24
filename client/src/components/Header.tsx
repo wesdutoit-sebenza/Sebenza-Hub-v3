@@ -136,7 +136,7 @@ export default function Header() {
                         data-testid="link-recruiter-dashboard"
                       >
                         <LayoutDashboard size={16} />
-                        Recruiter Dashboard
+                        Recruiter's Dashboard
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                     </>
