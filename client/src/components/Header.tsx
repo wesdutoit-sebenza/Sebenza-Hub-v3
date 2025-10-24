@@ -128,6 +128,19 @@ export default function Header() {
                       <DropdownMenuSeparator />
                     </>
                   )}
+                  {user.roles?.includes('recruiter') && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => setLocation('/dashboard/recruiter/profile')}
+                        className="gap-2 cursor-pointer"
+                        data-testid="link-recruiter-dashboard"
+                      >
+                        <LayoutDashboard size={16} />
+                        Recruiter Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   <DropdownMenuItem
                     onClick={() => setLocation('/roles')}
                     className="gap-2 cursor-pointer"
@@ -151,23 +164,6 @@ export default function Header() {
                   >
                     <Sparkles size={16} />
                     CV Screening (Legacy)
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => setLocation('/settings/recruiter')}
-                    className="gap-2 cursor-pointer"
-                    data-testid="link-recruiter-settings"
-                  >
-                    <Settings size={16} />
-                    Recruiter Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setLocation('/settings/business')}
-                    className="gap-2 cursor-pointer"
-                    data-testid="link-business-settings"
-                  >
-                    <Settings size={16} />
-                    Business Settings
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem

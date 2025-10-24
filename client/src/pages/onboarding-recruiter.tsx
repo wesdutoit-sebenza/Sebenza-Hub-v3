@@ -68,8 +68,8 @@ export default function OnboardingRecruiter() {
 
   // Auto-populate email when user data is loaded
   useEffect(() => {
-    if (userData?.email) {
-      form.setValue("email", userData.email);
+    if ((userData as any)?.email) {
+      form.setValue("email", (userData as any).email);
     }
   }, [userData, form]);
 
@@ -96,7 +96,7 @@ export default function OnboardingRecruiter() {
         title: "Recruiter profile created!",
         description: "Your profile is pending verification.",
       });
-      setLocation("/");
+      setLocation("/dashboard/recruiter/profile");
     },
     onError: (error: any) => {
       toast({
