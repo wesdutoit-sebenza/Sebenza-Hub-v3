@@ -60,7 +60,7 @@ export function IndividualsLayout({ children }: IndividualsLayoutProps) {
   const [location] = useLocation();
 
   const style = {
-    "--sidebar-width": "16rem",
+    "--sidebar-width": "18rem",
   };
 
   return (
