@@ -72,10 +72,10 @@ export default function IndividualJobSearches() {
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       {/* Browse Available Jobs Section */}
-      <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg p-8 mb-8 border border-slate-300">
+      <div className="bg-charcoal rounded-lg p-8 mb-8 border border-charcoal">
         <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-charcoal mb-2">Browse Available Jobs</h2>
-          <p className="text-charcoal/80">
+          <h2 className="text-3xl font-bold text-white mb-2">Browse Available Jobs</h2>
+          <p className="text-white/80">
             All jobs include transparent salary ranges. Apply directly via WhatsApp.
           </p>
         </div>
@@ -96,9 +96,9 @@ export default function IndividualJobSearches() {
 
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex items-center gap-2 flex-1">
-              <Filter className="h-4 w-4 text-charcoal/70" />
+              <Filter className="h-4 w-4 text-white/70" />
               <Select value={locationFilter} onValueChange={setLocationFilter}>
-                <SelectTrigger className="bg-white border-slate-300 text-charcoal" data-testid="select-location">
+                <SelectTrigger className="bg-white/10 border-white/20 text-white" data-testid="select-location">
                   <SelectValue placeholder="All Locations" />
                 </SelectTrigger>
                 <SelectContent>
@@ -111,7 +111,7 @@ export default function IndividualJobSearches() {
             </div>
 
             <Select value={industryFilter} onValueChange={setIndustryFilter} >
-              <SelectTrigger className="bg-white border-slate-300 text-charcoal flex-1" data-testid="select-industry">
+              <SelectTrigger className="bg-white/10 border-white/20 text-white flex-1" data-testid="select-industry">
                 <SelectValue placeholder="All Industries" />
               </SelectTrigger>
               <SelectContent>
@@ -123,7 +123,7 @@ export default function IndividualJobSearches() {
             </Select>
 
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="bg-white border-slate-300 text-charcoal flex-1" data-testid="select-type">
+              <SelectTrigger className="bg-white/10 border-white/20 text-white flex-1" data-testid="select-type">
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
               <SelectContent>
