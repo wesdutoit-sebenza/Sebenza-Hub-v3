@@ -123,7 +123,7 @@ export default function Header() {
                         data-testid="link-individual-dashboard"
                       >
                         <LayoutDashboard size={16} />
-                        Individuals' Dashboard
+                        Individual's Dashboard
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                     </>
@@ -247,7 +247,7 @@ export default function Header() {
                       data-testid="link-mobile-individual-dashboard"
                     >
                       <LayoutDashboard size={16} />
-                      Individuals' Dashboard
+                      Individual's Dashboard
                     </Button>
                   )}
                   <Button 
