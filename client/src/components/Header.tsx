@@ -142,14 +142,6 @@ export default function Header() {
                     </>
                   )}
                   <DropdownMenuItem
-                    onClick={() => setLocation('/roles')}
-                    className="gap-2 cursor-pointer"
-                    data-testid="link-roles"
-                  >
-                    <Briefcase size={16} />
-                    Roles & Screening
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
                     onClick={() => setLocation('/candidates')}
                     className="gap-2 cursor-pointer"
                     data-testid="link-candidates"
