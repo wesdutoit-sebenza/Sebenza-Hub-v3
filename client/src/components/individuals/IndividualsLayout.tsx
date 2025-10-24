@@ -14,6 +14,7 @@ import {
   User,
   FileText,
   Briefcase,
+  MessageCircle,
   CreditCard,
   Settings,
 } from "lucide-react";
@@ -33,6 +34,11 @@ const menuItems = [
     title: "Job Searches",
     url: "/dashboard/individual/jobs",
     icon: Briefcase,
+  },
+  {
+    title: "Coaching",
+    url: "/dashboard/individual/coaching",
+    icon: MessageCircle,
   },
   {
     title: "Billing",
