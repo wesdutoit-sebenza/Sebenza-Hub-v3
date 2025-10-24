@@ -411,16 +411,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .from(candidateProfiles)
         .where(eq(candidateProfiles.userId, req.user!.id));
 
+      let profile;
       if (existing) {
-        return res.status(400).json({
-          success: false,
-          message: "Candidate profile already exists",
-        });
-      }
+        // Update existing profile
+        [profile] = await db.update(candidateProfiles)
+          .set({
+            ...validatedData,
+            updatedAt: new Date(),
+          })
+          .where(eq(candidateProfiles.userId, req.user!.id))
+          .returning();
+      } else {
+        // Create new profile
+        [profile] = await db.insert(candidateProfiles)
+          .values(validatedData)
+          .returning();
 
-      const [profile] = await db.insert(candidateProfiles)
-        .values(validatedData)
-        .returning();
+        // Queue fraud detection for new candidate profile
+        await queueFraudDetection('candidate_profile', profile.id, profile, profile.userId);
+      }
 
       const onboardingComplete = req.user!.onboardingComplete as any || {};
       onboardingComplete.individual = true;
@@ -429,12 +438,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .set({ onboardingComplete })
         .where(eq(users.id, req.user!.id));
 
-      // Queue fraud detection for candidate profile
-      await queueFraudDetection('candidate_profile', profile.id, profile, profile.userId);
-
       res.json({
         success: true,
-        message: "Candidate profile created successfully",
+        message: existing ? "Candidate profile updated successfully" : "Candidate profile created successfully",
         profile,
       });
     } catch (error: any) {
