@@ -470,7 +470,7 @@ export default function Recruiters() {
                           control={form.control}
                           name="countryCode"
                           render={({ field }) => (
-                            <FormItem className="w-[140px]">
+                            <FormItem className="w-[180px]">
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-country-code">

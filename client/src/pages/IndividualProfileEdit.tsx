@@ -278,7 +278,7 @@ export default function IndividualProfileEdit() {
                   <FormLabel>Phone</FormLabel>
                   <div className="flex gap-2">
                     <Select value={countryCode} onValueChange={setCountryCode}>
-                      <SelectTrigger className="w-[140px]" data-testid="select-country-code">
+                      <SelectTrigger className="w-[180px]" data-testid="select-country-code">
                         <SelectValue placeholder="Code" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[300px]">
