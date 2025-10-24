@@ -491,6 +491,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/profile/recruiter", requireAuth, requireRole('recruiter'), async (req: AuthRequest, res) => {
+    try {
+      const [profile] = await db.select()
+        .from(recruiterProfiles)
+        .where(eq(recruiterProfiles.userId, req.user!.id));
+
+      if (!profile) {
+        return res.status(404).json({
+          success: false,
+          message: "Recruiter profile not found",
+        });
+      }
+
+      res.json(profile);
+    } catch (error: any) {
+      console.error("Get recruiter profile error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch recruiter profile",
+      });
+    }
+  });
+
   app.post("/api/profile/recruiter", requireAuth, requireRole('recruiter'), async (req: AuthRequest, res) => {
     try {
       const validatedData = insertRecruiterProfileSchema.parse({
@@ -526,6 +549,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({
         success: false,
         message: "Failed to create recruiter profile",
+      });
+    }
+  });
+
+  app.put("/api/profile/recruiter", requireAuth, requireRole('recruiter'), async (req: AuthRequest, res) => {
+    try {
+      const [existing] = await db.select()
+        .from(recruiterProfiles)
+        .where(eq(recruiterProfiles.userId, req.user!.id));
+
+      if (!existing) {
+        return res.status(404).json({
+          success: false,
+          message: "Recruiter profile not found",
+        });
+      }
+
+      const validatedData = insertRecruiterProfileSchema.partial().parse(req.body);
+      
+      const [profile] = await db.update(recruiterProfiles)
+        .set(validatedData)
+        .where(eq(recruiterProfiles.userId, req.user!.id))
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Recruiter profile updated successfully",
+        profile,
+      });
+    } catch (error: any) {
+      console.error("Update recruiter profile error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Failed to update recruiter profile",
       });
     }
   });
