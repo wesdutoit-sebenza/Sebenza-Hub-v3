@@ -217,14 +217,14 @@ export default function IndividualJobSearches() {
           <p className="text-white/80">Track your job search activity and applications</p>
         </div>
 
-        <Card className="bg-white/5 border-white/10">
+        <Card className="bg-white">
           <CardContent className="p-12 text-center">
-            <Search className="h-16 w-16 mx-auto mb-4 text-white/60" />
-            <h3 className="text-xl font-semibold mb-2 text-white" data-testid="text-no-searches">No Job Applications Yet</h3>
-            <p className="text-white/70 mb-4">
+            <Search className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2" data-testid="text-no-searches">No Job Applications Yet</h3>
+            <p className="text-muted-foreground mb-4">
               Your job application history will appear here
             </p>
-            <p className="text-sm text-white/60">
+            <p className="text-sm text-muted-foreground">
               This feature is coming soon. You'll be able to see all the jobs you've applied to and track their status.
             </p>
           </CardContent>
