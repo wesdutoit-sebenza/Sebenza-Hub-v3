@@ -70,7 +70,7 @@ export function IndividualsLayout({ children }: IndividualsLayoutProps) {
           <SidebarContent className="pt-20">
             <SidebarGroup>
               <SidebarGroupLabel className="text-lg font-semibold px-4 mb-4">
-                My Dashboard
+                Individuals' Dashboard
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
