@@ -59,11 +59,11 @@ export function IndividualsLayout({ children }: IndividualsLayoutProps) {
 
   return (
     <SidebarProvider style={style as React.CSSProperties}>
-      <div className="flex h-screen w-full">
+      <div className="flex min-h-screen w-full">
         <Sidebar data-testid="individuals-sidebar">
-          <SidebarContent>
+          <SidebarContent className="pt-4">
             <SidebarGroup>
-              <SidebarGroupLabel className="text-lg font-semibold">
+              <SidebarGroupLabel className="text-lg font-semibold px-4 mb-2">
                 My Dashboard
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -84,7 +84,7 @@ export function IndividualsLayout({ children }: IndividualsLayoutProps) {
           </SidebarContent>
         </Sidebar>
         
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto bg-background">
           {children}
         </main>
       </div>
