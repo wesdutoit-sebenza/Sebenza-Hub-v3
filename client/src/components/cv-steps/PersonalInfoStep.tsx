@@ -41,6 +41,8 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
     },
   });
 
+  const selectedCountry = form.watch("country");
+
   const onSubmit = (formData: CVPersonalInfo) => {
     updateData("personalInfo", formData);
     onNext();
@@ -140,21 +142,27 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
               name="province"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Province</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormLabel>Province / State</FormLabel>
+                  {selectedCountry === "South Africa" ? (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-province">
+                          <SelectValue placeholder="Select province" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {provinces.map((province) => (
+                          <SelectItem key={province} value={province}>
+                            {province}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
                     <FormControl>
-                      <SelectTrigger data-testid="select-province">
-                        <SelectValue placeholder="Select province" />
-                      </SelectTrigger>
+                      <Input placeholder="Enter province or state" data-testid="input-province" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {provinces.map((province) => (
-                        <SelectItem key={province} value={province}>
-                          {province}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

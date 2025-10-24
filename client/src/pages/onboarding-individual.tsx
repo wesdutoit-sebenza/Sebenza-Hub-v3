@@ -65,6 +65,7 @@ export default function OnboardingIndividual() {
   });
 
   const selectedJobTitle = form.watch("jobTitle");
+  const selectedCountry = form.watch("country");
 
   const createProfileMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -169,21 +170,27 @@ export default function OnboardingIndividual() {
                   name="province"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Province</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormLabel>Province / State</FormLabel>
+                      {selectedCountry === "South Africa" ? (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-province">
+                              <SelectValue placeholder="Select province" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {provinces.map((province) => (
+                              <SelectItem key={province} value={province}>
+                                {province}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
                         <FormControl>
-                          <SelectTrigger data-testid="select-province">
-                            <SelectValue placeholder="Select province" />
-                          </SelectTrigger>
+                          <Input {...field} placeholder="Enter province or state" data-testid="input-province" />
                         </FormControl>
-                        <SelectContent>
-                          {provinces.map((province) => (
-                            <SelectItem key={province} value={province}>
-                              {province}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
