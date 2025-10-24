@@ -85,7 +85,9 @@ export const candidateProfiles = pgTable("candidate_profiles", {
   userId: varchar("user_id").notNull().unique(),
   fullName: text("full_name").notNull(),
   province: text("province").notNull(),
+  postalCode: text("postal_code"),
   city: text("city").notNull(),
+  country: text("country").notNull().default('South Africa'),
   jobTitle: text("job_title").notNull(),
   experienceLevel: text("experience_level").notNull(), // 'entry', 'intermediate', 'senior', 'executive'
   skills: text("skills").array().notNull().default(sql`'{}'::text[]`),
@@ -181,6 +183,10 @@ export const cvPersonalInfoSchema = z.object({
   age: z.number().optional(),
   gender: z.string().optional(),
   driversLicense: z.string().optional(),
+  province: z.string().optional(),
+  postalCode: z.string().optional(),
+  city: z.string().optional(),
+  country: z.string().default("South Africa"),
 });
 
 export const cvReferenceSchema = z.object({
