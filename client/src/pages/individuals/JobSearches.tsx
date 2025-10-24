@@ -72,7 +72,7 @@ export default function IndividualJobSearches() {
   return (
     <div className="container mx-auto p-6 max-w-6xl">
       {/* Browse Available Jobs Section */}
-      <div className="bg-charcoal rounded-lg p-8 mb-8 border border-charcoal">
+      <div className="bg-graphite rounded-lg p-8 mb-8">
         <div className="text-center mb-6">
           <h2 className="text-3xl font-bold text-white mb-2">Browse Available Jobs</h2>
           <p className="text-white/80">
