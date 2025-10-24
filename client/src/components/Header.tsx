@@ -156,14 +156,6 @@ export default function Header() {
                     <Settings size={16} />
                     Business Settings
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setLocation('/settings/individual')}
-                    className="gap-2 cursor-pointer"
-                    data-testid="link-individual-settings"
-                  >
-                    <Settings size={16} />
-                    Individual Settings
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleLogout}

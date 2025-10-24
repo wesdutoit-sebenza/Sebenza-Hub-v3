@@ -121,7 +121,7 @@ export default function OnboardingIndividual() {
         title: "Profile created!",
         description: "Your job seeker profile is ready.",
       });
-      setLocation('/individuals');
+      setLocation('/dashboard/individual/profile');
     },
     onError: () => {
       toast({

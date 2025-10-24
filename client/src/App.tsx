@@ -39,6 +39,14 @@ import AdminRoles from "@/pages/admin/Roles";
 import AdminCVs from "@/pages/admin/CVs";
 import AdminFraudDetection from "@/pages/admin/FraudDetection";
 
+// Individuals Dashboard pages
+import { IndividualsLayout } from "@/components/individuals/IndividualsLayout";
+import IndividualDashboardProfile from "@/pages/individuals/Profile";
+import IndividualDashboardCVs from "@/pages/individuals/CVs";
+import IndividualDashboardJobs from "@/pages/individuals/JobSearches";
+import IndividualDashboardBilling from "@/pages/individuals/Billing";
+import IndividualDashboardSettings from "@/pages/individuals/Settings";
+
 function AdminRouter() {
   return (
     <AdminLayout>
@@ -58,6 +66,25 @@ function AdminRouter() {
         }} />
       </Switch>
     </AdminLayout>
+  );
+}
+
+function IndividualsRouter() {
+  return (
+    <IndividualsLayout>
+      <Switch>
+        <Route path="/dashboard/individual/profile" component={IndividualDashboardProfile} />
+        <Route path="/dashboard/individual/cvs" component={IndividualDashboardCVs} />
+        <Route path="/dashboard/individual/jobs" component={IndividualDashboardJobs} />
+        <Route path="/dashboard/individual/billing" component={IndividualDashboardBilling} />
+        <Route path="/dashboard/individual/settings" component={IndividualDashboardSettings} />
+        <Route path="/dashboard/individual" component={() => {
+          const [, navigate] = useLocation();
+          navigate("/dashboard/individual/profile");
+          return null;
+        }} />
+      </Switch>
+    </IndividualsLayout>
   );
 }
 
@@ -81,10 +108,8 @@ function Router() {
       <Route path="/roles/:roleId/screen" component={RoleScreening} />
       <Route path="/settings/recruiter" component={RecruiterSettings} />
       <Route path="/settings/business" component={BusinessSettings} />
-      <Route path="/settings/individual" component={IndividualSettings} />
-      <Route path="/individuals/profile" component={IndividualProfile} />
-      <Route path="/individuals/edit" component={IndividualProfileEdit} />
       <Route path="/test-coach" component={TestCoach} />
+      <Route path="/dashboard/individual/:rest*" component={IndividualsRouter} />
       <Route path="/admin/:rest*" component={AdminRouter} />
       <Route component={NotFound} />
     </Switch>
