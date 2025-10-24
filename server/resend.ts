@@ -41,18 +41,15 @@ export async function getUncachableResendClient() {
 export async function sendMagicLinkEmail(email: string, token: string) {
   const magicLink = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/auth/verify?token=${token}`;
 
-  // Development bypass - log magic link instead of sending email
-  if (process.env.NODE_ENV === 'development') {
-    console.log('\n' + '='.repeat(80));
-    console.log('🔐 MAGIC LINK (Development Mode)');
-    console.log('='.repeat(80));
-    console.log(`📧 To: ${email}`);
-    console.log(`🔗 Link: ${magicLink}`);
-    console.log('='.repeat(80) + '\n');
-    return { success: true, mode: 'development' };
-  }
+  // Always log the magic link for debugging
+  console.log('\n' + '='.repeat(80));
+  console.log('🔐 MAGIC LINK');
+  console.log('='.repeat(80));
+  console.log(`📧 To: ${email}`);
+  console.log(`🔗 Link: ${magicLink}`);
+  console.log('='.repeat(80) + '\n');
 
-  // Production - send actual email via Resend
+  // Send actual email via Resend
   const { client, fromEmail } = await getUncachableResendClient();
 
   const { data, error } = await client.emails.send({
