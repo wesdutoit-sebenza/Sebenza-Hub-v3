@@ -229,30 +229,14 @@ export default function RecruiterCandidates() {
             <Link key={candidate.id} href={`/candidates/${candidate.id}`}>
               <Card className="hover-elevate" data-testid={`card-candidate-${candidate.id}`}>
                 <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="text-lg font-semibold" data-testid="text-candidate-name">
-                        {candidate.fullName || "Unnamed Candidate"}
-                      </h3>
-                      {candidate.headline && (
-                        <p className="text-sm text-muted-foreground" data-testid="text-candidate-headline">
-                          {candidate.headline}
-                        </p>
-                      )}
-                    </div>
-                    {candidate.skills && candidate.skills.length > 0 && (
-                      <div className="flex flex-wrap gap-1 justify-end max-w-xs">
-                        {candidate.skills.slice(0, 2).map((skill: string, idx: number) => (
-                          <Badge key={idx} variant="secondary" className="text-xs">
-                            {skill}
-                          </Badge>
-                        ))}
-                        {candidate.skills.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{candidate.skills.length - 2} more
-                          </Badge>
-                        )}
-                      </div>
+                  <div className="mb-3">
+                    <h3 className="text-lg font-semibold" data-testid="text-candidate-name">
+                      {candidate.fullName || "Unnamed Candidate"}
+                    </h3>
+                    {candidate.headline && (
+                      <p className="text-sm text-muted-foreground" data-testid="text-candidate-headline">
+                        {candidate.headline}
+                      </p>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
