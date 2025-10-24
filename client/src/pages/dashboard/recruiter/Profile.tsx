@@ -66,25 +66,25 @@ export default function RecruiterProfile() {
 
   useEffect(() => {
     if (profileData) {
-      const telephone = profileData.telephone || "";
+      const telephone = (profileData as any).telephone || "";
       const parts = telephone.split(" ");
       const countryCode = parts[0] || "+27";
       const phoneNumber = parts.slice(1).join(" ");
 
       form.reset({
-        agencyName: profileData.agencyName || "",
-        website: profileData.website || "",
-        email: profileData.email || "",
+        agencyName: (profileData as any).agencyName || "",
+        website: (profileData as any).website || "",
+        email: (profileData as any).email || "",
         telephoneCountryCode: countryCode,
         telephoneNumber: phoneNumber,
-        sectors: profileData.sectors || [],
+        sectors: (profileData as any).sectors || [],
       });
     }
   }, [profileData, form]);
 
   useEffect(() => {
-    if (userData?.email && !profileData?.email) {
-      form.setValue("email", userData.email);
+    if ((userData as any)?.email && !(profileData as any)?.email) {
+      form.setValue("email", (userData as any).email);
     }
   }, [userData, profileData, form]);
 

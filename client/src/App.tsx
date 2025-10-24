@@ -48,6 +48,17 @@ import IndividualDashboardCoaching from "@/pages/individuals/Coaching";
 import IndividualDashboardBilling from "@/pages/individuals/Billing";
 import IndividualDashboardSettings from "@/pages/individuals/Settings";
 
+// Recruiters Dashboard pages
+import { RecruitersLayout } from "@/components/recruiters/RecruitersLayout";
+import RecruiterDashboardProfile from "@/pages/dashboard/recruiter/Profile";
+import RecruiterDashboardJobs from "@/pages/dashboard/recruiter/JobPostings";
+import RecruiterDashboardRoles from "@/pages/dashboard/recruiter/Roles";
+import RecruiterDashboardCandidates from "@/pages/dashboard/recruiter/Candidates";
+import RecruiterDashboardTests from "@/pages/dashboard/recruiter/Tests";
+import RecruiterDashboardScheduling from "@/pages/dashboard/recruiter/Scheduling";
+import RecruiterDashboardBilling from "@/pages/dashboard/recruiter/Billing";
+import RecruiterDashboardSettings from "@/pages/dashboard/recruiter/Settings";
+
 function AdminRouter() {
   return (
     <AdminLayout>
@@ -90,6 +101,28 @@ function IndividualsRouter() {
   );
 }
 
+function RecruitersRouter() {
+  return (
+    <RecruitersLayout>
+      <Switch>
+        <Route path="/dashboard/recruiter/profile" component={RecruiterDashboardProfile} />
+        <Route path="/dashboard/recruiter/jobs" component={RecruiterDashboardJobs} />
+        <Route path="/dashboard/recruiter/roles" component={RecruiterDashboardRoles} />
+        <Route path="/dashboard/recruiter/candidates" component={RecruiterDashboardCandidates} />
+        <Route path="/dashboard/recruiter/tests" component={RecruiterDashboardTests} />
+        <Route path="/dashboard/recruiter/scheduling" component={RecruiterDashboardScheduling} />
+        <Route path="/dashboard/recruiter/billing" component={RecruiterDashboardBilling} />
+        <Route path="/dashboard/recruiter/settings" component={RecruiterDashboardSettings} />
+        <Route path="/dashboard/recruiter" component={() => {
+          const [, navigate] = useLocation();
+          navigate("/dashboard/recruiter/profile");
+          return null;
+        }} />
+      </Switch>
+    </RecruitersLayout>
+  );
+}
+
 function Router() {
   return (
     <Switch>
@@ -112,6 +145,7 @@ function Router() {
       <Route path="/settings/business" component={BusinessSettings} />
       <Route path="/test-coach" component={TestCoach} />
       <Route path="/dashboard/individual/:rest*" component={IndividualsRouter} />
+      <Route path="/dashboard/recruiter/:rest*" component={RecruitersRouter} />
       <Route path="/admin/:rest*" component={AdminRouter} />
       <Route component={NotFound} />
     </Switch>
