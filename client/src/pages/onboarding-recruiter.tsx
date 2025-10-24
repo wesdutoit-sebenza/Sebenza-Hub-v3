@@ -8,6 +8,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -220,50 +222,56 @@ export default function OnboardingRecruiter() {
               <FormField
                 control={form.control}
                 name="sectors"
-                render={() => (
-                  <FormItem>
-                    <div className="mb-4">
-                      <FormLabel>Industry Sectors *</FormLabel>
-                      <FormDescription>
-                        Select all industries you recruit for
-                      </FormDescription>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      {SECTORS.map((sector) => (
-                        <FormField
-                          key={sector}
-                          control={form.control}
-                          name="sectors"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={sector}
-                                className="flex flex-row items-start space-x-3 space-y-0"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    data-testid={`checkbox-sector-${sector.toLowerCase()}`}
-                                    checked={field.value?.includes(sector)}
-                                    onCheckedChange={(checked) => {
-                                      return checked
-                                        ? field.onChange([...field.value, sector])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== sector
-                                            )
-                                          );
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="font-normal">
-                                  {sector}
-                                </FormLabel>
-                              </FormItem>
-                            );
-                          }}
-                        />
-                      ))}
-                    </div>
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Industry Sectors *</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className="w-full justify-between"
+                            data-testid="button-sectors-dropdown"
+                          >
+                            {field.value && field.value.length > 0
+                              ? `${field.value.length} sector${field.value.length > 1 ? 's' : ''} selected`
+                              : "Select industries"}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <div className="max-h-64 overflow-y-auto p-4 space-y-2">
+                          {SECTORS.map((sector) => (
+                            <div
+                              key={sector}
+                              className="flex items-center space-x-3 space-y-0"
+                            >
+                              <Checkbox
+                                data-testid={`checkbox-sector-${sector.toLowerCase()}`}
+                                checked={field.value?.includes(sector)}
+                                onCheckedChange={(checked) => {
+                                  return checked
+                                    ? field.onChange([...field.value, sector])
+                                    : field.onChange(
+                                        field.value?.filter(
+                                          (value) => value !== sector
+                                        )
+                                      );
+                                }}
+                              />
+                              <label className="text-sm font-normal cursor-pointer">
+                                {sector}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    <FormDescription>
+                      Select all industries you recruit for
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
