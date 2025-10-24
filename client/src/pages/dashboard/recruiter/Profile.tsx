@@ -133,9 +133,9 @@ export default function RecruiterProfile() {
   }
 
   return (
-    <div className="container max-w-4xl py-8">
+    <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground">Recruiter Profile</h1>
+        <h1 className="text-3xl font-bold">Recruiter Profile</h1>
         <p className="text-muted-foreground mt-2">
           Manage your agency information and preferences
         </p>

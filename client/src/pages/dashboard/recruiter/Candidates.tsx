@@ -2,9 +2,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function RecruiterCandidates() {
   return (
-    <div className="container max-w-6xl py-8">
+    <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground">Candidate Database</h1>
+        <h1 className="text-3xl font-bold">Candidate Database</h1>
         <p className="text-muted-foreground mt-2">
           Access and manage your ATS candidate database
         </p>

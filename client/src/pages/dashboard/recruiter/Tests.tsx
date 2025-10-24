@@ -4,10 +4,10 @@ import { Plus } from "lucide-react";
 
 export default function RecruiterTests() {
   return (
-    <div className="container max-w-6xl py-8">
+    <div className="container mx-auto p-6 max-w-4xl">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Competency Tests</h1>
+          <h1 className="text-3xl font-bold">Competency Tests</h1>
           <p className="text-muted-foreground mt-2">
             Create and manage assessments for candidates
           </p>
