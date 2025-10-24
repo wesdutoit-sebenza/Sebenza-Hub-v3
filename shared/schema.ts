@@ -115,6 +115,10 @@ export type CandidateProfile = typeof candidateProfiles.$inferSelect;
 export const recruiterProfiles = pgTable("recruiter_profiles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").notNull().unique(),
+  agencyName: text("agency_name").notNull(),
+  website: text("website"),
+  email: text("email").notNull(),
+  telephone: text("telephone").notNull(),
   sectors: text("sectors").array().notNull().default(sql`'{}'::text[]`),
   proofUrl: text("proof_url"), // LinkedIn or company page
   verificationStatus: text("verification_status").notNull().default('pending'), // 'pending', 'approved', 'rejected'

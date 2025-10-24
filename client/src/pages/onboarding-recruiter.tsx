@@ -7,12 +7,19 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { COUNTRY_CODES } from "@shared/countryCodes";
 
 const formSchema = z.object({
+  agencyName: z.string().min(2, "Agency name must be at least 2 characters"),
+  website: z.string().url("Invalid URL").or(z.literal("")),
+  email: z.string().email("Invalid email address"),
+  telephoneCountryCode: z.string().min(1, "Country code required"),
+  telephoneNumber: z.string().min(7, "Invalid phone number"),
   sectors: z.array(z.string()).min(1, "Please select at least one industry sector"),
   proofUrl: z.string().url("Invalid URL").or(z.literal("")),
 });
@@ -42,6 +49,11 @@ export default function OnboardingRecruiter() {
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      agencyName: "",
+      website: "",
+      email: "",
+      telephoneCountryCode: "+27",
+      telephoneNumber: "",
       sectors: [],
       proofUrl: "",
     },
@@ -49,7 +61,20 @@ export default function OnboardingRecruiter() {
 
   const createRecruiterProfileMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const res = await apiRequest('POST', '/api/profile/recruiter', data);
+      // Combine country code and phone number, remove leading 0
+      const phoneNumber = data.telephoneNumber.replace(/^0+/, '');
+      const fullTelephone = `${data.telephoneCountryCode} ${phoneNumber}`;
+      
+      const payload = {
+        agencyName: data.agencyName,
+        website: data.website || undefined,
+        email: data.email,
+        telephone: fullTelephone,
+        sectors: data.sectors,
+        proofUrl: data.proofUrl || undefined,
+      };
+      
+      const res = await apiRequest('POST', '/api/profile/recruiter', payload);
       return res.json();
     },
     onSuccess: () => {
@@ -80,7 +105,7 @@ export default function OnboardingRecruiter() {
         <CardHeader>
           <CardTitle className="text-white-brand" data-testid="text-onboarding-recruiter-title">Set Up Your Recruiter Profile</CardTitle>
           <CardDescription className="text-slate" data-testid="text-onboarding-recruiter-description">
-            Tell us about your recruiting expertise
+            Tell us about your recruiting agency
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -88,11 +113,117 @@ export default function OnboardingRecruiter() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
+                name="agencyName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Agency Name *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g., Talent Solutions SA" 
+                        {...field} 
+                        data-testid="input-agency-name" 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website (Optional)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="https://www.youragency.co.za" 
+                        type="url"
+                        {...field} 
+                        data-testid="input-website" 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email Address *</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="contact@youragency.co.za" 
+                        type="email"
+                        {...field} 
+                        data-testid="input-email" 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="telephoneCountryCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country Code *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-country-code">
+                            <SelectValue placeholder="Code" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {COUNTRY_CODES.map((item: { code: string; country: string; dialCode: string }) => (
+                            <SelectItem key={item.code} value={item.dialCode}>
+                              {item.dialCode} {item.country}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="md:col-span-2">
+                  <FormField
+                    control={form.control}
+                    name="telephoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telephone Number *</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="82 123 4567" 
+                            {...field} 
+                            data-testid="input-telephone" 
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Leading 0 will be removed automatically
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <FormField
+                control={form.control}
                 name="sectors"
                 render={() => (
                   <FormItem>
                     <div className="mb-4">
-                      <FormLabel>Industry Sectors</FormLabel>
+                      <FormLabel>Industry Sectors *</FormLabel>
                       <FormDescription>
                         Select all industries you recruit for
                       </FormDescription>
@@ -143,7 +274,7 @@ export default function OnboardingRecruiter() {
                 name="proofUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>LinkedIn Profile or Agency Website (optional)</FormLabel>
+                    <FormLabel>LinkedIn Profile or Company Page (Optional)</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="https://linkedin.com/in/yourprofile" 
