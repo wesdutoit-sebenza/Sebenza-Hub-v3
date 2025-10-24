@@ -140,7 +140,7 @@ export default function OnboardingIndividual() {
 
   return (
     <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
-      <Card className="max-w-2xl w-full">
+      <Card className="max-w-4xl w-full">
         <CardHeader>
           <CardTitle data-testid="text-onboarding-individual-title">Set Up Your Job Seeker Profile</CardTitle>
           <CardDescription className="text-slate" data-testid="text-onboarding-individual-description">
