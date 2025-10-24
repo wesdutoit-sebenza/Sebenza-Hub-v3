@@ -13,12 +13,15 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { JOB_TITLES } from "@shared/jobTitles";
 import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
+import { COUNTRIES, DEFAULT_COUNTRY } from "@shared/countries";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   surname: z.string().min(2, "Surname must be at least 2 characters"),
   province: z.string().min(1, "Please select a province"),
+  postalCode: z.string().optional(),
   city: z.string().min(1, "City is required"),
+  country: z.string().min(1, "Please select a country"),
   jobTitle: z.string().min(1, "Please select a job title"),
   customJobTitle: z.string().optional(),
   experienceLevel: z.enum(['entry', 'intermediate', 'senior', 'executive']),
@@ -49,7 +52,9 @@ export default function OnboardingIndividual() {
       firstName: "",
       surname: "",
       province: "",
+      postalCode: "",
       city: "",
+      country: DEFAULT_COUNTRY,
       jobTitle: "",
       customJobTitle: "",
       experienceLevel: "entry",
@@ -69,7 +74,9 @@ export default function OnboardingIndividual() {
       const res = await apiRequest('POST', '/api/profile/candidate', {
         fullName,
         province: data.province,
+        postalCode: data.postalCode,
         city: data.city,
+        country: data.country,
         jobTitle: finalJobTitle,
         experienceLevel: data.experienceLevel,
         skills: data.skills,
@@ -170,6 +177,22 @@ export default function OnboardingIndividual() {
 
                 <FormField
                   control={form.control}
+                  name="postalCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Postal Code</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="e.g., 2000" data-testid="input-postal-code" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
                   name="city"
                   render={({ field }) => (
                     <FormItem>
@@ -177,6 +200,31 @@ export default function OnboardingIndividual() {
                       <FormControl>
                         <Input {...field} data-testid="input-city" />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-country">
+                            <SelectValue placeholder="Select country" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-[300px]">
+                          {COUNTRIES.map((country) => (
+                            <SelectItem key={country} value={country}>
+                              {country}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
