@@ -5,31 +5,48 @@ import { useForm } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { User, Briefcase, MapPin, Mail, Phone, Globe, Save, Edit } from "lucide-react";
+import { User, Briefcase, MapPin, Mail, Phone, Save, Edit } from "lucide-react";
 import { type User as UserType } from "@shared/schema";
 import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
+import { COUNTRIES } from "@shared/countries";
+
+const SA_PROVINCES = [
+  "Eastern Cape",
+  "Free State",
+  "Gauteng",
+  "KwaZulu-Natal",
+  "Limpopo",
+  "Mpumalanga",
+  "Northern Cape",
+  "North West",
+  "Western Cape",
+];
 
 interface ProfileData {
-  candidate: {
-    id: string;
-    fullName: string | null;
-    headline: string | null;
-    email: string | null;
-    phone: string | null;
-    city: string | null;
-    country: string | null;
-    links: any;
-    summary: string | null;
-    workAuthorization: string | null;
-    availability: string | null;
-    salaryExpectation: string | null;
-  };
+  id: string;
+  userId: string;
+  fullName: string;
+  province: string;
+  postalCode: string | null;
+  city: string;
+  country: string;
+  email: string | null;
+  telephone: string | null;
+  jobTitle: string;
+  experienceLevel: string;
+  skills: string[];
+  cvUrl: string | null;
+  isPublic: number;
+  popiaConsentGiven: number;
+  popiaConsentDate: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export default function IndividualProfile() {
@@ -37,14 +54,14 @@ export default function IndividualProfile() {
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
 
-  // Parse existing phone to separate country code and number
-  const parsePhoneNumber = (phone: string) => {
-    if (!phone) return { code: DEFAULT_COUNTRY_CODE, number: "" };
-    const match = phone.match(/^(\+\d+(?:-\d+)?)\s*(.*)$/);
+  // Parse existing telephone to separate country code and number
+  const parsePhoneNumber = (telephone: string) => {
+    if (!telephone) return { code: DEFAULT_COUNTRY_CODE, number: "" };
+    const match = telephone.match(/^(\+\d+(?:-\d+)?)\s*(.*)$/);
     if (match) {
       return { code: match[1], number: match[2] };
     }
-    return { code: DEFAULT_COUNTRY_CODE, number: phone };
+    return { code: DEFAULT_COUNTRY_CODE, number: telephone };
   };
 
   const [countryCode, setCountryCode] = useState(DEFAULT_COUNTRY_CODE);
@@ -63,45 +80,37 @@ export default function IndividualProfile() {
   const form = useForm({
     defaultValues: {
       fullName: "",
-      headline: "",
       email: "",
-      phone: "",
+      telephone: "",
       city: "",
+      province: "",
+      postalCode: "",
       country: "",
-      summary: "",
-      workAuthorization: "",
-      availability: "",
-      salaryExpectation: "",
-      linkedin: "",
-      github: "",
-      portfolio: "",
+      jobTitle: "",
+      experienceLevel: "",
     },
   });
 
   // Update form when data loads
   useEffect(() => {
     if (data?.profile) {
-      const { candidate } = data.profile;
+      const profile = data.profile;
       
-      // Parse phone number
-      const parsedPhone = parsePhoneNumber(candidate.phone || "");
+      // Parse telephone number
+      const parsedPhone = parsePhoneNumber(profile.telephone || "");
       setCountryCode(parsedPhone.code);
       setPhoneNumber(parsedPhone.number);
       
       form.reset({
-        fullName: candidate.fullName || "",
-        headline: candidate.headline || "",
-        email: candidate.email || "",
-        phone: candidate.phone || "",
-        city: candidate.city || "",
-        country: candidate.country || "",
-        summary: candidate.summary || "",
-        workAuthorization: candidate.workAuthorization || "",
-        availability: candidate.availability || "",
-        salaryExpectation: candidate.salaryExpectation || "",
-        linkedin: candidate.links?.linkedin || "",
-        github: candidate.links?.github || "",
-        portfolio: candidate.links?.portfolio || "",
+        fullName: profile.fullName || "",
+        email: profile.email || "",
+        telephone: profile.telephone || "",
+        city: profile.city || "",
+        province: profile.province || "",
+        postalCode: profile.postalCode || "",
+        country: profile.country || "",
+        jobTitle: profile.jobTitle || "",
+        experienceLevel: profile.experienceLevel || "",
       });
     }
   }, [data?.profile, form]);
@@ -113,24 +122,18 @@ export default function IndividualProfile() {
       if (cleanPhone.startsWith("0")) {
         cleanPhone = cleanPhone.substring(1);
       }
-      const fullPhone = cleanPhone ? `${countryCode} ${cleanPhone}` : "";
+      const fullTelephone = cleanPhone ? `${countryCode} ${cleanPhone}` : "";
       
       return apiRequest("PUT", "/api/individuals/profile", {
         fullName: values.fullName,
-        headline: values.headline,
         email: values.email,
-        phone: fullPhone,
+        telephone: fullTelephone,
         city: values.city,
+        province: values.province,
+        postalCode: values.postalCode,
         country: values.country,
-        summary: values.summary,
-        workAuthorization: values.workAuthorization,
-        availability: values.availability,
-        salaryExpectation: values.salaryExpectation,
-        links: {
-          linkedin: values.linkedin || undefined,
-          github: values.github || undefined,
-          portfolio: values.portfolio || undefined,
-        },
+        jobTitle: values.jobTitle,
+        experienceLevel: values.experienceLevel,
       });
     },
     onSuccess: () => {
@@ -177,6 +180,8 @@ export default function IndividualProfile() {
       </div>
     );
   }
+
+  const profile = data.profile;
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
@@ -225,16 +230,12 @@ export default function IndividualProfile() {
 
                 <FormField
                   control={form.control}
-                  name="headline"
+                  name="jobTitle"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Professional Headline</FormLabel>
+                      <FormLabel>Job Title</FormLabel>
                       <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="e.g. Senior Software Engineer"
-                          data-testid="input-headline"
-                        />
+                        <Input {...field} data-testid="input-job-title" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -243,18 +244,23 @@ export default function IndividualProfile() {
 
                 <FormField
                   control={form.control}
-                  name="summary"
+                  name="experienceLevel"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Professional Summary</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          {...field}
-                          placeholder="Brief overview of your professional background..."
-                          rows={4}
-                          data-testid="input-summary"
-                        />
-                      </FormControl>
+                      <FormLabel>Experience Level</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-experience-level">
+                            <SelectValue placeholder="Select experience level" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="entry">Entry Level</SelectItem>
+                          <SelectItem value="intermediate">Intermediate</SelectItem>
+                          <SelectItem value="senior">Senior</SelectItem>
+                          <SelectItem value="executive">Executive</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -287,7 +293,7 @@ export default function IndividualProfile() {
                   />
 
                   <FormItem>
-                    <FormLabel>Phone</FormLabel>
+                    <FormLabel>Telephone</FormLabel>
                     <div className="flex gap-2">
                       <Select value={countryCode} onValueChange={setCountryCode}>
                         <SelectTrigger className="w-[180px]" data-testid="select-country-code">
@@ -312,6 +318,75 @@ export default function IndividualProfile() {
                     </div>
                   </FormItem>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Location Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Location
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="country"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Country</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-country">
+                              <SelectValue placeholder="Select country" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-[300px]">
+                            {COUNTRIES.map((country) => (
+                              <SelectItem key={country} value={country}>
+                                {country}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="province"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Province/State</FormLabel>
+                        {form.watch('country') === 'South Africa' ? (
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger data-testid="select-province">
+                                <SelectValue placeholder="Select province" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {SA_PROVINCES.map((province) => (
+                                <SelectItem key={province} value={province}>
+                                  {province}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <FormControl>
+                            <Input {...field} placeholder="Enter province/state" data-testid="input-province" />
+                          </FormControl>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
@@ -330,12 +405,12 @@ export default function IndividualProfile() {
 
                   <FormField
                     control={form.control}
-                    name="country"
+                    name="postalCode"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Country</FormLabel>
+                        <FormLabel>Postal Code</FormLabel>
                         <FormControl>
-                          <Input {...field} data-testid="input-country" />
+                          <Input {...field} data-testid="input-postal-code" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -345,160 +420,15 @@ export default function IndividualProfile() {
               </CardContent>
             </Card>
 
-            {/* Links */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5" />
-                  Professional Links
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="linkedin"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>LinkedIn URL</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="https://linkedin.com/in/yourprofile"
-                          data-testid="input-linkedin"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="github"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>GitHub URL</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="https://github.com/yourusername"
-                          data-testid="input-github"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="portfolio"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Portfolio URL</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="https://yourportfolio.com"
-                          data-testid="input-portfolio"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Work Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5" />
-                  Work Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="workAuthorization"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Work Authorization</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="e.g. South African Citizen, Work Permit"
-                          data-testid="input-work-auth"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="availability"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Availability</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="e.g. Immediate, 2 weeks notice"
-                          data-testid="input-availability"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="salaryExpectation"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Salary Expectation</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="e.g. R500,000 - R600,000 per year"
-                          data-testid="input-salary"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-
-            {/* Actions */}
-            <div className="flex justify-end gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsEditing(false)}
-                data-testid="button-cancel-bottom"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={updateMutation.isPending}
-                data-testid="button-save"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {updateMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
+            <Button type="submit" disabled={updateMutation.isPending} className="w-full" data-testid="button-save">
+              <Save className="h-4 w-4 mr-2" />
+              {updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
           </form>
         </Form>
       ) : (
         <div className="space-y-6">
-          {/* View Mode - Display Profile Data */}
+          {/* Personal Information View */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -506,22 +436,40 @@ export default function IndividualProfile() {
                 Personal Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <div>
                 <p className="text-sm text-muted-foreground">Full Name</p>
-                <p className="font-medium" data-testid="text-display-name">{data.profile.candidate.fullName || "Not provided"}</p>
+                <p className="text-base font-medium" data-testid="text-full-name">{profile.fullName}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Professional Headline</p>
-                <p className="font-medium" data-testid="text-display-headline">{data.profile.candidate.headline || "Not provided"}</p>
+                <p className="text-sm text-muted-foreground">Job Title</p>
+                <p className="text-base font-medium flex items-center gap-2" data-testid="text-job-title">
+                  <Briefcase className="h-4 w-4" />
+                  {profile.jobTitle}
+                </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Professional Summary</p>
-                <p className="font-medium" data-testid="text-display-summary">{data.profile.candidate.summary || "Not provided"}</p>
+                <p className="text-sm text-muted-foreground">Experience Level</p>
+                <Badge variant="secondary" className="mt-1" data-testid="badge-experience-level">
+                  {profile.experienceLevel.charAt(0).toUpperCase() + profile.experienceLevel.slice(1)}
+                </Badge>
               </div>
+              {profile.skills && profile.skills.length > 0 && (
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Skills</p>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.skills.map((skill, index) => (
+                      <Badge key={index} variant="outline" data-testid={`badge-skill-${index}`}>
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
+          {/* Contact Information View */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -529,84 +477,45 @@ export default function IndividualProfile() {
                 Contact Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="space-y-4">
+              {profile.email && (
                 <div>
                   <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium" data-testid="text-display-email">{data.profile.candidate.email || "Not provided"}</p>
+                  <p className="text-base font-medium flex items-center gap-2" data-testid="text-email">
+                    <Mail className="h-4 w-4" />
+                    {profile.email}
+                  </p>
                 </div>
+              )}
+              {profile.telephone && (
                 <div>
-                  <p className="text-sm text-muted-foreground">Phone</p>
-                  <p className="font-medium" data-testid="text-display-phone">{data.profile.candidate.phone || "Not provided"}</p>
+                  <p className="text-sm text-muted-foreground">Telephone</p>
+                  <p className="text-base font-medium flex items-center gap-2" data-testid="text-telephone">
+                    <Phone className="h-4 w-4" />
+                    {profile.telephone}
+                  </p>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">City</p>
-                  <p className="font-medium" data-testid="text-display-city">{data.profile.candidate.city || "Not provided"}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Country</p>
-                  <p className="font-medium" data-testid="text-display-country">{data.profile.candidate.country || "Not provided"}</p>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
-          {(data.profile.candidate.links?.linkedin || data.profile.candidate.links?.github || data.profile.candidate.links?.portfolio) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="h-5 w-5" />
-                  Professional Links
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {data.profile.candidate.links?.linkedin && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">LinkedIn</p>
-                    <a href={data.profile.candidate.links.linkedin} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" data-testid="link-linkedin">
-                      {data.profile.candidate.links.linkedin}
-                    </a>
-                  </div>
-                )}
-                {data.profile.candidate.links?.github && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">GitHub</p>
-                    <a href={data.profile.candidate.links.github} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" data-testid="link-github">
-                      {data.profile.candidate.links.github}
-                    </a>
-                  </div>
-                )}
-                {data.profile.candidate.links?.portfolio && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Portfolio</p>
-                    <a href={data.profile.candidate.links.portfolio} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" data-testid="link-portfolio">
-                      {data.profile.candidate.links.portfolio}
-                    </a>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
+          {/* Location View */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Briefcase className="h-5 w-5" />
-                Work Details
+                <MapPin className="h-5 w-5" />
+                Location
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <div>
-                <p className="text-sm text-muted-foreground">Work Authorization</p>
-                <p className="font-medium" data-testid="text-display-work-auth">{data.profile.candidate.workAuthorization || "Not provided"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Availability</p>
-                <p className="font-medium" data-testid="text-display-availability">{data.profile.candidate.availability || "Not provided"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Salary Expectation</p>
-                <p className="font-medium" data-testid="text-display-salary">{data.profile.candidate.salaryExpectation || "Not provided"}</p>
+                <p className="text-sm text-muted-foreground">Address</p>
+                <p className="text-base font-medium" data-testid="text-location">
+                  {profile.city}, {profile.province}
+                  {profile.postalCode && `, ${profile.postalCode}`}
+                  <br />
+                  {profile.country}
+                </p>
               </div>
             </CardContent>
           </Card>

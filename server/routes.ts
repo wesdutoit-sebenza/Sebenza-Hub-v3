@@ -2216,55 +2216,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get individual's own profile (complete with all details)
   app.get("/api/individuals/profile", requireAuth, async (req: AuthRequest, res) => {
     try {
-      // Get candidate linked to this user
-      const [candidate] = await db.select()
-        .from(candidates)
-        .where(eq(candidates.userId, req.user!.id))
+      // Get candidate profile linked to this user
+      const [profile] = await db.select()
+        .from(candidateProfiles)
+        .where(eq(candidateProfiles.userId, req.user!.id))
         .limit(1);
 
-      if (!candidate) {
+      if (!profile) {
         return res.json({
           success: true,
           profile: null,
-          message: "No profile found. Please upload your resume to create one.",
+          message: "No profile found. Please complete your onboarding to create one.",
         });
       }
 
-      // Fetch all related data
-      const [
-        candidateExperiences,
-        candidateEducation,
-        candidateCertifications,
-        candidateProjects,
-        candidateAwards,
-        candidateSkillsData,
-      ] = await Promise.all([
-        db.select().from(experiences).where(eq(experiences.candidateId, candidate.id)),
-        db.select().from(education).where(eq(education.candidateId, candidate.id)),
-        db.select().from(certifications).where(eq(certifications.candidateId, candidate.id)),
-        db.select().from(projects).where(eq(projects.candidateId, candidate.id)),
-        db.select().from(awards).where(eq(awards.candidateId, candidate.id)),
-        db.select({
-          skillId: candidateSkills.skillId,
-          kind: candidateSkills.kind,
-          name: skills.name,
-        })
-          .from(candidateSkills)
-          .innerJoin(skills, eq(candidateSkills.skillId, skills.id))
-          .where(eq(candidateSkills.candidateId, candidate.id)),
-      ]);
-
       res.json({
         success: true,
-        profile: {
-          candidate,
-          experiences: candidateExperiences,
-          education: candidateEducation,
-          certifications: candidateCertifications,
-          projects: candidateProjects,
-          awards: candidateAwards,
-          skills: candidateSkillsData,
-        },
+        profile,
       });
     } catch (error: any) {
       console.error("[Individuals] Get profile error:", error);
@@ -2279,44 +2247,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update individual's profile
   app.put("/api/individuals/profile", requireAuth, async (req: AuthRequest, res) => {
     try {
-      // Get candidate linked to this user
-      const [candidate] = await db.select()
-        .from(candidates)
-        .where(eq(candidates.userId, req.user!.id))
+      // Get candidate profile linked to this user
+      const [profile] = await db.select()
+        .from(candidateProfiles)
+        .where(eq(candidateProfiles.userId, req.user!.id))
         .limit(1);
 
-      if (!candidate) {
+      if (!profile) {
         return res.status(404).json({
           success: false,
-          message: "No profile found. Please create a profile first.",
+          message: "No profile found. Please complete your onboarding first.",
         });
       }
 
-      // Validate and update candidate data
+      // Validate and update profile data
       const updateData = req.body;
       
-      const [updatedCandidate] = await db.update(candidates)
+      const [updatedProfile] = await db.update(candidateProfiles)
         .set({
-          fullName: updateData.fullName || null,
-          headline: updateData.headline || null,
-          email: updateData.email || null,
-          phone: updateData.phone || null,
-          city: updateData.city || null,
-          country: updateData.country || null,
-          links: updateData.links || {},
-          summary: updateData.summary || null,
-          workAuthorization: updateData.workAuthorization || null,
-          availability: updateData.availability || null,
-          salaryExpectation: updateData.salaryExpectation || null,
-          notes: updateData.notes || null,
+          fullName: updateData.fullName || profile.fullName,
+          email: updateData.email || profile.email,
+          telephone: updateData.telephone || profile.telephone,
+          city: updateData.city || profile.city,
+          province: updateData.province || profile.province,
+          postalCode: updateData.postalCode || profile.postalCode,
+          country: updateData.country || profile.country,
+          jobTitle: updateData.jobTitle || profile.jobTitle,
+          experienceLevel: updateData.experienceLevel || profile.experienceLevel,
+          skills: updateData.skills || profile.skills,
+          isPublic: updateData.isPublic !== undefined ? updateData.isPublic : profile.isPublic,
+          updatedAt: new Date(),
         })
-        .where(eq(candidates.id, candidate.id))
+        .where(eq(candidateProfiles.id, profile.id))
         .returning();
 
       res.json({
         success: true,
         message: "Profile updated successfully",
-        candidate: updatedCandidate,
+        profile: updatedProfile,
       });
     } catch (error: any) {
       console.error("[Individuals] Update profile error:", error);
