@@ -170,6 +170,7 @@ export default function RecruiterJobPostings() {
     defaultValues: {
       title: "",
       company: "",
+      employmentType: "Permanent",
       core: {
         seniority: "Mid",
         department: "",
@@ -231,14 +232,15 @@ export default function RecruiterJobPostings() {
   const createJobMutation = useMutation({
     mutationFn: async (data: FormData) => {
       // Transform data to include legacy fields for backward compatibility
+      const locationParts = [data.core?.location?.city, data.core?.location?.province].filter(Boolean);
       const transformedData = {
         ...data,
-        location: `${data.core?.location?.city || ""}, ${data.core?.location?.province || ""}`.trim(),
+        location: locationParts.length > 0 ? locationParts.join(", ") : undefined,
         salaryMin: data.compensation?.min,
         salaryMax: data.compensation?.max,
         description: data.core?.summary,
         requirements: data.core?.minQualifications,
-        employmentType: data.core?.department,
+        employmentType: data.employmentType,
         industry: data.industry || "Other",
       };
       
@@ -305,6 +307,29 @@ export default function RecruiterJobPostings() {
                       <FormControl>
                         <Input placeholder="e.g., Sales" {...field} data-testid="input-department" />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="employmentType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Employment Type *</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-employment-type">
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {EMPLOYMENT_TYPES.map((type) => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
