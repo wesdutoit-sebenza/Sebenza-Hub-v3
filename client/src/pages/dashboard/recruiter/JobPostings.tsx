@@ -46,7 +46,7 @@ import {
   OPTIONAL_ATTACHMENTS,
   COMMON_BENEFITS,
 } from "@shared/jobTaxonomies";
-import { JOB_TITLES, JOB_TITLES_BY_INDUSTRY } from "@shared/jobTitles";
+import { JOB_TITLES, JOB_TITLES_BY_INDUSTRY, getIndustryForJobTitle } from "@shared/jobTitles";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
@@ -360,7 +360,15 @@ export default function RecruiterJobPostings() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Job Title *</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          // Auto-fill the job industry based on selected job title
+                          const industry = getIndustryForJobTitle(value);
+                          form.setValue("jobIndustry", industry);
+                        }} 
+                        value={field.value}
+                      >
                         <FormControl>
                           <SelectTrigger data-testid="select-job-title">
                             <SelectValue placeholder="Select job title" />
@@ -431,30 +439,7 @@ export default function RecruiterJobPostings() {
                   </div>
                 )}
 
-                {/* Row 2: Job Industry, Employment Type */}
-                <FormField
-                  control={form.control}
-                  name="jobIndustry"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Job Industry</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-job-industry">
-                            <SelectValue placeholder="Select job industry" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {INDUSTRIES.map((ind) => (
-                            <SelectItem key={ind} value={ind}>{ind}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
+                {/* Row 2: Employment Type (Job Industry is auto-filled from Job Title) */}
                 <FormField
                   control={form.control}
                   name="employmentType"

@@ -512,3 +512,15 @@ export const JOB_TITLES = [
 ] as const;
 
 export type JobTitle = typeof JOB_TITLES[number];
+
+/**
+ * Helper function to get the industry for a given job title
+ */
+export function getIndustryForJobTitle(jobTitle: string): string {
+  for (const category of JOB_TITLES_BY_INDUSTRY) {
+    if (category.titles.includes(jobTitle)) {
+      return category.industry;
+    }
+  }
+  return "Other"; // Default for "Other" or unknown titles
+}
