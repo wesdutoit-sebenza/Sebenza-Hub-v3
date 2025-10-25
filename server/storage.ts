@@ -1,10 +1,11 @@
-import { type User, type InsertUser, type Subscriber, type InsertSubscriber, type Job, type InsertJob, type CV, type InsertCV } from "@shared/schema";
+import { type User, type InsertUser, type UpsertUser, type Subscriber, type InsertSubscriber, type Job, type InsertJob, type CV, type InsertCV } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  upsertUser(user: UpsertUser): Promise<User>;
   createSubscriber(subscriber: InsertSubscriber): Promise<Subscriber>;
   getSubscriberByEmail(email: string): Promise<Subscriber | undefined>;
   getAllSubscribers(): Promise<Subscriber[]>;
@@ -47,6 +48,38 @@ export class MemStorage implements IStorage {
     const user: User = { ...insertUser, id };
     this.users.set(id, user);
     return user;
+  }
+
+  async upsertUser(upsertData: UpsertUser): Promise<User> {
+    const existing = this.users.get(upsertData.id);
+    const now = new Date();
+    
+    if (existing) {
+      const updated: User = {
+        ...existing,
+        email: upsertData.email !== undefined ? upsertData.email : existing.email,
+        firstName: upsertData.firstName !== undefined ? upsertData.firstName : existing.firstName,
+        lastName: upsertData.lastName !== undefined ? upsertData.lastName : existing.lastName,
+        profileImageUrl: upsertData.profileImageUrl !== undefined ? upsertData.profileImageUrl : existing.profileImageUrl,
+        updatedAt: now,
+      };
+      this.users.set(upsertData.id, updated);
+      return updated;
+    } else {
+      const newUser: User = {
+        id: upsertData.id,
+        email: upsertData.email || null,
+        firstName: upsertData.firstName || null,
+        lastName: upsertData.lastName || null,
+        profileImageUrl: upsertData.profileImageUrl || null,
+        roles: [],
+        onboardingComplete: {},
+        createdAt: now,
+        updatedAt: now,
+      };
+      this.users.set(upsertData.id, newUser);
+      return newUser;
+    }
   }
 
   async createSubscriber(insertSubscriber: InsertSubscriber): Promise<Subscriber> {

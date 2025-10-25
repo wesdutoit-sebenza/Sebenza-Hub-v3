@@ -459,17 +459,9 @@ Job Title: ${jobTitle}`;
 
   app.post("/api/profile/candidate", isAuthenticated, async (req, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
-      const fullUser = await storage.getUser(userId);
-      if (!fullUser) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
       const validatedData = insertCandidateProfileSchema.parse({
         ...req.body,
-        userId: userId,
+        userId: req.user!.id,
       });
 
       if (!validatedData.popiaConsentGiven || validatedData.popiaConsentGiven !== 1) {
@@ -481,7 +473,7 @@ Job Title: ${jobTitle}`;
 
       const [existing] = await db.select()
         .from(candidateProfiles)
-        .where(eq(candidateProfiles.userId, userId));
+        .where(eq(candidateProfiles.userId, req.user!.id));
 
       let profile;
       if (existing) {
@@ -491,7 +483,7 @@ Job Title: ${jobTitle}`;
             ...validatedData,
             updatedAt: new Date(),
           })
-          .where(eq(candidateProfiles.userId, userId))
+          .where(eq(candidateProfiles.userId, req.user!.id))
           .returning();
       } else {
         // Create new profile
@@ -503,12 +495,12 @@ Job Title: ${jobTitle}`;
         await queueFraudDetection('candidate_profile', profile.id, profile, profile.userId);
       }
 
-      const onboardingComplete = fullUser.onboardingComplete as any || {};
+      const onboardingComplete = req.user!.onboardingComplete as any || {};
       onboardingComplete.individual = true;
 
       await db.update(users)
         .set({ onboardingComplete })
-        .where(eq(users.id, userId));
+        .where(eq(users.id, req.user!.id));
 
       res.json({
         success: true,
@@ -524,16 +516,8 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.post("/api/organizations", isAuthenticated, async (req, res) => {
+  app.post("/api/organizations", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
-      const fullUser = await storage.getUser(userId);
-      if (!fullUser) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
       const validatedData = insertOrganizationSchema.parse(req.body);
 
       const [organization] = await db.insert(organizations)
@@ -541,21 +525,21 @@ Job Title: ${jobTitle}`;
         .returning();
 
       await db.insert(memberships).values({
-        userId: userId,
+        userId: req.user!.id,
         organizationId: organization.id,
         role: 'owner',
       });
 
       const roleType = organization.type === 'employer' ? 'business' : 'recruiter';
-      const onboardingComplete = fullUser.onboardingComplete as any || {};
+      const onboardingComplete = req.user!.onboardingComplete as any || {};
       onboardingComplete[roleType] = true;
 
       await db.update(users)
         .set({ onboardingComplete })
-        .where(eq(users.id, userId));
+        .where(eq(users.id, req.user!.id));
 
       // Queue fraud detection for organization
-      await queueFraudDetection('organization', organization.id, organization, userId);
+      await queueFraudDetection('organization', organization.id, organization, req.user!.id);
 
       res.json({
         success: true,
@@ -571,11 +555,11 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.get("/api/profile/recruiter", isAuthenticated, async (req, res) => {
+  app.get("/api/profile/recruiter", requireAuth, requireRole('recruiter'), async (req: AuthRequest, res) => {
     try {
       const [profile] = await db.select()
         .from(recruiterProfiles)
-        .where(eq(recruiterProfiles.userId, userId));
+        .where(eq(recruiterProfiles.userId, req.user!.id));
 
       if (!profile) {
         return res.status(404).json({
@@ -594,16 +578,16 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.post("/api/profile/recruiter", isAuthenticated, async (req, res) => {
+  app.post("/api/profile/recruiter", requireAuth, requireRole('recruiter'), async (req: AuthRequest, res) => {
     try {
       const validatedData = insertRecruiterProfileSchema.parse({
         ...req.body,
-        userId: userId,
+        userId: req.user!.id,
       });
 
       const [existing] = await db.select()
         .from(recruiterProfiles)
-        .where(eq(recruiterProfiles.userId, userId));
+        .where(eq(recruiterProfiles.userId, req.user!.id));
 
       if (existing) {
         return res.status(400).json({
@@ -633,11 +617,11 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.put("/api/profile/recruiter", isAuthenticated, async (req, res) => {
+  app.put("/api/profile/recruiter", requireAuth, requireRole('recruiter'), async (req: AuthRequest, res) => {
     try {
       const [existing] = await db.select()
         .from(recruiterProfiles)
-        .where(eq(recruiterProfiles.userId, userId));
+        .where(eq(recruiterProfiles.userId, req.user!.id));
 
       if (!existing) {
         return res.status(404).json({
@@ -650,7 +634,7 @@ Job Title: ${jobTitle}`;
       
       const [profile] = await db.update(recruiterProfiles)
         .set(validatedData)
-        .where(eq(recruiterProfiles.userId, userId))
+        .where(eq(recruiterProfiles.userId, req.user!.id))
         .returning();
 
       res.json({
@@ -670,14 +654,11 @@ Job Title: ${jobTitle}`;
   // === CV SCREENING ENDPOINTS ===
   
   // Create a new screening job
-  app.post("/api/screening/jobs", isAuthenticated, async (req, res) => {
+  app.post("/api/screening/jobs", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const validatedData = insertScreeningJobSchema.parse({
         ...req.body,
-        userId: userId,
+        userId: req.user!.id,
       });
 
       const [job] = await db.insert(screeningJobs)
@@ -699,14 +680,11 @@ Job Title: ${jobTitle}`;
   });
 
   // Get screening jobs for user
-  app.get("/api/screening/jobs", isAuthenticated, async (req, res) => {
+  app.get("/api/screening/jobs", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const jobs = await db.select()
         .from(screeningJobs)
-        .where(eq(screeningJobs.userId, userId))
+        .where(eq(screeningJobs.userId, req.user!.id))
         .orderBy(desc(screeningJobs.createdAt));
 
       res.json({
@@ -723,14 +701,11 @@ Job Title: ${jobTitle}`;
   });
 
   // Get screening dashboard statistics
-  app.get("/api/screening/stats", isAuthenticated, async (req, res) => {
+  app.get("/api/screening/stats", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const jobs = await db.select()
         .from(screeningJobs)
-        .where(eq(screeningJobs.userId, userId));
+        .where(eq(screeningJobs.userId, req.user!.id));
 
       const draftJobs = jobs.filter(j => j.status === 'draft');
       const processingJobs = jobs.filter(j => j.status === 'processing');
@@ -772,16 +747,13 @@ Job Title: ${jobTitle}`;
   });
 
   // Get a specific screening job with results
-  app.get("/api/screening/jobs/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/screening/jobs/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const [job] = await db.select()
         .from(screeningJobs)
         .where(and(
           eq(screeningJobs.id, req.params.id),
-          eq(screeningJobs.userId, userId)
+          eq(screeningJobs.userId, req.user!.id)
         ));
 
       if (!job) {
@@ -817,11 +789,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Upload and process CVs for a screening job
-  app.post("/api/screening/jobs/:id/process", isAuthenticated, async (req, res) => {
+  app.post("/api/screening/jobs/:id/process", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       // Check if AI integration is configured
       if (!isAIConfigured()) {
         return res.status(503).json({
@@ -846,7 +815,7 @@ Job Title: ${jobTitle}`;
         .from(screeningJobs)
         .where(and(
           eq(screeningJobs.id, jobId),
-          eq(screeningJobs.userId, userId)
+          eq(screeningJobs.userId, req.user!.id)
         ));
 
       if (!job) {
@@ -972,16 +941,13 @@ Job Title: ${jobTitle}`;
   });
 
   // Export screening results as JSON
-  app.get("/api/screening/jobs/:id/export", isAuthenticated, async (req, res) => {
+  app.get("/api/screening/jobs/:id/export", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const [job] = await db.select()
         .from(screeningJobs)
         .where(and(
           eq(screeningJobs.id, req.params.id),
-          eq(screeningJobs.userId, userId)
+          eq(screeningJobs.userId, req.user!.id)
         ));
 
       if (!job) {
@@ -1031,11 +997,8 @@ Job Title: ${jobTitle}`;
   // ============================================================================
 
   // Create new candidate
-  app.post("/api/ats/candidates", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const validatedData = insertCandidateSchema.parse(req.body);
       const [candidate] = await db.insert(candidates)
         .values(validatedData)
@@ -1047,7 +1010,7 @@ Job Title: ${jobTitle}`;
       });
 
       // Queue fraud detection for CV upload
-      await queueFraudDetection('cv_upload', candidate.id, candidate, userId);
+      await queueFraudDetection('cv_upload', candidate.id, candidate, req.user!.id);
 
       res.json({
         success: true,
@@ -1065,11 +1028,8 @@ Job Title: ${jobTitle}`;
   });
 
   // List all candidates with optional search/filter
-  app.get("/api/ats/candidates", isAuthenticated, async (req, res) => {
+  app.get("/api/ats/candidates", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const searchQuery = req.query.search as string || '';
       const city = req.query.city as string || '';
       const country = req.query.country as string || '';
@@ -1108,11 +1068,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Get candidates dashboard statistics
-  app.get("/api/ats/stats", isAuthenticated, async (req, res) => {
+  app.get("/api/ats/stats", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const allCandidates = await db.select().from(candidates);
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -1164,11 +1121,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Get single candidate with all related data
-  app.get("/api/ats/candidates/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/ats/candidates/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const candidateId = req.params.id;
 
       const [candidate] = await db.select()
@@ -1240,11 +1194,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Update candidate
-  app.put("/api/ats/candidates/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/ats/candidates/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const candidateId = req.params.id;
       const validatedData = insertCandidateSchema.partial().parse(req.body);
 
@@ -1276,11 +1227,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Delete candidate (cascades to all related records)
-  app.delete("/api/ats/candidates/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/candidates/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const candidateId = req.params.id;
 
       const [deleted] = await db.delete(candidates)
@@ -1311,11 +1259,8 @@ Job Title: ${jobTitle}`;
   // ATS - Experiences Management
   // ============================================================================
 
-  app.post("/api/ats/candidates/:candidateId/experiences", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates/:candidateId/experiences", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { candidateId } = req.params;
       const validatedData = insertExperienceSchema.parse({
         ...req.body,
@@ -1341,11 +1286,8 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.put("/api/ats/experiences/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/ats/experiences/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { id } = req.params;
       const validatedData = insertExperienceSchema.partial().parse(req.body);
 
@@ -1376,11 +1318,8 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.delete("/api/ats/experiences/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/experiences/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { id } = req.params;
 
       const [deleted] = await db.delete(experiences)
@@ -1411,11 +1350,8 @@ Job Title: ${jobTitle}`;
   // ATS - Education Management
   // ============================================================================
 
-  app.post("/api/ats/candidates/:candidateId/education", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates/:candidateId/education", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { candidateId } = req.params;
       const validatedData = insertEducationSchema.parse({
         ...req.body,
@@ -1441,11 +1377,8 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.put("/api/ats/education/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/ats/education/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { id } = req.params;
       const validatedData = insertEducationSchema.partial().parse(req.body);
 
@@ -1476,11 +1409,8 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.delete("/api/ats/education/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/education/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { id } = req.params;
 
       const [deleted] = await db.delete(education)
@@ -1511,11 +1441,8 @@ Job Title: ${jobTitle}`;
   // ATS - Certifications, Projects, Awards Management
   // ============================================================================
 
-  app.post("/api/ats/candidates/:candidateId/certifications", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates/:candidateId/certifications", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { candidateId } = req.params;
       const validatedData = insertCertificationSchema.parse({
         ...req.body,
@@ -1541,11 +1468,8 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.delete("/api/ats/certifications/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/certifications/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { id } = req.params;
       await db.delete(certifications).where(eq(certifications.id, id));
       res.json({ success: true, message: "Certification deleted" });
@@ -1555,11 +1479,8 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.post("/api/ats/candidates/:candidateId/projects", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates/:candidateId/projects", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { candidateId } = req.params;
       const validatedData = insertProjectSchema.parse({
         ...req.body,
@@ -1585,11 +1506,8 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.delete("/api/ats/projects/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/projects/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { id } = req.params;
       await db.delete(projects).where(eq(projects.id, id));
       res.json({ success: true, message: "Project deleted" });
@@ -1599,11 +1517,8 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.post("/api/ats/candidates/:candidateId/awards", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates/:candidateId/awards", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { candidateId } = req.params;
       const validatedData = insertAwardSchema.parse({
         ...req.body,
@@ -1629,11 +1544,8 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.delete("/api/ats/awards/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/awards/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { id } = req.params;
       await db.delete(awards).where(eq(awards.id, id));
       res.json({ success: true, message: "Award deleted" });
@@ -1647,11 +1559,8 @@ Job Title: ${jobTitle}`;
   // ATS - Skills Management
   // ============================================================================
 
-  app.post("/api/ats/candidates/:candidateId/skills", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates/:candidateId/skills", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { candidateId } = req.params;
       const { skillName, kind } = req.body;
 
@@ -1700,11 +1609,8 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.delete("/api/ats/candidates/:candidateId/skills/:skillId", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/candidates/:candidateId/skills/:skillId", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { candidateId, skillId } = req.params;
 
       await db.delete(candidateSkills)
@@ -1761,7 +1667,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Enhanced endpoint: Upload actual file (PDF/DOCX/TXT)
-  app.post("/api/ats/resumes/upload", isAuthenticated, upload.single('file'), async (req, res) => {
+  app.post("/api/ats/resumes/upload", requireAuth, upload.single('file'), async (req: AuthRequest, res) => {
     const uploadedFile = req.file;
 
     try {
@@ -1959,7 +1865,7 @@ Job Title: ${jobTitle}`;
       });
 
       // Queue fraud detection for CV upload
-      await queueFraudDetection('cv_upload', candidateId, newCandidate, userId);
+      await queueFraudDetection('cv_upload', candidateId, newCandidate, req.user!.id);
 
       res.json({
         success: true,
@@ -1988,11 +1894,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Legacy endpoint: Parse resume from raw text (keep for backwards compatibility)
-  app.post("/api/ats/resumes/parse", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/resumes/parse", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       // Check if AI is configured
       if (!isAIConfiguredForCV()) {
         return res.status(503).json({
@@ -2170,7 +2073,7 @@ Job Title: ${jobTitle}`;
         });
 
         // Queue fraud detection for CV upload
-        await queueFraudDetection('cv_upload', candidateId, newCandidate, userId);
+        await queueFraudDetection('cv_upload', candidateId, newCandidate, req.user!.id);
 
         res.json({
           success: true,
@@ -2201,7 +2104,7 @@ Job Title: ${jobTitle}`;
   // ============================================================================
 
   // Individual resume upload endpoint (file upload)
-  app.post("/api/individuals/resume/upload", isAuthenticated, upload.single('file'), async (req, res) => {
+  app.post("/api/individuals/resume/upload", requireAuth, upload.single('file'), async (req: AuthRequest, res) => {
     const uploadedFile = req.file;
 
     try {
@@ -2223,7 +2126,7 @@ Job Title: ${jobTitle}`;
       // Check if user already has a candidate profile
       const existingCandidate = await db.select()
         .from(candidates)
-        .where(eq(candidates.userId, userId))
+        .where(eq(candidates.userId, req.user!.id))
         .limit(1);
 
       if (existingCandidate.length > 0) {
@@ -2258,7 +2161,7 @@ Job Title: ${jobTitle}`;
       // Create candidate and all related records
       const [newCandidate] = await db.insert(candidates)
         .values({
-          userId: userId, // Link to authenticated user
+          userId: req.user!.id, // Link to authenticated user
           fullName: parsedCandidate.full_name || null,
           headline: parsedCandidate.headline || null,
           email: parsedCandidate.contact?.email || req.user!.email || null,
@@ -2409,7 +2312,7 @@ Job Title: ${jobTitle}`;
       });
 
       // Queue fraud detection for CV upload
-      await queueFraudDetection('cv_upload', candidateId, newCandidate, userId);
+      await queueFraudDetection('cv_upload', candidateId, newCandidate, req.user!.id);
 
       res.json({
         success: true,
@@ -2438,15 +2341,12 @@ Job Title: ${jobTitle}`;
   });
 
   // Get individual's own profile (complete with all details)
-  app.get("/api/individuals/profile", isAuthenticated, async (req, res) => {
+  app.get("/api/individuals/profile", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       // Get candidate profile linked to this user
       const [profile] = await db.select()
         .from(candidateProfiles)
-        .where(eq(candidateProfiles.userId, userId))
+        .where(eq(candidateProfiles.userId, req.user!.id))
         .limit(1);
 
       if (!profile) {
@@ -2472,15 +2372,12 @@ Job Title: ${jobTitle}`;
   });
 
   // Update individual's profile
-  app.put("/api/individuals/profile", isAuthenticated, async (req, res) => {
+  app.put("/api/individuals/profile", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       // Get candidate profile linked to this user
       const [profile] = await db.select()
         .from(candidateProfiles)
-        .where(eq(candidateProfiles.userId, userId))
+        .where(eq(candidateProfiles.userId, req.user!.id))
         .limit(1);
 
       if (!profile) {
@@ -2529,11 +2426,8 @@ Job Title: ${jobTitle}`;
   // ===== INTERVIEW COACH ENDPOINTS =====
   
   // Start interview coach session
-  app.post("/api/interview-coach/start", isAuthenticated, async (req, res) => {
+  app.post("/api/interview-coach/start", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { config, context } = req.body;
       
       const { startInterviewSession } = await import("./interview-coach");
@@ -2554,11 +2448,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Send message to interview coach
-  app.post("/api/interview-coach/chat", isAuthenticated, async (req, res) => {
+  app.post("/api/interview-coach/chat", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { sessionId, message } = req.body;
       
       if (!sessionId || !message) {
@@ -2585,11 +2476,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Get session transcript
-  app.get("/api/interview-coach/transcript/:sessionId", isAuthenticated, async (req, res) => {
+  app.get("/api/interview-coach/transcript/:sessionId", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { sessionId } = req.params;
       
       const { getSessionTranscript } = await import("./interview-coach");
@@ -2609,11 +2497,8 @@ Job Title: ${jobTitle}`;
   });
 
   // End interview coach session
-  app.post("/api/interview-coach/end", isAuthenticated, async (req, res) => {
+  app.post("/api/interview-coach/end", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { sessionId } = req.body;
       
       const { endSession } = await import("./interview-coach");
@@ -2633,11 +2518,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Individual resume parse endpoint (text paste)
-  app.post("/api/individuals/resume/parse", isAuthenticated, async (req, res) => {
+  app.post("/api/individuals/resume/parse", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       // Check if AI is configured
       if (!isAIConfiguredForCV()) {
         return res.status(503).json({
@@ -2649,7 +2531,7 @@ Job Title: ${jobTitle}`;
       // Check if user already has a candidate profile
       const existingCandidate = await db.select()
         .from(candidates)
-        .where(eq(candidates.userId, userId))
+        .where(eq(candidates.userId, req.user!.id))
         .limit(1);
 
       if (existingCandidate.length > 0) {
@@ -2683,7 +2565,7 @@ Job Title: ${jobTitle}`;
       // Create candidate and all related records
       const [newCandidate] = await db.insert(candidates)
         .values({
-          userId: userId, // Link to authenticated user
+          userId: req.user!.id, // Link to authenticated user
           fullName: parsedCandidate.full_name || null,
           headline: parsedCandidate.headline || null,
           email: parsedCandidate.contact?.email || req.user!.email || null,
@@ -2834,7 +2716,7 @@ Job Title: ${jobTitle}`;
       });
 
       // Queue fraud detection for CV upload
-      await queueFraudDetection('cv_upload', candidateId, newCandidate, userId);
+      await queueFraudDetection('cv_upload', candidateId, newCandidate, req.user!.id);
 
       res.json({
         success: true,
@@ -2857,17 +2739,14 @@ Job Title: ${jobTitle}`;
   // ============================================================================
 
   // Create a new role
-  app.post("/api/roles", isAuthenticated, async (req, res) => {
+  app.post("/api/roles", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const validatedData = insertRoleSchema.parse(req.body);
       
       const [role] = await db.insert(roles)
         .values({
           ...validatedData,
-          createdBy: userId,
+          createdBy: req.user!.id,
         })
         .returning();
 
@@ -2887,11 +2766,8 @@ Job Title: ${jobTitle}`;
   });
 
   // List all roles with optional filtering
-  app.get("/api/roles", isAuthenticated, async (req, res) => {
+  app.get("/api/roles", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const isActiveFilter = req.query.isActive;
       const createdBy = req.query.createdBy as string;
 
@@ -2925,11 +2801,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Get roles dashboard statistics
-  app.get("/api/roles/stats", isAuthenticated, async (req, res) => {
+  app.get("/api/roles/stats", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const allRoles = await db.select().from(roles);
       const activeRoles = allRoles.filter(r => r.isActive === 1);
       const inactiveRoles = allRoles.filter(r => r.isActive === 0);
@@ -2981,11 +2854,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Get a single role by ID
-  app.get("/api/roles/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/roles/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const roleId = req.params.id;
 
       const [role] = await db.select()
@@ -3013,11 +2883,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Update a role
-  app.patch("/api/roles/:id", isAuthenticated, async (req, res) => {
+  app.patch("/api/roles/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const roleId = req.params.id;
       const updates = req.body;
 
@@ -3054,11 +2921,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Soft delete a role (set isActive = 0)
-  app.delete("/api/roles/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/roles/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const roleId = req.params.id;
 
       const [deactivatedRole] = await db.update(roles)
@@ -3088,11 +2952,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Screen ATS candidates against a role
-  app.post("/api/roles/:roleId/screen", isAuthenticated, async (req, res) => {
+  app.post("/api/roles/:roleId/screen", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const roleId = req.params.roleId;
       const { candidateIds } = req.body; // Array of candidate IDs to screen
 
@@ -3280,11 +3141,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Get all screenings for a role (ranked by score)
-  app.get("/api/roles/:roleId/screenings", isAuthenticated, async (req, res) => {
+  app.get("/api/roles/:roleId/screenings", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const roleId = req.params.roleId;
 
       const allScreenings = await db.select({
@@ -3319,11 +3177,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Get all screenings for a candidate
-  app.get("/api/candidates/:candidateId/screenings", isAuthenticated, async (req, res) => {
+  app.get("/api/candidates/:candidateId/screenings", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const candidateId = req.params.candidateId;
 
       const allScreenings = await db.select({
@@ -3358,11 +3213,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Delete a screening result
-  app.delete("/api/screenings/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/screenings/:id", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const screeningId = req.params.id;
 
       const deletedScreening = await db.delete(screenings)
@@ -3394,14 +3246,11 @@ Job Title: ${jobTitle}`;
   // ========================================
   
   // Get individual's candidate profile
-  app.get("/api/individual/profile", isAuthenticated, async (req, res) => {
+  app.get("/api/individual/profile", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const [profile] = await db.select()
         .from(candidateProfiles)
-        .where(eq(candidateProfiles.userId, userId));
+        .where(eq(candidateProfiles.userId, req.user!.id));
 
       if (!profile) {
         return res.status(404).json({
@@ -3424,11 +3273,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Update individual's candidate profile
-  app.patch("/api/individual/profile", isAuthenticated, async (req, res) => {
+  app.patch("/api/individual/profile", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const updateData = {
         ...req.body,
         updatedAt: new Date(),
@@ -3436,7 +3282,7 @@ Job Title: ${jobTitle}`;
 
       const [updatedProfile] = await db.update(candidateProfiles)
         .set(updateData)
-        .where(eq(candidateProfiles.userId, userId))
+        .where(eq(candidateProfiles.userId, req.user!.id))
         .returning();
 
       if (!updatedProfile) {
@@ -3461,19 +3307,16 @@ Job Title: ${jobTitle}`;
   });
 
   // Get individual's job preferences
-  app.get("/api/individual/preferences", isAuthenticated, async (req, res) => {
+  app.get("/api/individual/preferences", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       let [preferences] = await db.select()
         .from(individualPreferences)
-        .where(eq(individualPreferences.userId, userId));
+        .where(eq(individualPreferences.userId, req.user!.id));
 
       // Create default preferences if they don't exist
       if (!preferences) {
         [preferences] = await db.insert(individualPreferences)
-          .values({ userId: userId })
+          .values({ userId: req.user!.id })
           .returning();
       }
 
@@ -3491,11 +3334,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Update individual's job preferences
-  app.patch("/api/individual/preferences", isAuthenticated, async (req, res) => {
+  app.patch("/api/individual/preferences", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const updateData = {
         ...req.body,
         updatedAt: new Date(),
@@ -3504,18 +3344,18 @@ Job Title: ${jobTitle}`;
       // Check if preferences exist
       const [existing] = await db.select()
         .from(individualPreferences)
-        .where(eq(individualPreferences.userId, userId));
+        .where(eq(individualPreferences.userId, req.user!.id));
 
       let updatedPreferences;
       
       if (existing) {
         [updatedPreferences] = await db.update(individualPreferences)
           .set(updateData)
-          .where(eq(individualPreferences.userId, userId))
+          .where(eq(individualPreferences.userId, req.user!.id))
           .returning();
       } else {
         [updatedPreferences] = await db.insert(individualPreferences)
-          .values({ userId: userId, ...updateData })
+          .values({ userId: req.user!.id, ...updateData })
           .returning();
       }
 
@@ -3534,19 +3374,16 @@ Job Title: ${jobTitle}`;
   });
 
   // Get individual's notification settings
-  app.get("/api/individual/notifications", isAuthenticated, async (req, res) => {
+  app.get("/api/individual/notifications", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       let [settings] = await db.select()
         .from(individualNotificationSettings)
-        .where(eq(individualNotificationSettings.userId, userId));
+        .where(eq(individualNotificationSettings.userId, req.user!.id));
 
       // Create default settings if they don't exist
       if (!settings) {
         [settings] = await db.insert(individualNotificationSettings)
-          .values({ userId: userId })
+          .values({ userId: req.user!.id })
           .returning();
       }
 
@@ -3564,11 +3401,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Update individual's notification settings
-  app.patch("/api/individual/notifications", isAuthenticated, async (req, res) => {
+  app.patch("/api/individual/notifications", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const updateData = {
         ...req.body,
         updatedAt: new Date(),
@@ -3577,18 +3411,18 @@ Job Title: ${jobTitle}`;
       // Check if settings exist
       const [existing] = await db.select()
         .from(individualNotificationSettings)
-        .where(eq(individualNotificationSettings.userId, userId));
+        .where(eq(individualNotificationSettings.userId, req.user!.id));
 
       let updatedSettings;
       
       if (existing) {
         [updatedSettings] = await db.update(individualNotificationSettings)
           .set(updateData)
-          .where(eq(individualNotificationSettings.userId, userId))
+          .where(eq(individualNotificationSettings.userId, req.user!.id))
           .returning();
       } else {
         [updatedSettings] = await db.insert(individualNotificationSettings)
-          .values({ userId: userId, ...updateData })
+          .values({ userId: req.user!.id, ...updateData })
           .returning();
       }
 
@@ -3607,18 +3441,15 @@ Job Title: ${jobTitle}`;
   });
 
   // Delete account request (soft delete - just marks data for deletion)
-  app.post("/api/individual/delete-account", isAuthenticated, async (req, res) => {
+  app.post("/api/individual/delete-account", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       // In a production app, this would:
       // 1. Mark account for deletion
       // 2. Send confirmation email
       // 3. Schedule actual deletion after grace period
       // For now, we'll just log the request
       
-      console.log(`Account deletion requested for user ${userId}`);
+      console.log(`Account deletion requested for user ${req.user!.id}`);
       
       res.json({
         success: true,
@@ -3638,11 +3469,8 @@ Job Title: ${jobTitle}`;
   // ============================================================================
 
   // Get all fraud detections with filters
-  app.get("/api/admin/fraud-detections", isAuthenticated, async (req, res) => {
+  app.get("/api/admin/fraud-detections", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       // TODO: Add proper admin role check here
       // For now, any authenticated user can access (replace with admin check later)
       
@@ -3687,11 +3515,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Get fraud detection statistics
-  app.get("/api/admin/fraud-detections/stats", isAuthenticated, async (req, res) => {
+  app.get("/api/admin/fraud-detections/stats", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       // Get counts by status
       const statusCounts = await db.select({
         status: fraudDetections.status,
@@ -3734,18 +3559,15 @@ Job Title: ${jobTitle}`;
   });
 
   // Approve flagged content
-  app.post("/api/admin/fraud-detections/:id/approve", isAuthenticated, async (req, res) => {
+  app.post("/api/admin/fraud-detections/:id/approve", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { id } = req.params;
       const { notes } = req.body;
 
       const [updated] = await db.update(fraudDetections)
         .set({
           status: 'approved',
-          reviewedBy: userId,
+          reviewedBy: req.user!.id,
           reviewedAt: new Date(),
           reviewNotes: notes || null,
           actionTaken: 'approved',
@@ -3775,11 +3597,8 @@ Job Title: ${jobTitle}`;
   });
 
   // Reject flagged content
-  app.post("/api/admin/fraud-detections/:id/reject", isAuthenticated, async (req, res) => {
+  app.post("/api/admin/fraud-detections/:id/reject", requireAuth, async (req: AuthRequest, res) => {
     try {
-      const user = req.user as any;
-      const userId = user.claims.sub;
-
       const { id } = req.params;
       const { notes, action } = req.body;
 
@@ -3789,7 +3608,7 @@ Job Title: ${jobTitle}`;
       const [updated] = await db.update(fraudDetections)
         .set({
           status: 'rejected',
-          reviewedBy: userId,
+          reviewedBy: req.user!.id,
           reviewedAt: new Date(),
           reviewNotes: notes || null,
           actionTaken,

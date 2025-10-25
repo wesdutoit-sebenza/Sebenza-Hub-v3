@@ -1,41 +1,51 @@
-import { pgTable, text, varchar, timestamp, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, jsonb, index } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
 
+// Session storage table for Replit Auth
+// (IMPORTANT) This table is mandatory for Replit Auth, don't drop it.
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
 // Users table - single source of truth for all accounts
+// Updated to support Replit Auth (OpenID Connect) fields
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: text("email").notNull().unique(),
-  roles: text("roles").array().notNull().default(sql`'{}'::text[]`), // 'individual', 'business', 'recruiter'
-  onboardingComplete: jsonb("onboarding_complete").notNull().default(sql`'{}'::jsonb`), // { individual: true, business: false }
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`), // Replit Auth: stores user sub claim
+  email: varchar("email").unique(), // Replit Auth: can be null for some login methods
+  firstName: varchar("first_name"), // Replit Auth: from OIDC profile
+  lastName: varchar("last_name"), // Replit Auth: from OIDC profile
+  profileImageUrl: varchar("profile_image_url"), // Replit Auth: from OIDC profile
+  roles: text("roles").array().notNull().default(sql`'{}'::text[]`), // Sebenza Hub: 'individual', 'business', 'recruiter'
+  onboardingComplete: jsonb("onboarding_complete").notNull().default(sql`'{}'::jsonb`), // Sebenza Hub: { individual: true, business: false }
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// UpsertUser type for Replit Auth integration
+export type UpsertUser = {
+  id: string;
+  email?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  profileImageUrl?: string | null;
+};
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
-
-// Magic link tokens for passwordless auth
-export const magicTokens = pgTable("magic_tokens", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  token: text("token").notNull().unique(),
-  email: text("email").notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
-
-export const insertMagicTokenSchema = createInsertSchema(magicTokens).omit({
-  id: true,
-  createdAt: true,
-});
-
-export type InsertMagicToken = z.infer<typeof insertMagicTokenSchema>;
-export type MagicToken = typeof magicTokens.$inferSelect;
 
 // Organizations - for businesses and recruiting agencies
 export const organizations = pgTable("organizations", {
