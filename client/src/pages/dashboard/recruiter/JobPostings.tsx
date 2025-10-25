@@ -285,6 +285,7 @@ export default function RecruiterJobPostings() {
             {/* Core Details */}
             <FormSection title="Core Details" description="Essential job information">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Row 1: Job Title, Department */}
                 <FormField
                   control={form.control}
                   name="title"
@@ -313,6 +314,30 @@ export default function RecruiterJobPostings() {
                   )}
                 />
 
+                {/* Row 2: Industry, Employment Type */}
+                <FormField
+                  control={form.control}
+                  name="industry"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Industry *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-industry">
+                            <SelectValue placeholder="Select industry" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {INDUSTRIES.map((ind) => (
+                            <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="employmentType"
@@ -336,6 +361,7 @@ export default function RecruiterJobPostings() {
                   )}
                 />
 
+                {/* Row 3: Seniority Level, Work Arrangement */}
                 <FormField
                   control={form.control}
                   name="core.seniority"
@@ -548,7 +574,7 @@ export default function RecruiterJobPostings() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <FormField
                   control={form.control}
                   name="core.minQualifications"
@@ -579,29 +605,6 @@ export default function RecruiterJobPostings() {
                           data-testid="input-years-experience"
                         />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="industry"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Industry</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-industry">
-                            <SelectValue placeholder="Select industry" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {INDUSTRIES.map((ind) => (
-                            <SelectItem key={ind} value={ind}>{ind}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
