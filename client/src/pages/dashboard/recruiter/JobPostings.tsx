@@ -50,6 +50,7 @@ import { JOB_TITLES } from "@shared/jobTitles";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
+import { GoogleAddressSearch } from "@/components/GoogleAddressSearch";
 
 type FormData = z.infer<typeof insertJobSchema>;
 
@@ -228,7 +229,7 @@ export default function RecruiterJobPostings() {
     fields: respFields,
     append: respAppend,
     remove: respRemove,
-  } = useFieldArray({ control: form.control, name: "core.responsibilities" as const });
+  } = useFieldArray({ control: form.control, name: "core.responsibilities" });
 
   const workArrangement = form.watch("core.workArrangement");
   const applicationMethod = form.watch("application.method");
@@ -585,6 +586,52 @@ export default function RecruiterJobPostings() {
                         <FormControl>
                           <Input placeholder="e.g., 2000" {...field} data-testid="input-postal-code" />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <FormField
+                    control={form.control}
+                    name="core.location.address"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Address (Google Search)</FormLabel>
+                        <FormControl>
+                          <GoogleAddressSearch
+                            value={field.value}
+                            onChange={(address, placeDetails) => {
+                              field.onChange(address);
+                              
+                              if (placeDetails?.address_components) {
+                                const components = placeDetails.address_components;
+                                
+                                const city = components.find(c => 
+                                  c.types.includes('locality') || c.types.includes('sublocality')
+                                )?.long_name;
+                                
+                                const province = components.find(c => 
+                                  c.types.includes('administrative_area_level_1')
+                                )?.long_name;
+                                
+                                const postalCode = components.find(c => 
+                                  c.types.includes('postal_code')
+                                )?.long_name;
+                                
+                                if (city) form.setValue('core.location.city', city);
+                                if (province) form.setValue('core.location.province', province);
+                                if (postalCode) form.setValue('core.location.postalCode', postalCode);
+                              }
+                            }}
+                            placeholder="Search for an address..."
+                            data-testid="input-address-search"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Start typing to search for an address. This will auto-fill city, province, and postal code.
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

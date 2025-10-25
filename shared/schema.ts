@@ -190,6 +190,7 @@ export const jobs = pgTable("jobs", {
 export const jobLocationSchema = z.object({
   country: z.string().default("South Africa"),
   province: z.string().optional(),
+  address: z.string().optional(), // Full address from Google Places API
   city: z.string().optional(),
   suburb: z.string().optional(),
   postalCode: z.string().optional(),
