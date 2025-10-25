@@ -4,7 +4,7 @@
 Sebenza Hub is a marketing website for a South African recruiting platform focused on transparency, compliance, and WhatsApp-first hiring. It targets recruiters, businesses, and job seekers with distinct landing pages. The platform aims to capture early-access subscribers and showcases a modern, minimal design. It is a full-stack TypeScript application utilizing a React frontend and an Express backend, built for performance, accessibility, and mobile-first responsiveness. The project's ambition is to become a leading recruiting solution in South Africa, streamlining hiring processes and enhancing candidate experience.
 
 ## Recent Changes (October 25, 2025)
-- **Google Address Search Integration**: Added Google Places API autocomplete for job posting addresses. New `address` field in `core.location` schema with GoogleAddressSearch component (`client/src/components/GoogleAddressSearch.tsx`). Component uses `@googlemaps/js-api-loader` to load Google Maps Places API and provides autocomplete restricted to South Africa. When user selects an address, it auto-fills city, province, and postal code fields. Configured VITE_GOOGLE_MAPS_API_KEY environment variable. Address field appears below Province field in job posting form with descriptive helper text.
+- **Google Address Search Integration**: Added Google Places API autocomplete for job posting addresses. New `address` field in `core.location` schema with GoogleAddressSearch component (`client/src/components/GoogleAddressSearch.tsx`). Component loads Google Maps JavaScript API directly via script tag and provides autocomplete restricted to South Africa. When user selects an address, it auto-fills city, province, and postal code fields. Configured VITE_GOOGLE_MAPS_API_KEY environment variable. Address field appears below Province field in job posting form with descriptive helper text.
 - **Job Industry System**: Separated industry into two distinct fields: `jobIndustry` (the industry/sector the job role is in) and `companyDetails.industry` (the industry the company operates in). Updated schema, form labels ("Job Industry" and "Company Industry"), and backward compatibility mapping. Job Title changed to dropdown using JOB_TITLES list (398 SA job titles) with "Other" option for custom titles. Form layout reorganized: Row 1 (Job Title, Department), Row 2 (Job Industry, Employment Type), Row 3 (Seniority Level, Work Arrangement).
 
 ## Previous Changes (October 24, 2025)
@@ -62,4 +62,4 @@ Preferred communication style: Simple, everyday language.
 - **Utilities**: date-fns, clsx, tailwind-merge, class-variance-authority.
 - **AI**: OpenAI GPT-4o, OpenAI GPT-4o-mini, OpenAI text-embedding-3-small.
 - **Email**: Resend.
-- **Maps & Geolocation**: Google Maps JavaScript API (@googlemaps/js-api-loader, @types/google.maps).
+- **Maps & Geolocation**: Google Maps JavaScript API (loaded via script tag, @types/google.maps).

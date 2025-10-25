@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader } from "@googlemaps/js-api-loader";
 import { Input } from "@/components/ui/input";
 
 interface GoogleAddressSearchProps {
@@ -32,18 +31,37 @@ export function GoogleAddressSearch({
       return;
     }
 
-    const loader = new Loader({
-      apiKey,
-      version: "weekly",
-      libraries: ["places"],
-    });
+    // Load Google Maps script manually
+    const loadGoogleMaps = async () => {
+      try {
+        // Check if already loaded
+        if (window.google?.maps?.places) {
+          setIsLoaded(true);
+          return;
+        }
 
-    (loader as any).load().then(() => {
-      setIsLoaded(true);
-    }).catch((err: Error) => {
-      console.error("Failed to load Google Maps:", err);
-      setError("Failed to load Google Maps");
-    });
+        // Create and load the script
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
+        script.async = true;
+        script.defer = true;
+        
+        script.onload = () => {
+          setIsLoaded(true);
+        };
+        
+        script.onerror = () => {
+          setError("Failed to load Google Maps");
+        };
+        
+        document.head.appendChild(script);
+      } catch (err) {
+        console.error("Failed to load Google Maps:", err);
+        setError("Failed to load Google Maps");
+      }
+    };
+
+    loadGoogleMaps();
   }, []);
 
   useEffect(() => {
