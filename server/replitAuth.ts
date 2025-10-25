@@ -213,7 +213,7 @@ export async function setupAuth(app: Express) {
     const authDomain = domains.includes(req.hostname) ? req.hostname : domains[0];
     
     passport.authenticate(`replitauth:${authDomain}`, {
-      successReturnToOrRedirect: "/",
+      successReturnToOrRedirect: "/onboarding",
       failureRedirect: "/api/login",
     })(req, res, next);
   });
