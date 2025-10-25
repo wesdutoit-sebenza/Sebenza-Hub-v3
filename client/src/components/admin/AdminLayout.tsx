@@ -77,11 +77,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return (
     <SidebarProvider style={style as React.CSSProperties}>
-      <div className="flex h-screen w-full">
+      <div className="flex min-h-screen w-full">
         <Sidebar data-testid="admin-sidebar">
-          <SidebarContent>
+          <SidebarContent className="pt-20">
             <SidebarGroup>
-              <SidebarGroupLabel className="text-lg font-semibold">
+              <SidebarGroupLabel className="text-lg font-semibold px-4 mb-4">
                 Admin Dashboard
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -102,7 +102,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </SidebarContent>
         </Sidebar>
         
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto bg-background">
           {children}
         </main>
       </div>
