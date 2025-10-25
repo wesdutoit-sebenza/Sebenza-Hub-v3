@@ -47,6 +47,7 @@ import {
   COMMON_BENEFITS,
 } from "@shared/jobTaxonomies";
 import { JOB_TITLES, JOB_TITLES_BY_INDUSTRY, getIndustryForJobTitle } from "@shared/jobTitles";
+import { CITIES_BY_PROVINCE, getLocationDataForCity } from "@shared/cities";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
@@ -564,10 +565,39 @@ export default function RecruiterJobPostings() {
                     name="core.location.city"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>City {workArrangement !== "Remote" && "*"}</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Johannesburg" {...field} data-testid="input-city" />
-                        </FormControl>
+                        <FormLabel>City / Town {workArrangement !== "Remote" && "*"}</FormLabel>
+                        <Select 
+                          onValueChange={(value) => {
+                            field.onChange(value);
+                            // Auto-fill province and postal code based on selected city
+                            const locationData = getLocationDataForCity(value);
+                            if (locationData) {
+                              form.setValue("core.location.province", locationData.province);
+                              form.setValue("core.location.postalCode", locationData.postalCode);
+                            }
+                          }} 
+                          value={field.value}
+                        >
+                          <FormControl>
+                            <SelectTrigger data-testid="select-city">
+                              <SelectValue placeholder="Select city / town" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="max-h-[300px]">
+                            {CITIES_BY_PROVINCE.map((provinceData) => (
+                              <div key={provinceData.province}>
+                                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                                  {provinceData.province}
+                                </div>
+                                {provinceData.cities.map((cityData) => (
+                                  <SelectItem key={`${provinceData.province}-${cityData.city}`} value={cityData.city}>
+                                    {cityData.city}
+                                  </SelectItem>
+                                ))}
+                              </div>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -579,18 +609,19 @@ export default function RecruiterJobPostings() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Province {workArrangement !== "Remote" && "*"}</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-province">
-                              <SelectValue placeholder="Select province" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {SA_PROVINCES.map((prov) => (
-                              <SelectItem key={prov} value={prov}>{prov}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            readOnly 
+                            disabled
+                            placeholder="Select a city to auto-fill"
+                            className="bg-muted"
+                            data-testid="input-province-readonly"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Auto-filled based on selected city
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -603,8 +634,18 @@ export default function RecruiterJobPostings() {
                       <FormItem>
                         <FormLabel>Postal Code</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., 2000" {...field} data-testid="input-postal-code" />
+                          <Input 
+                            {...field} 
+                            readOnly 
+                            disabled
+                            placeholder="Select a city to auto-fill"
+                            className="bg-muted"
+                            data-testid="input-postal-code-readonly"
+                          />
                         </FormControl>
+                        <FormDescription>
+                          Auto-filled based on selected city
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
