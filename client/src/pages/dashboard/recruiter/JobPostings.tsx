@@ -276,7 +276,7 @@ export default function RecruiterJobPostings() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Job Title *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-job-title">
                             <SelectValue placeholder="Select job title" />
@@ -295,26 +295,6 @@ export default function RecruiterJobPostings() {
                   )}
                 />
 
-                {selectedTitle === "Other" && (
-                  <FormField
-                    control={form.control}
-                    name="customTitle"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Specify Job Title *</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder="Enter job title"
-                            data-testid="input-custom-job-title"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
                 <FormField
                   control={form.control}
                   name="company"
@@ -332,6 +312,29 @@ export default function RecruiterJobPostings() {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {selectedTitle === "Other" && (
+                <FormField
+                  control={form.control}
+                  name="customTitle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Specify Job Title *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter job title"
+                          data-testid="input-custom-job-title"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 <FormField
                   control={form.control}
@@ -339,7 +342,7 @@ export default function RecruiterJobPostings() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Location *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-location">
                             <SelectValue placeholder="Select location" />
@@ -364,7 +367,7 @@ export default function RecruiterJobPostings() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Employment Type *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-employment-type">
                             <SelectValue placeholder="Select type" />
@@ -429,7 +432,7 @@ export default function RecruiterJobPostings() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Industry *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-industry">
                             <SelectValue placeholder="Select industry" />
@@ -456,7 +459,7 @@ export default function RecruiterJobPostings() {
                       name="countryCode"
                       render={({ field }) => (
                         <FormItem className="w-[180px]">
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-country-code">
                                 <SelectValue placeholder="Code" />

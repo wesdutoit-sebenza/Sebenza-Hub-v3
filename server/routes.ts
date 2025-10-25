@@ -151,7 +151,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/jobs/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const validatedData = insertJobSchema.partial().parse(req.body);
+      
+      // Create a partial update schema without the refine constraint
+      const updateJobSchema = z.object({
+        organizationId: z.string().optional(),
+        postedByUserId: z.string().optional(),
+        title: z.string().optional(),
+        company: z.string().optional(),
+        location: z.string().optional(),
+        salaryMin: z.number().optional(),
+        salaryMax: z.number().optional(),
+        description: z.string().optional(),
+        requirements: z.string().optional(),
+        whatsappContact: z.string().optional(),
+        employmentType: z.string().optional(),
+        industry: z.string().optional(),
+      });
+      
+      const validatedData = updateJobSchema.parse(req.body);
+      
+      // If both salary fields are present, validate the constraint manually
+      if (validatedData.salaryMin !== undefined && validatedData.salaryMax !== undefined) {
+        if (validatedData.salaryMin > validatedData.salaryMax) {
+          return res.status(400).json({
+            success: false,
+            message: "Minimum salary must be less than or equal to maximum salary.",
+          });
+        }
+      }
+      
       const job = await storage.updateJob(id, validatedData);
       
       if (!job) {
