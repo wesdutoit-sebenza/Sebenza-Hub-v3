@@ -115,15 +115,51 @@ export function JobDescriptionAIDialog({
 
         <div className="space-y-4 py-4">
           {/* Job Context Preview */}
-          <div className="rounded-lg border bg-muted/50 p-4 space-y-1">
+          <div className="rounded-lg border bg-muted/50 p-4 space-y-2">
             <p className="text-sm font-medium">Job Context:</p>
-            <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
-              {jobContext.jobTitle && <div>• {jobContext.jobTitle}</div>}
-              {jobContext.companyName && <div>• {jobContext.companyName}</div>}
-              {jobContext.jobIndustry && <div>• {jobContext.jobIndustry}</div>}
-              {jobContext.seniorityLevel && <div>• {jobContext.seniorityLevel}</div>}
-              {jobContext.employmentType && <div>• {jobContext.employmentType}</div>}
-              {jobContext.workArrangement && <div>• {jobContext.workArrangement}</div>}
+            <div className="space-y-1.5 text-sm">
+              {jobContext.jobTitle && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground min-w-[140px]">Job Title:</span>
+                  <span className="font-medium">{jobContext.jobTitle}</span>
+                </div>
+              )}
+              {jobContext.companyName && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground min-w-[140px]">Company:</span>
+                  <span className="font-medium">{jobContext.companyName}</span>
+                </div>
+              )}
+              {jobContext.industry && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground min-w-[140px]">Company Industry:</span>
+                  <span className="font-medium">{jobContext.industry}</span>
+                </div>
+              )}
+              {jobContext.jobIndustry && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground min-w-[140px]">Job Industry:</span>
+                  <span className="font-medium">{jobContext.jobIndustry}</span>
+                </div>
+              )}
+              {jobContext.seniorityLevel && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground min-w-[140px]">Seniority Level:</span>
+                  <span className="font-medium">{jobContext.seniorityLevel}</span>
+                </div>
+              )}
+              {jobContext.employmentType && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground min-w-[140px]">Employment Type:</span>
+                  <span className="font-medium">{jobContext.employmentType}</span>
+                </div>
+              )}
+              {jobContext.workArrangement && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground min-w-[140px]">Work Arrangement:</span>
+                  <span className="font-medium">{jobContext.workArrangement}</span>
+                </div>
+              )}
             </div>
           </div>
 
