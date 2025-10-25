@@ -330,7 +330,7 @@ export const insertJobSchema = z.object({
   application: jobApplicationSchema,
   
   // Company info
-  company: z.string().min(2), // legacy
+  company: z.string().min(2).optional(), // legacy - auto-populated from companyDetails.name
   companyDetails: jobCompanyDetailsSchema,
   
   // Optional rich data

@@ -235,6 +235,7 @@ export default function RecruiterJobPostings() {
       const locationParts = [data.core?.location?.city, data.core?.location?.province].filter(Boolean);
       const transformedData = {
         ...data,
+        company: data.companyDetails?.name || "", // Populate legacy company field
         location: locationParts.length > 0 ? locationParts.join(", ") : undefined,
         salaryMin: data.compensation?.min,
         salaryMax: data.compensation?.max,
