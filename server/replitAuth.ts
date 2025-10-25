@@ -222,3 +222,31 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     return;
   }
 };
+
+// Admin middleware - requires authentication and admin role
+export const requireAdmin: RequestHandler = async (req, res, next) => {
+  const user = req.user as any;
+  
+  if (!req.isAuthenticated() || !user?.claims?.sub) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+
+  try {
+    const userId = user.claims.sub;
+    const fullUser = await storage.getUser(userId);
+    
+    if (!fullUser) {
+      return res.status(401).json({ error: "User not found" });
+    }
+
+    const userRoles = fullUser.roles || [];
+    if (!userRoles.includes('admin')) {
+      return res.status(403).json({ error: "Admin access required" });
+    }
+
+    next();
+  } catch (error) {
+    console.error("[Auth] Error checking admin role:", error);
+    res.status(500).json({ error: "Failed to verify admin access" });
+  }
+};

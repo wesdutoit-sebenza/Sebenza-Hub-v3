@@ -23,7 +23,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"), // Replit Auth: from OIDC profile
   lastName: varchar("last_name"), // Replit Auth: from OIDC profile
   profileImageUrl: varchar("profile_image_url"), // Replit Auth: from OIDC profile
-  roles: text("roles").array().notNull().default(sql`'{}'::text[]`), // Sebenza Hub: 'individual', 'business', 'recruiter'
+  roles: text("roles").array().notNull().default(sql`'{}'::text[]`), // Sebenza Hub: 'individual', 'business', 'recruiter', 'admin'
   onboardingComplete: jsonb("onboarding_complete").notNull().default(sql`'{}'::jsonb`), // Sebenza Hub: { individual: true, business: false }
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

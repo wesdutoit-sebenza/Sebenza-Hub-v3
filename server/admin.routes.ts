@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth, requireAdmin, type AuthRequest } from "./auth";
+import { isAuthenticated, requireAdmin } from "./replitAuth";
 import { db } from "./db";
 import { users, candidateProfiles, recruiterProfiles, organizations, memberships, candidates, resumes, roles, screenings, fraudDetections } from "@shared/schema";
 import { eq, desc, and, sql, or, like, ilike } from "drizzle-orm";
@@ -7,7 +7,7 @@ import { eq, desc, and, sql, or, like, ilike } from "drizzle-orm";
 const router = Router();
 
 // All admin routes require authentication and admin role
-router.use(requireAuth);
+router.use(isAuthenticated);
 router.use(requireAdmin);
 
 // ===========================
