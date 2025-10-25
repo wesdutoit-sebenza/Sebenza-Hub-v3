@@ -169,6 +169,8 @@ export default function RecruiterJobPostings() {
   const [showForm, setShowForm] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState("");
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const [jobTitleSearchQuery, setJobTitleSearchQuery] = useState("");
+  const [jobTitleDropdownOpen, setJobTitleDropdownOpen] = useState(false);
 
   const { data: jobsData, isLoading } = useQuery<{ success: boolean; count: number; jobs: Job[] }>({
     queryKey: ["/api/jobs"],
@@ -195,6 +197,19 @@ export default function RecruiterJobPostings() {
       ),
     })).filter(provinceData => provinceData.cities.length > 0);
   }, [citySearchQuery]);
+
+  // Filter job titles based on search query
+  const filteredJobTitles = useMemo(() => {
+    if (!jobTitleSearchQuery) return JOB_TITLES_BY_INDUSTRY;
+
+    const query = jobTitleSearchQuery.toLowerCase();
+    return JOB_TITLES_BY_INDUSTRY.map(category => ({
+      ...category,
+      titles: category.titles.filter(title =>
+        title.toLowerCase().includes(query)
+      ),
+    })).filter(category => category.titles.length > 0);
+  }, [jobTitleSearchQuery]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(insertJobSchema),
@@ -389,39 +404,76 @@ export default function RecruiterJobPostings() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Job Title *</FormLabel>
-                      <Select 
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          // Auto-fill the job industry based on selected job title
-                          const industry = getIndustryForJobTitle(value);
-                          form.setValue("jobIndustry", industry);
-                        }} 
-                        value={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger data-testid="select-job-title">
-                            <SelectValue placeholder="Select job title" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-[300px]">
-                          {JOB_TITLES_BY_INDUSTRY.map((category) => (
-                            <div key={category.industry}>
-                              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                                {category.industry}
-                              </div>
-                              {category.titles.map((title) => (
-                                <SelectItem key={title} value={title}>
-                                  {title}
-                                </SelectItem>
+                      <Popover open={jobTitleDropdownOpen} onOpenChange={setJobTitleDropdownOpen}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={jobTitleDropdownOpen}
+                              className="w-full justify-between text-left font-normal"
+                              data-testid="select-job-title"
+                            >
+                              <span className={field.value ? "" : "text-muted-foreground"}>
+                                {field.value || "Select job title"}
+                              </span>
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0" align="start">
+                          <Command>
+                            <CommandInput
+                              placeholder="Search job titles..."
+                              value={jobTitleSearchQuery}
+                              onValueChange={setJobTitleSearchQuery}
+                              data-testid="input-job-title-search"
+                            />
+                            <CommandList className="max-h-[300px]">
+                              <CommandEmpty>No job titles found.</CommandEmpty>
+                              {filteredJobTitles.map((category) => (
+                                <CommandGroup
+                                  key={category.industry}
+                                  heading={category.industry}
+                                >
+                                  {category.titles.map((title) => (
+                                    <CommandItem
+                                      key={title}
+                                      value={title}
+                                      onSelect={() => {
+                                        field.onChange(title);
+                                        // Auto-fill the job industry based on selected job title
+                                        const industry = getIndustryForJobTitle(title);
+                                        form.setValue("jobIndustry", industry);
+                                        setJobTitleDropdownOpen(false);
+                                        setJobTitleSearchQuery("");
+                                      }}
+                                      className="cursor-pointer"
+                                      data-testid={`job-title-option-${title}`}
+                                    >
+                                      {title}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
                               ))}
-                            </div>
-                          ))}
-                          <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                            Other
-                          </div>
-                          <SelectItem value="Other">Other (Custom Job Title)</SelectItem>
-                        </SelectContent>
-                      </Select>
+                              <CommandGroup heading="Other">
+                                <CommandItem
+                                  value="Other"
+                                  onSelect={() => {
+                                    field.onChange("Other");
+                                    form.setValue("jobIndustry", "Other");
+                                    setJobTitleDropdownOpen(false);
+                                    setJobTitleSearchQuery("");
+                                  }}
+                                  className="cursor-pointer"
+                                  data-testid="job-title-option-Other"
+                                >
+                                  Other (Custom Job Title)
+                                </CommandItem>
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
