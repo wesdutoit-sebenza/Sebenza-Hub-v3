@@ -20,29 +20,15 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toast } = useToast();
 
+  // Use Replit Auth - /api/auth/user endpoint
   const { data: user } = useQuery<User>({
-    queryKey: ['/api/me'],
+    queryKey: ['/api/auth/user'],
     retry: false,
   });
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest('POST', '/auth/logout');
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.setQueryData(['/api/me'], null);
-      queryClient.invalidateQueries({ queryKey: ['/api/me'] });
-      toast({
-        title: "Logged out",
-        description: "You have been successfully logged out.",
-      });
-      setLocation("/");
-    },
-  });
-
+  // Replit Auth logout - redirect to /api/logout which handles the OIDC logout flow
   const handleLogout = () => {
-    logoutMutation.mutate();
+    window.location.href = "/api/logout";
   };
 
   const isActive = (path: string) => location === path;

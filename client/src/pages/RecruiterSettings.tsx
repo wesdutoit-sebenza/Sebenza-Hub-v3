@@ -57,7 +57,7 @@ export default function RecruiterSettings() {
   
   // Get current user to fetch their organization
   const { data: user } = useQuery<User>({
-    queryKey: ['/api/me'],
+    queryKey: ['/api/auth/user'],
   });
   
   // Fetch user's first organization membership

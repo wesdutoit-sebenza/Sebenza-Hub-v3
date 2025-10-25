@@ -15,7 +15,7 @@ export default function Onboarding() {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
 
   const { data: userData, isLoading } = useQuery({
-    queryKey: ['/api/me'],
+    queryKey: ['/api/auth/user'],
   });
 
   const selectRoleMutation = useMutation({
@@ -24,7 +24,7 @@ export default function Onboarding() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       if (selectedRole === 'individual') {
         setLocation('/onboarding/individual');
       } else if (selectedRole === 'business') {

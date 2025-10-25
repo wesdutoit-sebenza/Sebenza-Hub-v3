@@ -49,7 +49,7 @@ export default function RecruiterProfile() {
   });
 
   const { data: userData } = useQuery({
-    queryKey: ["/api/me"],
+    queryKey: ["/api/auth/user"],
   });
 
   const form = useForm<FormData>({

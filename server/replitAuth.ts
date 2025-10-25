@@ -58,9 +58,46 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
+  // Migration strategy: Check for existing user by email, preserve roles/onboarding
+  const newId = claims["sub"];
+  const email = claims["email"];
+  
+  // If user has email, check if they exist by email (legacy user migration)
+  if (email) {
+    const { db } = await import("./db");
+    const { users } = await import("@shared/schema");
+    const { eq } = await import("drizzle-orm");
+    
+    const [existingUser] = await db.select().from(users).where(eq(users.email, email));
+    
+    if (existingUser && existingUser.id !== newId) {
+      // Legacy user found - migrate by creating new record with OIDC ID and deleting old one
+      console.log(`[Auth Migration] Migrating user ${existingUser.id} → ${newId} (${email})`);
+      
+      // Create new record with OIDC sub as ID, preserving roles/onboarding
+      await db.insert(users).values({
+        id: newId,
+        email: email,
+        firstName: claims["first_name"],
+        lastName: claims["last_name"],
+        profileImageUrl: claims["profile_image_url"],
+        roles: existingUser.roles, // Preserve roles
+        onboardingComplete: existingUser.onboardingComplete, // Preserve onboarding status
+        createdAt: existingUser.createdAt, // Preserve original creation date
+        updatedAt: new Date(),
+      });
+      
+      // Delete old UUID-based record
+      await db.delete(users).where(eq(users.id, existingUser.id));
+      
+      return;
+    }
+  }
+  
+  // Normal upsert for new or already-migrated users
   await storage.upsertUser({
-    id: claims["sub"],
-    email: claims["email"],
+    id: newId,
+    email: email,
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],

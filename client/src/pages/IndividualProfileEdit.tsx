@@ -50,7 +50,7 @@ export default function IndividualProfileEdit() {
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const { data: user } = useQuery<UserType>({
-    queryKey: ['/api/me'],
+    queryKey: ['/api/auth/user'],
     retry: false,
   });
 

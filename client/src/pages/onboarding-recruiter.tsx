@@ -50,7 +50,7 @@ export default function OnboardingRecruiter() {
 
   // Fetch current user data to get email
   const { data: userData } = useQuery({
-    queryKey: ["/api/me"],
+    queryKey: ["/api/auth/user"],
   });
 
   const form = useForm<FormData>({

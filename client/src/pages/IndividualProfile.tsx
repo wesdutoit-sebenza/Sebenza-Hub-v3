@@ -81,7 +81,7 @@ interface ProfileData {
 
 export default function IndividualProfile() {
   const { data: user } = useQuery<UserType>({
-    queryKey: ['/api/me'],
+    queryKey: ['/api/auth/user'],
     retry: false,
   });
 

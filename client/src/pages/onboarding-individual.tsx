@@ -53,7 +53,7 @@ export default function OnboardingIndividual() {
   const { toast } = useToast();
 
   const { data: user } = useQuery<User>({
-    queryKey: ['/api/me'],
+    queryKey: ['/api/auth/user'],
     retry: false,
   });
 

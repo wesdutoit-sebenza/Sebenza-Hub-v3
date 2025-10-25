@@ -27,7 +27,7 @@ const provinces = ["Eastern Cape", "Free State", "Gauteng", "KwaZulu-Natal", "Li
 
 export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
   const { data: user } = useQuery<User>({
-    queryKey: ['/api/me'],
+    queryKey: ['/api/auth/user'],
     retry: false,
   });
 

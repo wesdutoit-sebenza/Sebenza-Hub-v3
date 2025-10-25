@@ -45,7 +45,7 @@ export default function Individuals() {
   }, []);
 
   const { data: user } = useQuery<UserType>({
-    queryKey: ['/api/me'],
+    queryKey: ['/api/auth/user'],
     retry: false,
   });
 
