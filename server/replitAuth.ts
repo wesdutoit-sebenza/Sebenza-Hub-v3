@@ -58,15 +58,17 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
+  // Import database modules at top level
+  const { db } = await import("./db");
+  const { users } = await import("@shared/schema");
+  const { eq, sql } = await import("drizzle-orm");
+  
   // Migration strategy: Check for existing user by email, preserve roles/onboarding
   const newId = claims["sub"];
   const email = claims["email"];
   
   // If user has email, check if they exist by email (legacy user migration)
   if (email) {
-    const { db } = await import("./db");
-    const { users } = await import("@shared/schema");
-    const { eq, sql } = await import("drizzle-orm");
     
     const [existingUser] = await db.select().from(users).where(eq(users.email, email));
     
@@ -123,14 +125,37 @@ async function upsertUser(
     }
   }
   
-  // Normal upsert for new or already-migrated users
-  await storage.upsertUser({
-    id: newId,
-    email: email,
-    firstName: claims["first_name"],
-    lastName: claims["last_name"],
-    profileImageUrl: claims["profile_image_url"],
-  });
+  // Check if user exists in database (could be admin or other pre-created user)
+  const [dbUser] = await db.select().from(users).where(eq(users.id, newId));
+  
+  if (dbUser) {
+    // User exists in DB - load into MemStorage with preserved roles/onboarding
+    // Handle both camelCase (Drizzle) and snake_case (raw DB) field names
+    const { MemStorage } = await import("./storage");
+    const memStorage = storage as any;
+    if (memStorage.users instanceof Map) {
+      memStorage.users.set(newId, {
+        id: dbUser.id,
+        email: email || dbUser.email,
+        firstName: claims["first_name"] || dbUser.firstName || (dbUser as any).first_name,
+        lastName: claims["last_name"] || dbUser.lastName || (dbUser as any).last_name,
+        profileImageUrl: claims["profile_image_url"] || dbUser.profileImageUrl || (dbUser as any).profile_image_url,
+        roles: dbUser.roles || [], // Preserve existing roles (e.g., admin)
+        onboardingComplete: dbUser.onboardingComplete || (dbUser as any).onboarding_complete || {}, // Preserve existing onboarding
+        createdAt: dbUser.createdAt || (dbUser as any).created_at || new Date(), // Preserve creation date
+        updatedAt: new Date(),
+      });
+    }
+  } else {
+    // Normal upsert for new users
+    await storage.upsertUser({
+      id: newId,
+      email: email,
+      firstName: claims["first_name"],
+      lastName: claims["last_name"],
+      profileImageUrl: claims["profile_image_url"],
+    });
+  }
 }
 
 export async function setupAuth(app: Express) {
