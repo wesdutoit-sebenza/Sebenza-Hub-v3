@@ -148,6 +148,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/jobs/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = insertJobSchema.partial().parse(req.body);
+      const job = await storage.updateJob(id, validatedData);
+      
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: "Job not found.",
+        });
+      }
+
+      console.log(`Job updated: ${job.title} at ${job.company}`);
+      
+      res.json({
+        success: true,
+        message: "Job updated successfully!",
+        job,
+      });
+    } catch (error: any) {
+      console.error("Job update error:", error);
+      res.status(400).json({
+        success: false,
+        message: error.errors ? "Invalid job data." : "Error updating job.",
+      });
+    }
+  });
+
   app.post("/api/cvs", async (req, res) => {
     try {
       const validatedData = insertCVSchema.parse(req.body);

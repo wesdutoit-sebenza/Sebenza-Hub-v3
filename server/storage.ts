@@ -9,6 +9,7 @@ export interface IStorage {
   getSubscriberByEmail(email: string): Promise<Subscriber | undefined>;
   getAllSubscribers(): Promise<Subscriber[]>;
   createJob(job: InsertJob): Promise<Job>;
+  updateJob(id: string, job: Partial<InsertJob>): Promise<Job | undefined>;
   getAllJobs(): Promise<Job[]>;
   getJobById(id: string): Promise<Job | undefined>;
   createCV(cv: InsertCV): Promise<CV>;
@@ -93,6 +94,19 @@ export class MemStorage implements IStorage {
 
   async getJobById(id: string): Promise<Job | undefined> {
     return this.jobs.get(id);
+  }
+
+  async updateJob(id: string, updates: Partial<InsertJob>): Promise<Job | undefined> {
+    const existing = this.jobs.get(id);
+    if (!existing) {
+      return undefined;
+    }
+    const updated: Job = {
+      ...existing,
+      ...updates,
+    };
+    this.jobs.set(id, updated);
+    return updated;
   }
 
   async createCV(insertCV: InsertCV): Promise<CV> {
