@@ -54,7 +54,7 @@ export default function IndividualsAdmin() {
   ];
 
   return (
-    <div className="p-6 space-y-6" data-testid="page-admin-individuals">
+    <div className="container mx-auto p-6 max-w-7xl space-y-6" data-testid="page-admin-individuals">
       <div>
         <h1 className="text-3xl font-bold">Individuals Management</h1>
         <p className="text-muted-foreground">Manage individual candidate profiles</p>

@@ -83,7 +83,7 @@ export default function AdminOverview() {
   ];
 
   return (
-    <div className="p-6 space-y-6" data-testid="page-admin-overview">
+    <div className="container mx-auto p-6 max-w-7xl space-y-6" data-testid="page-admin-overview">
       <div>
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <p className="text-muted-foreground">System overview and recent activity</p>

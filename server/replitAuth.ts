@@ -79,7 +79,7 @@ async function upsertUser(
       // Preserve legacy data before deleting
       const rolesArray = existingUser.roles || [];
       const onboardingData = existingUser.onboardingComplete || {};
-      const createdAt = existingUser.createdAt;
+      const createdAt = existingUser.createdAt || new Date();
       
       // Delete old UUID-based record FIRST to avoid unique constraint violation
       await db.delete(users).where(eq(users.id, existingUser.id));

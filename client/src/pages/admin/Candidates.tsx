@@ -4,7 +4,7 @@ import { Users } from "lucide-react";
 
 export default function CandidatesAdmin() {
   return (
-    <div className="p-6 space-y-6" data-testid="page-admin-candidates">
+    <div className="container mx-auto p-6 max-w-7xl space-y-6" data-testid="page-admin-candidates">
       <div>
         <h1 className="text-3xl font-bold">Candidates (ATS) Management</h1>
         <p className="text-muted-foreground">Manage ATS candidates</p>

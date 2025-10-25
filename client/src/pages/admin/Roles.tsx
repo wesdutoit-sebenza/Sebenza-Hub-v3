@@ -60,7 +60,7 @@ export default function RolesAdmin() {
   const activeCount = roles.filter(r => r.isActive === 1).length;
 
   return (
-    <div className="p-6 space-y-6" data-testid="page-admin-roles">
+    <div className="container mx-auto p-6 max-w-7xl space-y-6" data-testid="page-admin-roles">
       <div>
         <h1 className="text-3xl font-bold">Roles & Screening</h1>
         <p className="text-muted-foreground">Manage job roles and screening results</p>

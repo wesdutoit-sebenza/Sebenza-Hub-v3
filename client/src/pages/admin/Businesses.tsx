@@ -36,7 +36,7 @@ export default function BusinessesAdmin() {
   ];
 
   return (
-    <div className="p-6 space-y-6" data-testid="page-admin-businesses">
+    <div className="container mx-auto p-6 max-w-7xl space-y-6" data-testid="page-admin-businesses">
       <div>
         <h1 className="text-3xl font-bold">Businesses Management</h1>
         <p className="text-muted-foreground">Manage business organizations</p>

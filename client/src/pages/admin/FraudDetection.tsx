@@ -189,7 +189,7 @@ export default function FraudDetectionAdmin() {
   const highRiskCount = detections.filter(d => d.riskLevel === 'high' || d.riskLevel === 'critical').length;
 
   return (
-    <div className="p-6 space-y-6" data-testid="page-admin-fraud">
+    <div className="container mx-auto p-6 max-w-7xl space-y-6" data-testid="page-admin-fraud">
       <div>
         <h1 className="text-3xl font-bold">Fraud Detection</h1>
         <p className="text-muted-foreground">Monitor and manage flagged content</p>

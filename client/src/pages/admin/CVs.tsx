@@ -43,7 +43,7 @@ export default function CVsAdmin() {
   ];
 
   return (
-    <div className="p-6 space-y-6" data-testid="page-admin-cvs">
+    <div className="container mx-auto p-6 max-w-7xl space-y-6" data-testid="page-admin-cvs">
       <div>
         <h1 className="text-3xl font-bold">CV Ingestion</h1>
         <p className="text-muted-foreground">Monitor CV uploads and parsing</p>

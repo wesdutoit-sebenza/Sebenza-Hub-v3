@@ -153,7 +153,7 @@ export default function RecruitersAdmin() {
   const approvedCount = recruiters.filter(r => r.profile.verificationStatus === 'approved').length;
 
   return (
-    <div className="p-6 space-y-6" data-testid="page-admin-recruiters">
+    <div className="container mx-auto p-6 max-w-7xl space-y-6" data-testid="page-admin-recruiters">
       <div>
         <h1 className="text-3xl font-bold">Recruiters Management</h1>
         <p className="text-muted-foreground">Manage recruiter profiles and verification</p>
