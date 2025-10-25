@@ -40,18 +40,36 @@ export function GoogleAddressSearch({
           return;
         }
 
+        // Create callback function for Google Maps to call when ready
+        const callbackName = `initGoogleMaps_${Date.now()}`;
+        (window as any)[callbackName] = () => {
+          // Wait a bit for places library to be available
+          const checkPlaces = setInterval(() => {
+            if (window.google?.maps?.places) {
+              clearInterval(checkPlaces);
+              setIsLoaded(true);
+              delete (window as any)[callbackName];
+            }
+          }, 50);
+          
+          // Timeout after 5 seconds
+          setTimeout(() => {
+            clearInterval(checkPlaces);
+            if (!window.google?.maps?.places) {
+              setError("Failed to load Google Maps Places");
+            }
+          }, 5000);
+        };
+
         // Create and load the script
         const script = document.createElement('script');
-        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&callback=${callbackName}`;
         script.async = true;
         script.defer = true;
         
-        script.onload = () => {
-          setIsLoaded(true);
-        };
-        
         script.onerror = () => {
           setError("Failed to load Google Maps");
+          delete (window as any)[callbackName];
         };
         
         document.head.appendChild(script);
