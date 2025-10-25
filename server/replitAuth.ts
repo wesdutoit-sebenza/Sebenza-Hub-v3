@@ -228,6 +228,30 @@ export async function setupAuth(app: Express) {
       );
     });
   });
+
+  // Get current user endpoint - returns full user profile from database
+  app.get("/api/auth/user", async (req, res) => {
+    const sessionUser = req.user as any;
+    
+    if (!req.isAuthenticated() || !sessionUser?.claims?.sub) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+      const userId = sessionUser.claims.sub;
+      const fullUser = await storage.getUser(userId);
+      
+      if (!fullUser) {
+        return res.status(401).json({ message: "User not found" });
+      }
+
+      // Return the full user profile with roles and all data
+      res.json(fullUser);
+    } catch (error) {
+      console.error("[Auth] Error fetching user profile:", error);
+      res.status(500).json({ message: "Failed to fetch user profile" });
+    }
+  });
 }
 
 export const isAuthenticated: RequestHandler = async (req, res, next) => {
