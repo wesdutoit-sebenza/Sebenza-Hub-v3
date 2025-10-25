@@ -598,7 +598,7 @@ export default function RecruiterJobPostings() {
                     name="core.location.address"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Address (Google Search)</FormLabel>
+                        <FormLabel>Physical Address (Google Search)</FormLabel>
                         <FormControl>
                           <GoogleAddressSearch
                             value={field.value}
