@@ -320,14 +320,8 @@ export function setupAuth(app: Express) {
     }
 
     try {
-      const userId = (req.user as any).id;
-      const fullUser = await storage.getUser(userId);
-
-      if (!fullUser) {
-        return res.status(401).json({ message: "User not found" });
-      }
-
-      res.json({ user: fullUser });
+      // req.user is already populated by deserializeUser
+      res.json({ user: req.user });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user profile" });
