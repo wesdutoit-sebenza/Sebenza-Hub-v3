@@ -46,6 +46,7 @@ import {
   OPTIONAL_ATTACHMENTS,
   COMMON_BENEFITS,
 } from "@shared/jobTaxonomies";
+import { JOB_TITLES } from "@shared/jobTitles";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
@@ -228,6 +229,7 @@ export default function RecruiterJobPostings() {
 
   const workArrangement = form.watch("core.workArrangement");
   const applicationMethod = form.watch("application.method");
+  const jobTitle = form.watch("title");
 
   const createJobMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -292,9 +294,21 @@ export default function RecruiterJobPostings() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Job Title *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Sales Manager" {...field} data-testid="input-title" />
-                      </FormControl>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-job-title">
+                            <SelectValue placeholder="Select job title" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {JOB_TITLES.map((title) => (
+                            <SelectItem key={title} value={title}>
+                              {title}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -313,6 +327,33 @@ export default function RecruiterJobPostings() {
                     </FormItem>
                   )}
                 />
+
+                {/* Custom Job Title input (shown when "Other" is selected) */}
+                {jobTitle === "Other" && (
+                  <div className="md:col-span-2">
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Custom Job Title *</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter custom job title" 
+                              value={field.value === "Other" ? "" : field.value}
+                              onChange={field.onChange}
+                              data-testid="input-custom-job-title" 
+                            />
+                          </FormControl>
+                          <FormDescription>
+                            Please specify the job title for this position
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
 
                 {/* Row 2: Industry, Employment Type */}
                 <FormField
