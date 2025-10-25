@@ -239,6 +239,7 @@ export const jobApplicationSchema = z.object({
 
 export const jobCompanyDetailsSchema = z.object({
   name: z.string().min(2),
+  industry: z.string().optional(), // Company Industry
   eeAa: z.boolean().default(false),
   contactEmail: z.string().email(),
 });
@@ -325,13 +326,14 @@ export const insertJobSchema = z.object({
   
   // Core job info (required)
   title: z.string().min(3).max(80),
+  jobIndustry: z.string().optional(), // Job Industry (what industry/sector the job is in)
   core: jobCoreSchema,
   compensation: jobCompensationSchema,
   application: jobApplicationSchema,
   
   // Company info
   company: z.string().min(2).optional(), // legacy - auto-populated from companyDetails.name
-  companyDetails: jobCompanyDetailsSchema,
+  companyDetails: jobCompanyDetailsSchema, // includes companyIndustry
   
   // Optional rich data
   roleDetails: jobRoleDetailsSchema.optional(),
@@ -353,7 +355,7 @@ export const insertJobSchema = z.object({
   requirements: z.string().optional(),
   whatsappContact: z.string().optional(),
   employmentType: z.string().optional(),
-  industry: z.string().optional(),
+  industry: z.string().optional(), // legacy - maps to jobIndustry
 }).superRefine((val, ctx) => {
   // Closing date must be today or later
   const today = new Date().toISOString().split("T")[0];

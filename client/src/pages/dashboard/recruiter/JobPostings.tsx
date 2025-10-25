@@ -170,6 +170,7 @@ export default function RecruiterJobPostings() {
     resolver: zodResolver(insertJobSchema),
     defaultValues: {
       title: "",
+      jobIndustry: "",
       company: "",
       employmentType: "Permanent",
       core: {
@@ -197,6 +198,7 @@ export default function RecruiterJobPostings() {
       },
       companyDetails: {
         name: "",
+        industry: "",
         eeAa: false,
         contactEmail: "",
       },
@@ -244,7 +246,7 @@ export default function RecruiterJobPostings() {
         description: data.core?.summary,
         requirements: data.core?.minQualifications,
         employmentType: data.employmentType,
-        industry: data.industry || "Other",
+        industry: data.jobIndustry || "Other", // Map jobIndustry to legacy industry field
       };
       
       return apiRequest("POST", "/api/jobs", transformedData);
@@ -355,17 +357,17 @@ export default function RecruiterJobPostings() {
                   </div>
                 )}
 
-                {/* Row 2: Industry, Employment Type */}
+                {/* Row 2: Job Industry, Employment Type */}
                 <FormField
                   control={form.control}
-                  name="industry"
+                  name="jobIndustry"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Industry *</FormLabel>
+                      <FormLabel>Job Industry</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                          <SelectTrigger data-testid="select-industry">
-                            <SelectValue placeholder="Select industry" />
+                          <SelectTrigger data-testid="select-job-industry">
+                            <SelectValue placeholder="Select job industry" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -879,6 +881,32 @@ export default function RecruiterJobPostings() {
                       <FormControl>
                         <Input placeholder="Your Company Name" {...field} data-testid="input-company-name" />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="companyDetails.industry"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Industry</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-company-industry">
+                            <SelectValue placeholder="Select company industry" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {INDUSTRIES.map((ind) => (
+                            <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        The industry your company operates in
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
