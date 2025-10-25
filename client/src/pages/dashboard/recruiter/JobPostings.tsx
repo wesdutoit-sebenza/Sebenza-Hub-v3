@@ -637,31 +637,32 @@ export default function RecruiterJobPostings() {
                     )}
                   />
                 </div>
-
-                <div className="md:col-span-2">
-                  <FormField
-                    control={form.control}
-                    name="core.summary"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Job Summary *</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="2–4 lines summarizing the role and what makes it exciting"
-                            className="min-h-[100px]"
-                            {...field}
-                            data-testid="textarea-summary"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Give candidates a compelling overview of this opportunity
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
               </div>
+            </FormSection>
+
+            {/* Job Summary */}
+            <FormSection title="Job Summary" description="Provide a compelling overview of this opportunity">
+              <FormField
+                control={form.control}
+                name="core.summary"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Job Summary *</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="2–4 lines summarizing the role and what makes it exciting"
+                        className="min-h-[100px]"
+                        {...field}
+                        data-testid="textarea-summary"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Give candidates a compelling overview of this opportunity
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </FormSection>
 
             {/* Responsibilities & Requirements */}
