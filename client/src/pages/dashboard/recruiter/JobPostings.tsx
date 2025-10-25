@@ -561,6 +561,20 @@ export default function RecruiterJobPostings() {
                 <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
                   <FormField
                     control={form.control}
+                    name="core.location.city"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>City {workArrangement !== "Remote" && "*"}</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Johannesburg" {...field} data-testid="input-city" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="core.location.province"
                     render={({ field }) => (
                       <FormItem>
@@ -577,20 +591,6 @@ export default function RecruiterJobPostings() {
                             ))}
                           </SelectContent>
                         </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="core.location.city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>City {workArrangement !== "Remote" && "*"}</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Johannesburg" {...field} data-testid="input-city" />
-                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
