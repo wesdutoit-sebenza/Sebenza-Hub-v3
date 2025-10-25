@@ -148,33 +148,260 @@ export const insertSubscriberSchema = createInsertSchema(subscribers).pick({
 export type InsertSubscriber = z.infer<typeof insertSubscriberSchema>;
 export type Subscriber = typeof subscribers.$inferSelect;
 
+// Job Posting - Comprehensive schema with JSONB columns for nested data
 export const jobs = pgTable("jobs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  organizationId: varchar("organization_id"), // null for jobs posted before auth was added
-  postedByUserId: varchar("posted_by_user_id"), // null for jobs posted before auth was added
+  organizationId: varchar("organization_id"),
+  postedByUserId: varchar("posted_by_user_id"),
+  
+  // Legacy fields (kept for backward compatibility - nullable for new comprehensive jobs)
   title: text("title").notNull(),
-  company: text("company").notNull(), // kept for backwards compatibility
-  location: text("location").notNull(),
-  salaryMin: integer("salary_min").notNull(),
-  salaryMax: integer("salary_max").notNull(),
-  description: text("description").notNull(),
-  requirements: text("requirements").notNull(),
-  whatsappContact: text("whatsapp_contact").notNull(),
-  employmentType: text("employment_type").notNull(),
-  industry: text("industry").notNull(),
+  company: text("company").notNull(),
+  location: text("location"),
+  salaryMin: integer("salary_min"),
+  salaryMax: integer("salary_max"),
+  description: text("description"),
+  requirements: text("requirements"),
+  whatsappContact: text("whatsapp_contact"),
+  employmentType: text("employment_type"),
+  industry: text("industry"),
+  
+  // New comprehensive fields as JSONB
+  core: jsonb("core"), // seniority, department, workArrangement, summary, etc.
+  compensation: jsonb("compensation"), // payType, currency, min, max, commission, bonus
+  roleDetails: jsonb("role_details"), // problemStatement, successMetrics, toolsTech, languages, travel, etc.
+  application: jsonb("application"), // method, externalUrl, closingDate
+  companyDetails: jsonb("company_details"), // eeAa, contactEmail
+  contract: jsonb("contract"), // startDate, endDate, renewalPossible, noticePeriod
+  benefits: jsonb("benefits"), // array of benefits, reportingLine, teamSize, equipment
+  vetting: jsonb("vetting"), // criminal, credit, qualification, references checks
+  compliance: jsonb("compliance"), // rightToWork, popiaConsent, checksConsent
+  attachments: jsonb("attachments"), // required and optional attachments
+  accessibility: jsonb("accessibility"), // accommodationContact, physicalRequirements, workplaceAccessibility
+  branding: jsonb("branding"), // logoUrl, heroUrl, aboutShort, careersUrl, social
+  admin: jsonb("admin"), // jobId, pipeline, owner, visibility, status, targetStartDate
+  seo: jsonb("seo"), // keywords, urgent
+  
   createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-export const insertJobSchema = createInsertSchema(jobs).omit({
-  id: true,
-  createdAt: true,
+// Zod schemas for JSONB structures
+export const jobLocationSchema = z.object({
+  country: z.string().default("South Africa"),
+  province: z.string().optional(),
+  city: z.string().optional(),
+  suburb: z.string().optional(),
+  postalCode: z.string().optional(),
+  multiLocation: z.boolean().default(false),
+});
+
+export const jobCompensationSchema = z.object({
+  displayRange: z.boolean().default(true),
+  currency: z.string().default("ZAR"),
+  payType: z.enum(["Annual", "Monthly", "Hourly", "Day Rate"]).default("Annual"),
+  min: z.number().nonnegative().optional(),
+  max: z.number().nonnegative().optional(),
+  ctc: z.boolean().default(true),
+  commission: z.boolean().default(false),
+  commissionNotes: z.string().optional(),
+  bonus: z.boolean().default(false),
+  bonusNotes: z.string().optional(),
 }).refine(
-  (data) => data.salaryMin <= data.salaryMax,
-  {
-    message: "Minimum salary must be less than or equal to maximum salary",
-    path: ["salaryMax"],
-  }
+  (val) => {
+    if (val.min == null && val.max == null) return true;
+    return typeof val.min === "number" && typeof val.max === "number" && val.min < val.max;
+  },
+  { message: "Salary range must have both min and max, and min < max" }
 );
+
+export const jobCoreSchema = z.object({
+  seniority: z.enum(["Intern", "Junior", "Mid", "Senior", "Lead", "Manager", "Director", "Executive"]),
+  department: z.string().min(2, "Required"),
+  workArrangement: z.enum(["On-site", "Hybrid", "Remote"]),
+  hybridPercentOnsite: z.number().min(0).max(100).optional(),
+  remoteEligibility: z.enum(["South Africa", "Africa", "Global"]).optional(),
+  location: jobLocationSchema,
+  visaRequired: z.boolean().default(false),
+  visaNote: z.string().optional(),
+  summary: z.string().min(20, "Give a short 2–4 line summary"),
+  responsibilities: z.array(z.string().min(2)).min(5, "Add at least 5 responsibilities"),
+  requiredSkills: z.array(z.string()).min(5, "Add at least 5 required skills"),
+  minQualifications: z.string().min(2),
+  yearsExperience: z.number().min(0).max(50),
+});
+
+export const jobApplicationSchema = z.object({
+  method: z.enum(["in-app", "external"]).default("in-app"),
+  externalUrl: z.string().url().optional(),
+  closingDate: z.string().min(1), // ISO yyyy-mm-dd
+});
+
+export const jobCompanyDetailsSchema = z.object({
+  name: z.string().min(2),
+  eeAa: z.boolean().default(false),
+  contactEmail: z.string().email(),
+});
+
+export const jobContractSchema = z.object({
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+  renewalPossible: z.boolean().optional(),
+  noticePeriod: z.string().optional(),
+});
+
+export const jobBenefitsSchema = z.object({
+  benefits: z.array(z.string()).optional(),
+  reportingLine: z.string().optional(),
+  teamSize: z.number().optional(),
+  equipment: z.array(z.string()).optional(),
+});
+
+export const jobVettingSchema = z.object({
+  criminal: z.boolean().default(false),
+  credit: z.boolean().default(false),
+  qualification: z.boolean().default(false),
+  references: z.boolean().default(false),
+});
+
+export const jobComplianceSchema = z.object({
+  rightToWork: z.enum(["Citizen/PR", "Work Permit", "Not eligible"]).default("Citizen/PR"),
+  popiaConsent: z.boolean(),
+  checksConsent: z.boolean(),
+});
+
+export const jobRoleDetailsSchema = z.object({
+  problemStatement: z.string().optional(),
+  successMetrics: z.array(z.string()).optional(),
+  toolsTech: z.array(z.string()).optional(),
+  niceToHave: z.array(z.string()).optional(),
+  languages: z.array(z.string()).optional(),
+  driversLicense: z.boolean().optional(),
+  travel: z.enum(["None", "<10%", "10–25%", "25–50%", ">50%"]).optional(),
+  shiftPattern: z.enum(["Standard", "Shift", "Rotational", "Night"]).optional(),
+  coreHours: z.string().optional(),
+  weekendWork: z.boolean().optional(),
+  onCall: z.boolean().optional(),
+});
+
+export const jobAttachmentsSchema = z.object({
+  required: z.array(z.enum(["CV", "Cover Letter", "Certificates", "ID", "Work Permit", "Portfolio"])).optional(),
+  optional: z.array(z.enum(["References", "Transcripts"])).optional(),
+});
+
+export const jobAccessibilitySchema = z.object({
+  accommodationContact: z.string().email().optional(),
+  physicalRequirements: z.string().optional(),
+  workplaceAccessibility: z.string().optional(),
+});
+
+export const jobBrandingSchema = z.object({
+  logoUrl: z.string().url().optional(),
+  heroUrl: z.string().url().optional(),
+  aboutShort: z.string().optional(),
+  careersUrl: z.string().url().optional(),
+  social: z.array(z.string().url()).optional(),
+});
+
+export const jobAdminSchema = z.object({
+  jobId: z.string().min(1),
+  pipeline: z.array(z.string()).default(["Applied", "Screen", "Interview 1", "Interview 2", "Offer", "Hired"]),
+  owner: z.string().min(1),
+  backupOwner: z.string().optional(),
+  visibility: z.enum(["Public", "Invite-only", "Internal"]).default("Public"),
+  status: z.enum(["Draft", "Live", "Paused", "Closed", "Filled"]).default("Draft"),
+  targetStartDate: z.string().optional(),
+});
+
+export const jobSeoSchema = z.object({
+  keywords: z.array(z.string()).max(25).optional(),
+  urgent: z.boolean().default(false),
+});
+
+// Comprehensive insert schema
+export const insertJobSchema = z.object({
+  organizationId: z.string().optional(),
+  postedByUserId: z.string().optional(),
+  
+  // Core job info (required)
+  title: z.string().min(3).max(80),
+  core: jobCoreSchema,
+  compensation: jobCompensationSchema,
+  application: jobApplicationSchema,
+  
+  // Company info
+  company: z.string().min(2), // legacy
+  companyDetails: jobCompanyDetailsSchema,
+  
+  // Optional rich data
+  roleDetails: jobRoleDetailsSchema.optional(),
+  contract: jobContractSchema.optional(),
+  benefits: jobBenefitsSchema.optional(),
+  vetting: jobVettingSchema,
+  compliance: jobComplianceSchema,
+  attachments: jobAttachmentsSchema.optional(),
+  accessibility: jobAccessibilitySchema.optional(),
+  branding: jobBrandingSchema.optional(),
+  admin: jobAdminSchema,
+  seo: jobSeoSchema.optional(),
+  
+  // Legacy fields (for backward compatibility)
+  location: z.string().optional(),
+  salaryMin: z.number().optional(),
+  salaryMax: z.number().optional(),
+  description: z.string().optional(),
+  requirements: z.string().optional(),
+  whatsappContact: z.string().optional(),
+  employmentType: z.string().optional(),
+  industry: z.string().optional(),
+}).superRefine((val, ctx) => {
+  // Closing date must be today or later
+  const today = new Date().toISOString().split("T")[0];
+  if (val.application?.closingDate && val.application.closingDate < today) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Closing date must be today or later",
+      path: ["application", "closingDate"],
+    });
+  }
+
+  // Location validation based on work arrangement
+  if (val.core?.workArrangement === "Hybrid") {
+    if (!val.core?.location?.province || !val.core?.location?.city || typeof val.core?.hybridPercentOnsite !== "number") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "For Hybrid, province, city and % on-site are required",
+        path: ["core", "workArrangement"],
+      });
+    }
+  } else if (val.core?.workArrangement === "On-site") {
+    if (!val.core?.location?.province || !val.core?.location?.city) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "For On-site, province and city are required",
+        path: ["core", "location"],
+      });
+    }
+  }
+
+  // External application must have URL
+  if (val.application?.method === "external" && !val.application?.externalUrl) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "External application selected — provide a valid URL",
+      path: ["application", "externalUrl"],
+    });
+  }
+
+  // POPIA & checks consent required
+  if (!val.compliance?.popiaConsent || !val.compliance?.checksConsent) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "POPIA & consent boxes must be ticked before publish",
+      path: ["compliance", "popiaConsent"],
+    });
+  }
+});
 
 export type InsertJob = z.infer<typeof insertJobSchema>;
 export type Job = typeof jobs.$inferSelect;
