@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Form,
   FormControl,
@@ -154,6 +167,8 @@ export default function RecruiterJobPostings() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [citySearchQuery, setCitySearchQuery] = useState("");
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
 
   const { data: jobsData, isLoading } = useQuery<{ success: boolean; count: number; jobs: Job[] }>({
     queryKey: ["/api/jobs"],
@@ -167,6 +182,19 @@ export default function RecruiterJobPostings() {
         job.company?.toLowerCase().includes(searchTerm.toLowerCase())
       : true
   );
+
+  // Filter cities based on search query
+  const filteredCities = useMemo(() => {
+    if (!citySearchQuery) return CITIES_BY_PROVINCE;
+
+    const query = citySearchQuery.toLowerCase();
+    return CITIES_BY_PROVINCE.map(provinceData => ({
+      ...provinceData,
+      cities: provinceData.cities.filter(cityData =>
+        cityData.city.toLowerCase().includes(query)
+      ),
+    })).filter(provinceData => provinceData.cities.length > 0);
+  }, [citySearchQuery]);
 
   const form = useForm<FormData>({
     resolver: zodResolver(insertJobSchema),
@@ -566,38 +594,64 @@ export default function RecruiterJobPostings() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>City / Town {workArrangement !== "Remote" && "*"}</FormLabel>
-                        <Select 
-                          onValueChange={(value) => {
-                            field.onChange(value);
-                            // Auto-fill province and postal code based on selected city
-                            const locationData = getLocationDataForCity(value);
-                            if (locationData) {
-                              form.setValue("core.location.province", locationData.province);
-                              form.setValue("core.location.postalCode", locationData.postalCode);
-                            }
-                          }} 
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger data-testid="select-city">
-                              <SelectValue placeholder="Select city / town" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="max-h-[300px]">
-                            {CITIES_BY_PROVINCE.map((provinceData) => (
-                              <div key={provinceData.province}>
-                                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                                  {provinceData.province}
-                                </div>
-                                {provinceData.cities.map((cityData) => (
-                                  <SelectItem key={`${provinceData.province}-${cityData.city}`} value={cityData.city}>
-                                    {cityData.city}
-                                  </SelectItem>
+                        <Popover open={cityDropdownOpen} onOpenChange={setCityDropdownOpen}>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={cityDropdownOpen}
+                                className="w-full justify-between text-left font-normal"
+                                data-testid="select-city"
+                              >
+                                <span className={field.value ? "" : "text-muted-foreground"}>
+                                  {field.value || "Select city / town"}
+                                </span>
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-full p-0" align="start">
+                            <Command>
+                              <CommandInput
+                                placeholder="Search cities..."
+                                value={citySearchQuery}
+                                onValueChange={setCitySearchQuery}
+                                data-testid="input-city-search"
+                              />
+                              <CommandList className="max-h-[300px]">
+                                <CommandEmpty>No cities found.</CommandEmpty>
+                                {filteredCities.map((provinceData) => (
+                                  <CommandGroup
+                                    key={provinceData.province}
+                                    heading={provinceData.province}
+                                  >
+                                    {provinceData.cities.map((cityData) => (
+                                      <CommandItem
+                                        key={`${provinceData.province}-${cityData.city}`}
+                                        value={cityData.city}
+                                        onSelect={() => {
+                                          field.onChange(cityData.city);
+                                          // Auto-fill province and postal code based on selected city
+                                          const locationData = getLocationDataForCity(cityData.city);
+                                          if (locationData) {
+                                            form.setValue("core.location.province", locationData.province);
+                                            form.setValue("core.location.postalCode", locationData.postalCode);
+                                          }
+                                          setCityDropdownOpen(false);
+                                          setCitySearchQuery("");
+                                        }}
+                                        className="cursor-pointer"
+                                        data-testid={`city-option-${cityData.city}`}
+                                      >
+                                        {cityData.city}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
                                 ))}
-                              </div>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
                         <FormMessage />
                       </FormItem>
                     )}
