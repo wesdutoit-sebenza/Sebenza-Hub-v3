@@ -27,10 +27,22 @@ export function setupAuth(app: Express) {
 
   passport.deserializeUser(async (id: string, done) => {
     try {
-      const user = await storage.getUser(id);
-      done(null, user);
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, id))
+        .limit(1);
+
+      if (!user) {
+        // User not found - invalid session
+        return done(null, false);
+      }
+
+      return done(null, user);
     } catch (error) {
-      done(error, null);
+      console.error("Deserialize error:", error);
+      // On database errors, fail gracefully
+      return done(null, false);
     }
   });
 
@@ -195,7 +207,7 @@ export function setupAuth(app: Express) {
   // Authentication Routes
 
   // Signup with email/password
-  app.post("/api/auth/signup", async (req, res) => {
+  app.post("/api/auth/signup", async (req, res, next) => {
     try {
       const { email, password, firstName, lastName } = req.body;
 
@@ -232,15 +244,14 @@ export function setupAuth(app: Express) {
       // Log in the user
       req.login(newUser, (err) => {
         if (err) {
-          return res
-            .status(500)
-            .json({ message: "Error logging in after signup" });
+          console.error("Login error after signup:", err);
+          return next(err);
         }
-        res.json({ success: true, user: newUser });
+        return res.json({ success: true, user: newUser });
       });
     } catch (error) {
       console.error("Signup error:", error);
-      res.status(500).json({ message: "Error creating account" });
+      next(error);
     }
   });
 

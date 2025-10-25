@@ -2,6 +2,9 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import cookieParser from "cookie-parser";
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import pg from "pg";
 
 const app = express();
 
@@ -10,6 +13,44 @@ declare module 'http' {
     rawBody: unknown
   }
 }
+
+// Session configuration
+const PgSession = connectPgSimple(session);
+const pgPool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+// Pre-create session table to avoid race conditions with createTableIfMissing
+pgPool.query(`
+  CREATE TABLE IF NOT EXISTS session (
+    sid VARCHAR PRIMARY KEY,
+    sess JSON NOT NULL,
+    expire TIMESTAMP NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS IDX_session_expire ON session (expire);
+`).catch(err => {
+  console.error('Session table creation warning:', err.message);
+});
+
+app.use(
+  session({
+    store: new PgSession({
+      pool: pgPool,
+      tableName: "session",
+      createTableIfMissing: false,  // We created it manually above
+    }),
+    secret: process.env.SESSION_SECRET || "sebenza-hub-secret-key-change-in-production",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    },
+  })
+);
+
 app.use(cookieParser());
 app.use(express.json({
   verify: (req, _res, buf) => {

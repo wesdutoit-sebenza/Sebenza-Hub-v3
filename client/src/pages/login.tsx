@@ -40,27 +40,16 @@ export default function Login() {
         ? formData
         : { email: formData.email, password: formData.password };
 
-      const response = await apiRequest(endpoint, {
-        method: "POST",
-        body: JSON.stringify(body),
+      const response = await apiRequest("POST", endpoint, body);
+      const data = await response.json();
+      
+      toast({
+        title: "Success!",
+        description: isSignup ? "Account created successfully" : "Logged in successfully",
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        toast({
-          title: "Success!",
-          description: isSignup ? "Account created successfully" : "Logged in successfully",
-        });
-        // Redirect to onboarding
-        setLocation("/onboarding");
-      } else {
-        const error = await response.json();
-        toast({
-          title: "Error",
-          description: error.message || "Authentication failed",
-          variant: "destructive",
-        });
-      }
+      
+      // Redirect to onboarding
+      setLocation("/onboarding");
     } catch (error) {
       console.error("Auth error:", error);
       toast({
@@ -177,25 +166,8 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Button
-              variant="outline"
-              onClick={() => handleSocialLogin("google")}
-              disabled={isLoading}
-              data-testid="button-google"
-            >
-              <SiGoogle className="mr-2 h-4 w-4" />
-              Google
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleSocialLogin("github")}
-              disabled={isLoading}
-              data-testid="button-github"
-            >
-              <SiGithub className="mr-2 h-4 w-4" />
-              GitHub
-            </Button>
+          <div className="text-center text-sm text-muted-foreground">
+            Social login (Google, GitHub) available when OAuth credentials are configured
           </div>
 
           <div className="text-center text-sm">
