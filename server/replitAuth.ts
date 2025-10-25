@@ -66,29 +66,58 @@ async function upsertUser(
   if (email) {
     const { db } = await import("./db");
     const { users } = await import("@shared/schema");
-    const { eq } = await import("drizzle-orm");
+    const { eq, sql } = await import("drizzle-orm");
     
     const [existingUser] = await db.select().from(users).where(eq(users.email, email));
     
     if (existingUser && existingUser.id !== newId) {
-      // Legacy user found - migrate by creating new record with OIDC ID and deleting old one
+      // Legacy user found - migrate by deleting old record, then creating new one with OIDC ID
       console.log(`[Auth Migration] Migrating user ${existingUser.id} → ${newId} (${email})`);
       
-      // Create new record with OIDC sub as ID, preserving roles/onboarding
-      await db.insert(users).values({
-        id: newId,
-        email: email,
-        firstName: claims["first_name"],
-        lastName: claims["last_name"],
-        profileImageUrl: claims["profile_image_url"],
-        roles: existingUser.roles, // Preserve roles
-        onboardingComplete: existingUser.onboardingComplete, // Preserve onboarding status
-        createdAt: existingUser.createdAt, // Preserve original creation date
-        updatedAt: new Date(),
-      });
+      // Preserve legacy data before deleting
+      const rolesArray = existingUser.roles || [];
+      const onboardingData = existingUser.onboardingComplete || {};
+      const createdAt = existingUser.createdAt;
       
-      // Delete old UUID-based record
+      // Delete old UUID-based record FIRST to avoid unique constraint violation
       await db.delete(users).where(eq(users.id, existingUser.id));
+      
+      // Create new record with OIDC sub as ID, preserving roles/onboarding
+      // Note: Using raw SQL to access snake_case column names from DB
+      const rolesLiteral = `ARRAY[${rolesArray.map(r => `'${r}'`).join(',')}]::text[]`;
+      
+      await db.execute(sql.raw(`
+        INSERT INTO users (id, email, first_name, last_name, profile_image_url, roles, onboarding_complete, created_at, updated_at)
+        VALUES (
+          '${newId.replace(/'/g, "''")}', 
+          '${email.replace(/'/g, "''")}', 
+          '${(claims["first_name"] || '').replace(/'/g, "''")}', 
+          '${(claims["last_name"] || '').replace(/'/g, "''")}', 
+          ${claims["profile_image_url"] ? `'${claims["profile_image_url"].replace(/'/g, "''")}'` : 'NULL'}, 
+          ${rolesLiteral}, 
+          '${JSON.stringify(onboardingData).replace(/'/g, "''")}'::jsonb, 
+          '${createdAt.toISOString()}', 
+          NOW()
+        )
+      `));
+      
+      // IMPORTANT: Also update MemStorage to keep in-memory cache in sync with preserved data
+      // We need to manually set the user because storage.upsertUser doesn't preserve roles/onboarding
+      const { MemStorage } = await import("./storage");
+      const memStorage = storage as any;
+      if (memStorage.users instanceof Map) {
+        memStorage.users.set(newId, {
+          id: newId,
+          email: email,
+          firstName: claims["first_name"],
+          lastName: claims["last_name"],
+          profileImageUrl: claims["profile_image_url"],
+          roles: rolesArray, // Preserved from legacy
+          onboardingComplete: onboardingData, // Preserved from legacy
+          createdAt: createdAt, // Preserved from legacy
+          updatedAt: new Date(),
+        });
+      }
       
       return;
     }
