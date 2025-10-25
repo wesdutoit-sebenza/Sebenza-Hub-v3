@@ -439,7 +439,31 @@ export default function RecruiterJobPostings() {
                   </div>
                 )}
 
-                {/* Row 2: Employment Type (Job Industry is auto-filled from Job Title) */}
+                {/* Row 2: Job Industry (read-only, auto-filled from Job Title), Employment Type */}
+                <FormField
+                  control={form.control}
+                  name="jobIndustry"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Job Industry</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          readOnly 
+                          disabled
+                          placeholder="Select a job title to auto-fill"
+                          className="bg-muted"
+                          data-testid="input-job-industry-readonly"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Auto-filled based on selected job title
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
                 <FormField
                   control={form.control}
                   name="employmentType"
