@@ -432,7 +432,12 @@ Job Title: ${jobTitle}`;
         role: z.enum(['individual', 'business', 'recruiter']),
       }).parse(req.body);
 
-      const fullUser = await storage.getUser(userId);
+      // Get user from database
+      const [fullUser] = await db.select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+
       if (!fullUser) {
         return res.status(404).json({ error: "User not found" });
       }
