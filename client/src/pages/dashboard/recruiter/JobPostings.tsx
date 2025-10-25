@@ -22,7 +22,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Briefcase, MapPin, DollarSign, MessageCircle, Search, Plus, X } from "lucide-react";
+import { Briefcase, MapPin, DollarSign, MessageCircle, Search, Plus, X, Pencil } from "lucide-react";
 import { type Job } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -103,6 +103,7 @@ export default function RecruiterJobPostings() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [editingJob, setEditingJob] = useState<Job | null>(null);
 
   const { data: jobsData, isLoading } = useQuery<{ success: boolean; count: number; jobs: Job[] }>({
     queryKey: ["/api/jobs"],
@@ -151,26 +152,31 @@ export default function RecruiterJobPostings() {
       const fullWhatsApp = whatsappNumber ? `${data.countryCode} ${whatsappNumber}` : "";
       
       const { customTitle, countryCode, whatsappContact, ...restData } = data;
-      const response = await apiRequest("POST", "/api/jobs", {
+      const payload = {
         ...restData,
         title: finalTitle,
         whatsappContact: fullWhatsApp,
-      });
+      };
+      
+      const method = editingJob ? "PUT" : "POST";
+      const url = editingJob ? `/api/jobs/${editingJob.id}` : "/api/jobs";
+      const response = await apiRequest(method, url, payload);
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
       toast({
         title: "Success!",
-        description: "Job posted successfully!",
+        description: editingJob ? "Job updated successfully!" : "Job posted successfully!",
       });
       form.reset();
       setShowForm(false);
+      setEditingJob(null);
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to post job. Please try again.",
+        description: editingJob ? "Failed to update job. Please try again." : "Failed to post job. Please try again.",
         variant: "destructive",
       });
     },
@@ -178,6 +184,49 @@ export default function RecruiterJobPostings() {
 
   const onSubmit = (data: FormData) => {
     mutation.mutate(data);
+  };
+
+  const handleEdit = (job: Job) => {
+    // Parse WhatsApp number to split country code and phone number
+    let countryCode = DEFAULT_COUNTRY_CODE;
+    let phoneNumber = "";
+    
+    if (job.whatsappContact) {
+      const parts = job.whatsappContact.trim().split(" ");
+      if (parts.length >= 2) {
+        countryCode = parts[0];
+        phoneNumber = parts.slice(1).join(" ");
+      } else {
+        phoneNumber = job.whatsappContact;
+      }
+    }
+
+    // Check if title is a custom one (not in predefined list)
+    const isCustomTitle = !JOB_TITLES.includes(job.title);
+    
+    form.reset({
+      title: isCustomTitle ? "Other" : job.title,
+      customTitle: isCustomTitle ? job.title : "",
+      company: job.company,
+      location: job.location,
+      salaryMin: job.salaryMin,
+      salaryMax: job.salaryMax,
+      description: job.description,
+      requirements: job.requirements,
+      countryCode: countryCode,
+      whatsappContact: phoneNumber,
+      employmentType: job.employmentType,
+      industry: job.industry,
+    });
+    
+    setEditingJob(job);
+    setShowForm(true);
+  };
+
+  const handleCancelEdit = () => {
+    form.reset();
+    setEditingJob(null);
+    setShowForm(false);
   };
 
   return (
@@ -191,7 +240,13 @@ export default function RecruiterJobPostings() {
         </div>
         <Button
           data-testid="button-post-job"
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            if (showForm) {
+              handleCancelEdit();
+            } else {
+              setShowForm(true);
+            }
+          }}
         >
           {showForm ? (
             <>
@@ -209,7 +264,9 @@ export default function RecruiterJobPostings() {
 
       {showForm && (
         <Card className="p-8 mb-8">
-          <h3 className="text-xl font-semibold mb-6" data-testid="text-form-title">Create Job Posting</h3>
+          <h3 className="text-xl font-semibold mb-6" data-testid="text-form-title">
+            {editingJob ? "Edit Job Posting" : "Create Job Posting"}
+          </h3>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -480,12 +537,15 @@ export default function RecruiterJobPostings() {
                   disabled={mutation.isPending}
                   data-testid="button-submit-job"
                 >
-                  {mutation.isPending ? "Posting..." : "Post Job"}
+                  {mutation.isPending 
+                    ? (editingJob ? "Updating..." : "Posting...") 
+                    : (editingJob ? "Update Job" : "Post Job")
+                  }
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowForm(false)}
+                  onClick={handleCancelEdit}
                   data-testid="button-cancel"
                 >
                   Cancel
@@ -535,7 +595,7 @@ export default function RecruiterJobPostings() {
           {filteredJobs.map((job) => (
             <Card key={job.id} className="p-6 hover-elevate" data-testid={`card-job-${job.id}`}>
               <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
-                <div>
+                <div className="flex-1">
                   <h3 className="text-xl font-semibold mb-2" data-testid="text-job-title">
                     {job.title}
                   </h3>
@@ -543,9 +603,20 @@ export default function RecruiterJobPostings() {
                     {job.company}
                   </p>
                 </div>
-                <Badge variant="secondary" data-testid="badge-employment-type">
-                  {job.employmentType}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" data-testid="badge-employment-type">
+                    {job.employmentType}
+                  </Badge>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleEdit(job)}
+                    data-testid={`button-edit-${job.id}`}
+                    title="Edit job"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-4 mb-4 text-sm text-muted-foreground">
