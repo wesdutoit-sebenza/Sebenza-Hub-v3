@@ -392,6 +392,170 @@ export default function RecruiterJobPostings() {
                   )}
                 />
               </div>
+
+              {/* Location Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="core.location.city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>City / Town *</FormLabel>
+                      <Popover open={cityDropdownOpen} onOpenChange={setCityDropdownOpen}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={cityDropdownOpen}
+                              className="w-full justify-between text-left font-normal"
+                              data-testid="select-city"
+                            >
+                              <span className={field.value ? "" : "text-muted-foreground"}>
+                                {field.value || "Select city / town"}
+                              </span>
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0" align="start">
+                          <Command>
+                            <CommandInput
+                              placeholder="Search cities..."
+                              value={citySearchQuery}
+                              onValueChange={setCitySearchQuery}
+                              data-testid="input-city-search"
+                            />
+                            <CommandList className="max-h-[300px]">
+                              <CommandEmpty>No cities found.</CommandEmpty>
+                              {filteredCities.map((provinceData) => (
+                                <CommandGroup
+                                  key={provinceData.province}
+                                  heading={provinceData.province}
+                                >
+                                  {provinceData.cities.map((cityData) => (
+                                    <CommandItem
+                                      key={`${provinceData.province}-${cityData.city}`}
+                                      value={cityData.city}
+                                      onSelect={() => {
+                                        field.onChange(cityData.city);
+                                        // Auto-fill province and postal code based on selected city
+                                        const locationData = getLocationDataForCity(cityData.city);
+                                        if (locationData) {
+                                          form.setValue("core.location.province", locationData.province);
+                                          form.setValue("core.location.postalCode", locationData.postalCode);
+                                        }
+                                        setCityDropdownOpen(false);
+                                        setCitySearchQuery("");
+                                      }}
+                                      className="cursor-pointer"
+                                      data-testid={`city-option-${cityData.city}`}
+                                    >
+                                      {cityData.city}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              ))}
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="core.location.province"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Province *</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          readOnly 
+                          disabled
+                          placeholder="Select a city to auto-fill"
+                          className="bg-muted"
+                          data-testid="input-province-readonly"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Auto-filled based on selected city
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="core.location.postalCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Postal Code</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          readOnly 
+                          disabled
+                          placeholder="Select a city to auto-fill"
+                          className="bg-muted"
+                          data-testid="input-postal-code-readonly"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Auto-filled based on selected city
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="core.location.address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Physical Address (Google Search)</FormLabel>
+                    <FormControl>
+                      <GoogleAddressSearch
+                        value={field.value}
+                        onChange={(address, placeDetails) => {
+                          field.onChange(address);
+                          
+                          if (placeDetails?.address_components) {
+                            const components = placeDetails.address_components;
+                            
+                            const city = components.find(c => 
+                              c.types.includes('locality') || c.types.includes('sublocality')
+                            )?.long_name;
+                            
+                            const province = components.find(c => 
+                              c.types.includes('administrative_area_level_1')
+                            )?.long_name;
+                            
+                            const postalCode = components.find(c => 
+                              c.types.includes('postal_code')
+                            )?.long_name;
+                            
+                            if (city) form.setValue('core.location.city', city);
+                            if (province) form.setValue('core.location.province', province);
+                            if (postalCode) form.setValue('core.location.postalCode', postalCode);
+                          }
+                        }}
+                        placeholder="Search for an address..."
+                        data-testid="input-address-search"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Start typing to search for an address. This will auto-fill city, province, and postal code.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </FormSection>
 
             {/* Core Details */}
@@ -638,171 +802,6 @@ export default function RecruiterJobPostings() {
                     )}
                   />
                 )}
-
-                <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="core.location.city"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>City / Town {workArrangement !== "Remote" && "*"}</FormLabel>
-                        <Popover open={cityDropdownOpen} onOpenChange={setCityDropdownOpen}>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                aria-expanded={cityDropdownOpen}
-                                className="w-full justify-between text-left font-normal"
-                                data-testid="select-city"
-                              >
-                                <span className={field.value ? "" : "text-muted-foreground"}>
-                                  {field.value || "Select city / town"}
-                                </span>
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-full p-0" align="start">
-                            <Command>
-                              <CommandInput
-                                placeholder="Search cities..."
-                                value={citySearchQuery}
-                                onValueChange={setCitySearchQuery}
-                                data-testid="input-city-search"
-                              />
-                              <CommandList className="max-h-[300px]">
-                                <CommandEmpty>No cities found.</CommandEmpty>
-                                {filteredCities.map((provinceData) => (
-                                  <CommandGroup
-                                    key={provinceData.province}
-                                    heading={provinceData.province}
-                                  >
-                                    {provinceData.cities.map((cityData) => (
-                                      <CommandItem
-                                        key={`${provinceData.province}-${cityData.city}`}
-                                        value={cityData.city}
-                                        onSelect={() => {
-                                          field.onChange(cityData.city);
-                                          // Auto-fill province and postal code based on selected city
-                                          const locationData = getLocationDataForCity(cityData.city);
-                                          if (locationData) {
-                                            form.setValue("core.location.province", locationData.province);
-                                            form.setValue("core.location.postalCode", locationData.postalCode);
-                                          }
-                                          setCityDropdownOpen(false);
-                                          setCitySearchQuery("");
-                                        }}
-                                        className="cursor-pointer"
-                                        data-testid={`city-option-${cityData.city}`}
-                                      >
-                                        {cityData.city}
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                ))}
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="core.location.province"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Province {workArrangement !== "Remote" && "*"}</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            readOnly 
-                            disabled
-                            placeholder="Select a city to auto-fill"
-                            className="bg-muted"
-                            data-testid="input-province-readonly"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Auto-filled based on selected city
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="core.location.postalCode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Postal Code</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            readOnly 
-                            disabled
-                            placeholder="Select a city to auto-fill"
-                            className="bg-muted"
-                            data-testid="input-postal-code-readonly"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Auto-filled based on selected city
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <FormField
-                    control={form.control}
-                    name="core.location.address"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Physical Address (Google Search)</FormLabel>
-                        <FormControl>
-                          <GoogleAddressSearch
-                            value={field.value}
-                            onChange={(address, placeDetails) => {
-                              field.onChange(address);
-                              
-                              if (placeDetails?.address_components) {
-                                const components = placeDetails.address_components;
-                                
-                                const city = components.find(c => 
-                                  c.types.includes('locality') || c.types.includes('sublocality')
-                                )?.long_name;
-                                
-                                const province = components.find(c => 
-                                  c.types.includes('administrative_area_level_1')
-                                )?.long_name;
-                                
-                                const postalCode = components.find(c => 
-                                  c.types.includes('postal_code')
-                                )?.long_name;
-                                
-                                if (city) form.setValue('core.location.city', city);
-                                if (province) form.setValue('core.location.province', province);
-                                if (postalCode) form.setValue('core.location.postalCode', postalCode);
-                              }
-                            }}
-                            placeholder="Search for an address..."
-                            data-testid="input-address-search"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Start typing to search for an address. This will auto-fill city, province, and postal code.
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
               </div>
             </FormSection>
 
