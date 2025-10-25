@@ -39,8 +39,9 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText } from "lucide-react";
+import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles } from "lucide-react";
 import { type Job, insertJobSchema } from "@shared/schema";
+import { JobDescriptionAIDialog } from "@/components/JobDescriptionAIDialog";
 import {
   SA_PROVINCES,
   EMPLOYMENT_TYPES,
@@ -171,6 +172,7 @@ export default function RecruiterJobPostings() {
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const [jobTitleSearchQuery, setJobTitleSearchQuery] = useState("");
   const [jobTitleDropdownOpen, setJobTitleDropdownOpen] = useState(false);
+  const [aiDialogOpen, setAIDialogOpen] = useState(false);
 
   const { data: jobsData, isLoading } = useQuery<{ success: boolean; count: number; jobs: Job[] }>({
     queryKey: ["/api/jobs"],
@@ -807,27 +809,43 @@ export default function RecruiterJobPostings() {
 
             {/* Job Summary */}
             <FormSection title="Job Summary" description="Provide a compelling overview of this opportunity">
-              <FormField
-                control={form.control}
-                name="core.summary"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Job Summary *</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="2–4 lines summarizing the role and what makes it exciting"
-                        className="min-h-[100px]"
-                        {...field}
-                        data-testid="textarea-summary"
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Give candidates a compelling overview of this opportunity
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-4">
+                  <FormField
+                    control={form.control}
+                    name="core.summary"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Job Summary *</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="2–4 lines summarizing the role and what makes it exciting"
+                            className="min-h-[100px]"
+                            {...field}
+                            data-testid="textarea-summary"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Give candidates a compelling overview of this opportunity
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="pt-8">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setAIDialogOpen(true)}
+                      className="whitespace-nowrap"
+                      data-testid="button-ai-assistant"
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      AI Assistant
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </FormSection>
 
             {/* Responsibilities & Requirements */}
@@ -1398,6 +1416,24 @@ export default function RecruiterJobPostings() {
             </div>
           </form>
         </Form>
+
+        {/* AI Job Description Dialog */}
+        <JobDescriptionAIDialog
+          open={aiDialogOpen}
+          onOpenChange={setAIDialogOpen}
+          jobContext={{
+            jobTitle: form.watch("title"),
+            companyName: form.watch("companyDetails.name"),
+            industry: form.watch("companyDetails.industry"),
+            jobIndustry: form.watch("jobIndustry"),
+            seniorityLevel: form.watch("core.seniority"),
+            employmentType: form.watch("employmentType"),
+            workArrangement: form.watch("core.workArrangement"),
+          }}
+          onInsert={(description) => {
+            form.setValue("core.summary", description);
+          }}
+        />
       </div>
     );
   }

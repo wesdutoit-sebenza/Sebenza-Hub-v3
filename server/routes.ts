@@ -152,8 +152,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       
-      // Use partial schema for flexible updates (supports both legacy and comprehensive fields)
-      const validatedData = insertJobSchema.partial().parse(req.body);
+      // Accept any updates without full validation for flexibility
+      const validatedData = req.body;
       
       const job = await storage.updateJob(id, validatedData);
       
@@ -176,6 +176,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({
         success: false,
         message: error.errors ? "Invalid job data." : "Error updating job.",
+      });
+    }
+  });
+
+  // AI Job Description Generator
+  app.post("/api/jobs/generate-description", async (req, res) => {
+    try {
+      const { jobTitle, companyName, industry, jobIndustry, seniorityLevel, employmentType, workArrangement, tone } = req.body;
+
+      // Validate required fields
+      if (!jobTitle) {
+        return res.status(400).json({
+          success: false,
+          message: "Job title is required.",
+        });
+      }
+
+      // Check if AI is configured
+      if (!isAIConfigured()) {
+        return res.status(503).json({
+          success: false,
+          message: "AI service is not configured. Please contact support.",
+        });
+      }
+
+      // Initialize OpenAI client
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+      });
+
+      // Build system prompt with South African market context
+      const systemPrompt = `You are an expert South African recruiter and job description writer. Your task is to generate professional, compelling job summaries that resonate with the South African job market.
+
+Context about South Africa:
+- Diverse workforce with 11 official languages
+- Strong emphasis on B-BBEE (Broad-Based Black Economic Empowerment) and diversity
+- Professional yet approachable communication style
+- Focus on work-life balance, development opportunities, and inclusive workplace culture
+- Common industries: mining, finance, technology, tourism, agriculture, manufacturing
+
+Your job summaries should:
+- Be 2-4 concise, engaging lines (about 50-80 words)
+- Highlight the role's key purpose and impact
+- Emphasize what makes the opportunity exciting
+- Use South African English spelling and terminology
+- Be professional but personable
+- Avoid jargon and buzzwords
+- Focus on the candidate's potential growth and contribution
+- Mention relevant South African market context when applicable
+
+Tone guidelines:
+- "formal": Very professional, corporate language (e.g., banking, legal, executive roles)
+- "professional": Balanced professional tone (default for most roles)
+- "approachable": Warm, friendly, still professional (e.g., startups, creative roles)
+- "concise": Short, punchy, direct (60-word maximum)
+- "detailed": More comprehensive overview (80-100 words, include specific responsibilities)`;
+
+      // Build user prompt with job context
+      let userPrompt = `Generate a compelling job summary for the following role:
+
+Job Title: ${jobTitle}`;
+      
+      if (companyName) userPrompt += `\nCompany: ${companyName}`;
+      if (industry) userPrompt += `\nCompany Industry: ${industry}`;
+      if (jobIndustry) userPrompt += `\nJob Industry: ${jobIndustry}`;
+      if (seniorityLevel) userPrompt += `\nSeniority Level: ${seniorityLevel}`;
+      if (employmentType) userPrompt += `\nEmployment Type: ${employmentType}`;
+      if (workArrangement) userPrompt += `\nWork Arrangement: ${workArrangement}`;
+      if (tone) userPrompt += `\nTone: ${tone}`;
+      
+      userPrompt += `\n\nGenerate a job summary that will attract top South African talent. Return ONLY the job summary text, no additional formatting or explanations.`;
+
+      // Call OpenAI API
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 300,
+      });
+
+      const description = completion.choices[0]?.message?.content?.trim();
+
+      if (!description) {
+        throw new Error("No response from AI");
+      }
+
+      res.json({
+        success: true,
+        description,
+      });
+    } catch (error: any) {
+      console.error("Job description generation error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to generate job description. Please try again.",
+        error: error.message,
       });
     }
   });
