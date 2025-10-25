@@ -372,7 +372,6 @@ export default function RecruiterJobPostings() {
                               {title}
                             </SelectItem>
                           ))}
-                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
