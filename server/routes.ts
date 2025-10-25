@@ -5,8 +5,7 @@ import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidat
 import { db } from "./db";
 import { users, candidateProfiles, organizations, recruiterProfiles, memberships, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
-import { requireAuth, requireRole, optionalAuth, generateToken, type AuthRequest } from "./auth";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { requireAuth, requireRole, optionalAuth, type AuthRequest, setupAuth, isAuthenticated } from "./auth";
 import { screeningQueue, isQueueAvailable } from "./queue";
 import pg from "pg";
 import { z } from "zod";
@@ -382,7 +381,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/auth/user", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
       
       const fullUser = await storage.getUser(userId);
       
@@ -400,7 +399,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/my-membership", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const [membership] = await db.select()
         .from(memberships)
@@ -427,7 +426,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/me/role", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { role } = z.object({
         role: z.enum(['individual', 'business', 'recruiter']),
@@ -460,7 +459,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/profile/candidate", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const fullUser = await storage.getUser(userId);
       if (!fullUser) {
@@ -527,7 +526,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/organizations", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const fullUser = await storage.getUser(userId);
       if (!fullUser) {
@@ -673,7 +672,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/screening/jobs", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const validatedData = insertScreeningJobSchema.parse({
         ...req.body,
@@ -702,7 +701,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/screening/jobs", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const jobs = await db.select()
         .from(screeningJobs)
@@ -726,7 +725,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/screening/stats", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const jobs = await db.select()
         .from(screeningJobs)
@@ -775,7 +774,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/screening/jobs/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const [job] = await db.select()
         .from(screeningJobs)
@@ -820,7 +819,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/screening/jobs/:id/process", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       // Check if AI integration is configured
       if (!isAIConfigured()) {
@@ -975,7 +974,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/screening/jobs/:id/export", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const [job] = await db.select()
         .from(screeningJobs)
@@ -1034,7 +1033,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/ats/candidates", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const validatedData = insertCandidateSchema.parse(req.body);
       const [candidate] = await db.insert(candidates)
@@ -1068,7 +1067,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/ats/candidates", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const searchQuery = req.query.search as string || '';
       const city = req.query.city as string || '';
@@ -1111,7 +1110,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/ats/stats", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const allCandidates = await db.select().from(candidates);
       const sevenDaysAgo = new Date();
@@ -1167,7 +1166,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/ats/candidates/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const candidateId = req.params.id;
 
@@ -1243,7 +1242,7 @@ Job Title: ${jobTitle}`;
   app.put("/api/ats/candidates/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const candidateId = req.params.id;
       const validatedData = insertCandidateSchema.partial().parse(req.body);
@@ -1279,7 +1278,7 @@ Job Title: ${jobTitle}`;
   app.delete("/api/ats/candidates/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const candidateId = req.params.id;
 
@@ -1314,7 +1313,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/ats/candidates/:candidateId/experiences", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { candidateId } = req.params;
       const validatedData = insertExperienceSchema.parse({
@@ -1344,7 +1343,7 @@ Job Title: ${jobTitle}`;
   app.put("/api/ats/experiences/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { id } = req.params;
       const validatedData = insertExperienceSchema.partial().parse(req.body);
@@ -1379,7 +1378,7 @@ Job Title: ${jobTitle}`;
   app.delete("/api/ats/experiences/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { id } = req.params;
 
@@ -1414,7 +1413,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/ats/candidates/:candidateId/education", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { candidateId } = req.params;
       const validatedData = insertEducationSchema.parse({
@@ -1444,7 +1443,7 @@ Job Title: ${jobTitle}`;
   app.put("/api/ats/education/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { id } = req.params;
       const validatedData = insertEducationSchema.partial().parse(req.body);
@@ -1479,7 +1478,7 @@ Job Title: ${jobTitle}`;
   app.delete("/api/ats/education/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { id } = req.params;
 
@@ -1514,7 +1513,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/ats/candidates/:candidateId/certifications", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { candidateId } = req.params;
       const validatedData = insertCertificationSchema.parse({
@@ -1544,7 +1543,7 @@ Job Title: ${jobTitle}`;
   app.delete("/api/ats/certifications/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { id } = req.params;
       await db.delete(certifications).where(eq(certifications.id, id));
@@ -1558,7 +1557,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/ats/candidates/:candidateId/projects", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { candidateId } = req.params;
       const validatedData = insertProjectSchema.parse({
@@ -1588,7 +1587,7 @@ Job Title: ${jobTitle}`;
   app.delete("/api/ats/projects/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { id } = req.params;
       await db.delete(projects).where(eq(projects.id, id));
@@ -1602,7 +1601,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/ats/candidates/:candidateId/awards", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { candidateId } = req.params;
       const validatedData = insertAwardSchema.parse({
@@ -1632,7 +1631,7 @@ Job Title: ${jobTitle}`;
   app.delete("/api/ats/awards/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { id } = req.params;
       await db.delete(awards).where(eq(awards.id, id));
@@ -1650,7 +1649,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/ats/candidates/:candidateId/skills", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { candidateId } = req.params;
       const { skillName, kind } = req.body;
@@ -1703,7 +1702,7 @@ Job Title: ${jobTitle}`;
   app.delete("/api/ats/candidates/:candidateId/skills/:skillId", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { candidateId, skillId } = req.params;
 
@@ -1991,7 +1990,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/ats/resumes/parse", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       // Check if AI is configured
       if (!isAIConfiguredForCV()) {
@@ -2441,7 +2440,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/individuals/profile", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       // Get candidate profile linked to this user
       const [profile] = await db.select()
@@ -2475,7 +2474,7 @@ Job Title: ${jobTitle}`;
   app.put("/api/individuals/profile", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       // Get candidate profile linked to this user
       const [profile] = await db.select()
@@ -2532,7 +2531,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/interview-coach/start", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { config, context } = req.body;
       
@@ -2557,7 +2556,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/interview-coach/chat", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { sessionId, message } = req.body;
       
@@ -2588,7 +2587,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/interview-coach/transcript/:sessionId", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { sessionId } = req.params;
       
@@ -2612,7 +2611,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/interview-coach/end", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { sessionId } = req.body;
       
@@ -2636,7 +2635,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/individuals/resume/parse", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       // Check if AI is configured
       if (!isAIConfiguredForCV()) {
@@ -2860,7 +2859,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/roles", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const validatedData = insertRoleSchema.parse(req.body);
       
@@ -2890,7 +2889,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/roles", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const isActiveFilter = req.query.isActive;
       const createdBy = req.query.createdBy as string;
@@ -2928,7 +2927,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/roles/stats", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const allRoles = await db.select().from(roles);
       const activeRoles = allRoles.filter(r => r.isActive === 1);
@@ -2984,7 +2983,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/roles/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const roleId = req.params.id;
 
@@ -3016,7 +3015,7 @@ Job Title: ${jobTitle}`;
   app.patch("/api/roles/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const roleId = req.params.id;
       const updates = req.body;
@@ -3057,7 +3056,7 @@ Job Title: ${jobTitle}`;
   app.delete("/api/roles/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const roleId = req.params.id;
 
@@ -3091,7 +3090,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/roles/:roleId/screen", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const roleId = req.params.roleId;
       const { candidateIds } = req.body; // Array of candidate IDs to screen
@@ -3283,7 +3282,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/roles/:roleId/screenings", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const roleId = req.params.roleId;
 
@@ -3322,7 +3321,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/candidates/:candidateId/screenings", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const candidateId = req.params.candidateId;
 
@@ -3361,7 +3360,7 @@ Job Title: ${jobTitle}`;
   app.delete("/api/screenings/:id", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const screeningId = req.params.id;
 
@@ -3397,7 +3396,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/individual/profile", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const [profile] = await db.select()
         .from(candidateProfiles)
@@ -3427,7 +3426,7 @@ Job Title: ${jobTitle}`;
   app.patch("/api/individual/profile", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const updateData = {
         ...req.body,
@@ -3464,7 +3463,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/individual/preferences", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       let [preferences] = await db.select()
         .from(individualPreferences)
@@ -3494,7 +3493,7 @@ Job Title: ${jobTitle}`;
   app.patch("/api/individual/preferences", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const updateData = {
         ...req.body,
@@ -3537,7 +3536,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/individual/notifications", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       let [settings] = await db.select()
         .from(individualNotificationSettings)
@@ -3567,7 +3566,7 @@ Job Title: ${jobTitle}`;
   app.patch("/api/individual/notifications", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const updateData = {
         ...req.body,
@@ -3610,7 +3609,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/individual/delete-account", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       // In a production app, this would:
       // 1. Mark account for deletion
@@ -3641,7 +3640,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/admin/fraud-detections", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       // TODO: Add proper admin role check here
       // For now, any authenticated user can access (replace with admin check later)
@@ -3690,7 +3689,7 @@ Job Title: ${jobTitle}`;
   app.get("/api/admin/fraud-detections/stats", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       // Get counts by status
       const statusCounts = await db.select({
@@ -3737,7 +3736,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/admin/fraud-detections/:id/approve", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { id } = req.params;
       const { notes } = req.body;
@@ -3778,7 +3777,7 @@ Job Title: ${jobTitle}`;
   app.post("/api/admin/fraud-detections/:id/reject", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
-      const userId = user.claims.sub;
+      const userId = user.id;
 
       const { id } = req.params;
       const { notes, action } = req.body;

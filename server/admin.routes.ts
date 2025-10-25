@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { isAuthenticated, requireAdmin } from "./replitAuth";
+import { isAuthenticated, requireAdmin } from "./auth";
 import { db } from "./db";
 import { users, candidateProfiles, recruiterProfiles, organizations, memberships, candidates, resumes, roles, screenings, fraudDetections } from "@shared/schema";
 import { eq, desc, and, sql, or, like, ilike } from "drizzle-orm";
