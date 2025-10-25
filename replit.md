@@ -25,7 +25,10 @@ Preferred communication style: Simple, everyday language.
 - **AI Integration**: Powers CV screening, resume ingestion, interview coaching, and fraud detection.
 - **Fraud & Spam Detection**: Real-time AI-powered system using OpenAI GPT-4o-mini for scanning submissions, risk scoring, and flagging.
 - **Background Job Processing**: BullMQ with Redis for asynchronous tasks like candidate screening and fraud detection.
-- **Authentication & Authorization**: Passwordless magic link authentication (Resend) with JWTs. Multi-role system (`individual`, `business`, `recruiter`) and POPIA compliance.
+- **Authentication & Authorization**: Replit Auth (OpenID Connect) with email/password and social logins (Google, GitHub, X/Twitter, Apple). Multi-role system (`individual`, `business`, `recruiter`, `admin`) with role-based access control and POPIA compliance.
+  - **Admin Role**: Platform administrators have access to comprehensive admin dashboard at `/api/admin/*` routes for managing users, recruiters, businesses, CVs, roles, screenings, and monitoring fraud detection.
+  - **Admin User**: First admin created with email `admin@sebenzahub.com` (ID: `admin-001`)
+  - **Migration**: Legacy users automatically migrated from magic link auth to OIDC, preserving roles and onboarding status
 
 ### Data Storage
 - **Database**: PostgreSQL (Neon) with Drizzle ORM and pgvector extension.
