@@ -46,7 +46,7 @@ import {
   OPTIONAL_ATTACHMENTS,
   COMMON_BENEFITS,
 } from "@shared/jobTaxonomies";
-import { JOB_TITLES } from "@shared/jobTitles";
+import { JOB_TITLES, JOB_TITLES_BY_INDUSTRY } from "@shared/jobTitles";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
@@ -366,12 +366,23 @@ export default function RecruiterJobPostings() {
                             <SelectValue placeholder="Select job title" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          {JOB_TITLES.map((title) => (
-                            <SelectItem key={title} value={title}>
-                              {title}
-                            </SelectItem>
+                        <SelectContent className="max-h-[300px]">
+                          {JOB_TITLES_BY_INDUSTRY.map((category) => (
+                            <div key={category.industry}>
+                              <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                                {category.industry}
+                              </div>
+                              {category.titles.map((title) => (
+                                <SelectItem key={title} value={title}>
+                                  {title}
+                                </SelectItem>
+                              ))}
+                            </div>
                           ))}
+                          <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                            Other
+                          </div>
+                          <SelectItem value="Other">Other (Custom Job Title)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
