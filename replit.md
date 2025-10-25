@@ -1,28 +1,7 @@
 # Sebenza Hub - South African Recruiting Platform
 
 ## Overview
-Sebenza Hub is a marketing website for a South African recruiting platform focused on transparency, compliance, and WhatsApp-first hiring. It targets recruiters, businesses, and job seekers with distinct landing pages. The platform aims to capture early-access subscribers and showcases a modern, minimal design. It is a full-stack TypeScript application utilizing a React frontend and an Express backend, built for performance, accessibility, and mobile-first responsiveness. The project's ambition is to become a leading recruiting solution in South Africa, streamlining hiring processes and enhancing candidate experience.
-
-## Recent Changes (October 25, 2025)
-- **Form Organization - Location Fields in Company Information**: Moved City/Town, Province, Postal Code, and Physical Address fields from Core Details section to Company Information section for better logical grouping. **Company Information** now contains: Recruiting Agency, Company Name, Company Industry, City/Town (searchable dropdown), Province (read-only, auto-filled), Postal Code (read-only, auto-filled), Physical Address (Google Search). **Core Details** section now focuses solely on job-specific fields: Job Title, Department, Job Industry (read-only), Employment Type, Seniority Level, Work Arrangement, and Hybrid % (conditional). This reorganization improves form flow by grouping company/location information separately from job role details.
-- **Searchable Dropdowns with Grouped Categories**: Added search functionality to both Job Title and City/Town dropdowns using Command + Popover pattern. Users can type to filter options in real-time with case-insensitive search. Job titles are grouped by 23 industry categories, cities are grouped by 9 provinces. Both dropdowns use CommandInput for search, CommandGroup for category headers, and CommandItem for individual options.
-- **Google Address Search Integration**: Added Google Places API autocomplete for job posting addresses. New `address` field in `core.location` schema with GoogleAddressSearch component (`client/src/components/GoogleAddressSearch.tsx`). Component loads Google Maps JavaScript API directly via script tag and provides autocomplete restricted to South Africa. When user selects an address, it auto-fills city, province, and postal code fields. Configured VITE_GOOGLE_MAPS_API_KEY environment variable.
-- **Job Titles Grouped by Industry with Auto-Fill**: Completely restructured job titles system in `shared/jobTitles.ts`. Created `JOB_TITLES_BY_INDUSTRY` with 23 industry categories containing 500+ job titles organized hierarchically. Industries include: Accounting/Finance/Auditing, Administration/Office/Support, IT & Digital, Engineering/Technical/Construction, Manufacturing/Production, Business/Consulting, Sales/Marketing, HR, Healthcare, Education, Legal, Logistics, Government, Hospitality, Security, Art/Design, Science, Agriculture, Retail, Property, Trades, Media, and Other Specialized Roles. Added `getIndustryForJobTitle()` helper function that auto-fills the `jobIndustry` field based on selected job title - **Job Industry field now read-only** as it's automatically populated. Backward compatible with flat `JOB_TITLES` array for existing code.
-- **Cities Dropdown with Province Grouping and Auto-Fill**: Created comprehensive city/town system in `shared/cities.ts` with 323 South African cities organized by 9 provinces (Eastern Cape, Free State, Gauteng, KwaZulu-Natal, Limpopo, Mpumalanga, Northern Cape, North West, Western Cape). When user selects a city, the `getLocationDataForCity()` helper function auto-fills province and postal code fields. Both province and postal code are now read-only fields that display auto-filled values.
-- **Job Summary Section**: Created dedicated "Job Summary" section positioned between "Core Details" and "Responsibilities & Requirements" sections for better form organization and user flow.
-- **Job Industry System**: Separated industry into two distinct fields: `jobIndustry` (the industry/sector the job role is in) and `companyDetails.industry` (the industry the company operates in). Updated schema, form labels ("Job Industry" and "Company Industry"), and backward compatibility mapping.
-
-## Previous Changes (October 24, 2025)
-- **Recruiter's Dashboard (Complete)**: Created comprehensive dashboard at `/dashboard/recruiter/*` with sidebar navigation (similar to Individual's Dashboard). Eight sections: (1) Profile - view/edit agency name, website, email, telephone, industry sectors; (2) Job Postings - complete job posting form with WhatsApp contact and listings; (3) Roles & Screenings - complete role management and candidate screening; (4) Candidate Database - full ATS candidate management with stats and search; (5) Competency Tests - placeholder for future features; (6) Interview Scheduling - placeholder for future features; (7) Billing - placeholder for subscription management; (8) Settings - placeholder for account preferences. Recruiter onboarding redirects to `/dashboard/recruiter/profile`. Added GET and PUT endpoints for `/api/profile/recruiter` to support profile viewing and editing. Removed "Recruiter Settings" from Header dropdown menu (now accessible via dashboard Settings section). Header dropdown now includes "Recruiter's Dashboard" link for users with recruiter role.
-- **Industry Sectors Dropdown**: Changed from checkbox grid to dropdown with checkboxes (Popover component) for cleaner UI in both recruiter onboarding and profile editing.
-- **Email Auto-Population**: Email field in recruiter onboarding and profile auto-populates from logged-in user's email via `/api/me` endpoint and is disabled to prevent changes.
-- **CRITICAL BUG FIX - Profile Table Mismatch (Complete)**: Fixed critical architectural issue where onboarding created profiles in `candidateProfiles` table but dashboard queried from `candidates` table (ATS system). Updated `/api/individuals/profile` GET and PUT endpoints to correctly query/update `candidateProfiles` table. Completely rewrote Profile.tsx page to match actual schema fields (removed non-existent fields like headline, summary, workAuthorization, links). Profile now correctly displays after onboarding completion.
-- **Individuals Dashboard (Complete)**: Created comprehensive dashboard at `/dashboard/individual/*` with sidebar navigation (similar to Admin Dashboard). Five sections: (1) Profile - view/edit with all contact fields and country code selector; (2) CVs - list/view/delete CVs with CV Builder integration; (3) Job Searches - placeholder for future job tracking; (4) Billing - placeholder for payment management; (5) Settings - job preferences, notifications, privacy controls. Onboarding redirects to `/dashboard/individual/profile`. Public marketing page remains at `/individuals`. Individual Settings removed from Header dropdown (now in dashboard Settings section).
-- **Contact Information System (Complete)**: Implemented comprehensive contact information handling across ALL website forms with consistent country code selector and automatic leading-0 removal. Created shared/countries.ts (195+ countries, South Africa default) and shared/countryCodes.ts (195+ country calling codes, +27 South Africa default). Email auto-populates from authenticated user's sign-in email. Telephone/WhatsApp fields feature country code selector (+27 default) combined with phone number input. Leading 0 automatically removed from all phone numbers before database save (e.g., user enters "082 123 4567", saved as "+27 82 123 4567"). **Updated Forms**: (1) Individual Onboarding - postalCode, country, email, telephone with code selector; (2) CV Builder Personal Info Step - same fields with country code selector; (3) Individual Profile Edit - phone field with country code selector; (4) Recruiters Job Posting - WhatsApp number with country code selector. Province field dynamically switches between SA provinces dropdown and text input based on selected country. Database: candidateProfiles table includes postalCode (nullable), country (default 'South Africa'), email (nullable), telephone (nullable). All forms tested and working consistently across the entire platform.
-- **Skills Multi-Select System**: Implemented centralized skills management with 146 predefined skills organized into 11 categories (Agriculture, Business, Digital & Technical, Education, Engineering & Manufacturing, Finance & Accounting, Healthcare, Marketing & Sales, Public Service & Safety, Trades & Construction, Soft Skills). Created reusable SkillsMultiSelect component with checkboxes, category headers, search functionality, 10-skill limit enforcement, and visual feedback. Updated all skill selection points: individual onboarding, CV builder (SkillsStep), and recruiter job posting (roles.tsx). NO "Other" option for skills to ensure consistency. Implemented backward compatibility with migration utilities for legacy nested skill format.
-- **Job Titles System**: 398 unique SA job titles in shared/jobTitles.ts with "Other" option that reveals custom text input. Used across individual onboarding and recruiter forms.
-- **Admin Dashboard Integration**: Complete admin dashboard with navigation integration. Admin users see "Admin Dashboard" link (with shield icon, highlighted in amber) in the Header dropdown menu.
-- **Critical Bug Fix**: Fixed `/api/me` endpoint that was incorrectly wrapping user data in `{ user: ... }` instead of returning user object directly. This was preventing role-based features from working correctly in the frontend.
+Sebenza Hub is a marketing website for a South African recruiting platform focused on transparency, compliance, and WhatsApp-first hiring. It connects recruiters, businesses, and job seekers through distinct landing pages. The platform aims to streamline hiring processes, enhance candidate experience, and become a leading recruiting solution in South Africa. It is a full-stack TypeScript application with a React frontend and an Express backend, designed for performance, accessibility, and mobile-first responsiveness.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -30,41 +9,39 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### Frontend
-- **Framework & Tooling**: Vite-powered React with TypeScript, Wouter for routing, TanStack React Query for state management, shadcn/ui (Radix UI) for components, and Tailwind CSS for styling.
-- **Design System**: Features a base color palette with strategic accents (Charcoal/Amber), Inter and Newsreader typography, custom theming, and mobile-first responsive design.
+- **Framework & Tooling**: React with TypeScript (Vite), Wouter for routing, TanStack React Query for state management, shadcn/ui (Radix UI) for components, and Tailwind CSS for styling.
+- **Design System**: Features a Charcoal/Amber color palette, Inter and Newsreader typography, custom theming, and mobile-first responsive design.
 - **Key Features**:
-    - **Recruiters Page**: Job posting form with WhatsApp integration, employment type, and industry categorization.
-    - **Individuals Page**: Unified CV upload with AI resume parsing (OpenAI GPT-4o), profile viewing/editing, and an AI Interview Coach ("Jabu") offering configurable interview types, personalized questions, real-time feedback, and scoring.
-    - **Integrated Roles & Screening**: Create/manage hiring roles, define configurable scoring weights, and screen existing ATS candidates with ranked, AI-evaluated results.
-    - **ATS (Applicant Tracking System)**: Comprehensive candidate management with a normalized database, AI-powered resume ingestion (GPT-4o), file upload support (PDF, DOCX, TXT), semantic search (OpenAI text-embedding-3-small), and full candidate lifecycle management.
-    - **Organization Settings**: Comprehensive configuration system for recruiters and businesses with multi-tenant support for team management, pipeline, interview operations, compliance, job templates, and vendor management.
+    - **Recruiters Portal**: Job posting forms with WhatsApp integration, recruiter profiles, and job listings. Includes an AI Job Description Generator.
+    - **Individuals Portal**: CV upload, profile management, and an AI Interview Coach ("Jabu") providing configurable interview types, personalized questions, and real-time feedback.
+    - **ATS (Applicant Tracking System)**: Comprehensive candidate management with AI-powered resume ingestion and semantic search.
+    - **Integrated Roles & Screening**: Management of hiring roles, configurable scoring weights, and AI-evaluated candidate screening.
+    - **Organization Settings**: Multi-tenant configuration for recruiters and businesses, covering team management, pipeline, and compliance.
+    - **Location & Job Data**: Comprehensive South African city/town and job title systems with auto-fill functionalities.
 
 ### Backend
-- **Server Framework**: Express.js with TypeScript, integrated with Vite middleware.
-- **API Endpoints**: Handles subscriptions, job postings, CV management, integrated roles/screening, ATS candidate management, organization settings, individual CV management, interview coach interactions, and fraud detection administration.
-- **AI Integration**: Four separate AI systems: CV screening, resume ingestion, interview coaching, and fraud detection.
-- **Fraud & Spam Detection**: Real-time AI-powered detection system using OpenAI GPT-4o-mini scanning all submissions (job postings, CVs, profiles) with risk scoring, categorization, flagging, AI reasoning, and an admin dashboard for review and actions. Processing is asynchronous and non-blocking.
-- **Background Job Processing**: BullMQ with Redis for asynchronous screening and fraud detection jobs. Includes auto-screening of new candidates against active roles, AI evaluation (GPT-4o-mini), semantic search for candidate relevance, and fraud detection processing.
-- **Authentication & Authorization**: Passwordless magic link authentication via email (Resend), JWT tokens. Multi-role system (`individual`, `business`, `recruiter`) with role-specific authorization. POPIA compliance for candidate data.
+- **Server Framework**: Express.js with TypeScript.
+- **API Endpoints**: Manages subscriptions, job postings, CVs, roles/screening, ATS, organization settings, and interview coach interactions.
+- **AI Integration**: Powers CV screening, resume ingestion, interview coaching, and fraud detection.
+- **Fraud & Spam Detection**: Real-time AI-powered system using OpenAI GPT-4o-mini for scanning submissions, risk scoring, and flagging.
+- **Background Job Processing**: BullMQ with Redis for asynchronous tasks like candidate screening and fraud detection.
+- **Authentication & Authorization**: Passwordless magic link authentication (Resend) with JWTs. Multi-role system (`individual`, `business`, `recruiter`) and POPIA compliance.
 
 ### Data Storage
 - **Database**: PostgreSQL (Neon) with Drizzle ORM and pgvector extension.
-- **Schema Design**: Core tables for users, organizations, candidates, recruiters. Dedicated tables for integrated roles, screenings, ATS modules (10 tables), organization settings (8 tables), and fraud detections. All tables use UUID primary keys and foreign key constraints.
-- **Hybrid Storage**: PostgreSQL for core data; legacy features use in-memory storage with migration plans.
+- **Schema Design**: Core tables for users, organizations, candidates, and recruiters, with dedicated tables for ATS modules, organization settings, and fraud detections. Uses UUID primary keys.
 
 ### Key Architectural Decisions
 - **Monorepo Structure**: Organized into `client/`, `server/`, and `shared/` directories.
-- **Build Strategy**: Client (Vite) builds to `dist/public`, Server (ESBuild) bundles to `dist/index.js`.
-- **Accessibility & Performance**: Focus on ARIA labels, semantic HTML, keyboard navigation, code splitting, lazy loading, and optimized font loading.
-- **South African Context**: Includes POPIA compliance and WhatsApp-first workflow.
+- **Accessibility & Performance**: Emphasis on ARIA labels, semantic HTML, keyboard navigation, code splitting, and lazy loading.
+- **South African Context**: POPIA compliance and WhatsApp-first workflow.
 
 ## External Dependencies
-- **UI & Styling**: Radix UI, shadcn/ui, Lucide React, Tailwind CSS, PostCSS, Google Fonts.
+- **UI & Styling**: Radix UI, shadcn/ui, Lucide React, Tailwind CSS, Google Fonts.
 - **Form Handling**: React Hook Form, Zod.
 - **Database**: Drizzle ORM, @neondatabase/serverless.
 - **File Upload**: Multer.
 - **Background Jobs**: BullMQ, ioredis.
-- **Utilities**: date-fns, clsx, tailwind-merge, class-variance-authority.
 - **AI**: OpenAI GPT-4o, OpenAI GPT-4o-mini, OpenAI text-embedding-3-small.
 - **Email**: Resend.
-- **Maps & Geolocation**: Google Maps JavaScript API (loaded via script tag, @types/google.maps).
+- **Maps & Geolocation**: Google Maps JavaScript API.
