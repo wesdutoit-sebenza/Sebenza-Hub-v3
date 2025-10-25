@@ -199,6 +199,7 @@ export default function RecruiterJobPostings() {
       companyDetails: {
         name: "",
         industry: "",
+        recruitingAgency: "",
         eeAa: false,
         contactEmail: "",
       },
@@ -286,6 +287,68 @@ export default function RecruiterJobPostings() {
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Company Information */}
+            <FormSection title="Company Information" description="Recruiting agency and company details">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="companyDetails.recruitingAgency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Recruiting Agency</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Agency name (if applicable)" {...field} data-testid="input-recruiting-agency" />
+                      </FormControl>
+                      <FormDescription>
+                        Leave blank if hiring directly
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="companyDetails.name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Name *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Your Company Name" {...field} data-testid="input-company-name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="companyDetails.industry"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Industry</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger data-testid="select-company-industry">
+                            <SelectValue placeholder="Select company industry" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {INDUSTRIES.map((ind) => (
+                            <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Industry your company operates in
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </FormSection>
+
             {/* Core Details */}
             <FormSection title="Core Details" description="Essential job information">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -870,48 +933,8 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Company & Compliance */}
-            <FormSection title="Company & Compliance" description="Company information and legal requirements">
+            <FormSection title="Compliance & Contact" description="Legal requirements and contact information">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="companyDetails.name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Company Name *</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Your Company Name" {...field} data-testid="input-company-name" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="companyDetails.industry"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Company Industry</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-company-industry">
-                            <SelectValue placeholder="Select company industry" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {INDUSTRIES.map((ind) => (
-                            <SelectItem key={ind} value={ind}>{ind}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        The industry your company operates in
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
                 <FormField
                   control={form.control}
                   name="compliance.rightToWork"

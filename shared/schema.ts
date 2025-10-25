@@ -240,6 +240,7 @@ export const jobApplicationSchema = z.object({
 export const jobCompanyDetailsSchema = z.object({
   name: z.string().min(2),
   industry: z.string().optional(), // Company Industry
+  recruitingAgency: z.string().optional(), // Recruiting Agency name
   eeAa: z.boolean().default(false),
   contactEmail: z.string().email(),
 });
