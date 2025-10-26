@@ -6,9 +6,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
-import { SiGoogle, SiGithub } from "react-icons/si";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { SiGoogle } from "react-icons/si";
 import { Loader2 } from "lucide-react";
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  updateProfile
+} from "firebase/auth";
+import { auth, googleProvider } from "@/lib/firebase";
 
 export default function Login() {
   const [, setLocation] = useLocation();
@@ -35,68 +41,65 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const endpoint = isSignup ? "/api/auth/signup" : "/api/auth/login";
-      const body = isSignup
-        ? formData
-        : { email: formData.email, password: formData.password };
+      let userCredential;
+      
+      if (isSignup) {
+        // Create new user with Firebase Auth
+        userCredential = await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+        
+        // Update user profile with name
+        if (formData.firstName || formData.lastName) {
+          await updateProfile(userCredential.user, {
+            displayName: `${formData.firstName} ${formData.lastName}`.trim()
+          });
+        }
+      } else {
+        // Sign in existing user
+        userCredential = await signInWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+      }
 
-      const response = await apiRequest("POST", endpoint, body);
-      const data = await response.json();
-      
-      // The signup/login endpoint sets the session cookie
-      // Remove any stale query data and reset error state
-      queryClient.removeQueries({ queryKey: ['/api/auth/user'] });
-      
       toast({
         title: "Success!",
         description: isSignup ? "Account created successfully" : "Logged in successfully",
       });
       
-      // Wait longer to ensure browser has processed the session cookie
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Verify the session is working before redirecting
-      try {
-        const verifyResponse = await fetch('/api/auth/user', {
-          credentials: 'include',
-        });
-        
-        if (verifyResponse.ok) {
-          // Session is working, safe to redirect
-          setLocation("/onboarding");
-        } else {
-          // Session not working yet, wait a bit more and try again
-          await new Promise(resolve => setTimeout(resolve, 500));
-          const retryResponse = await fetch('/api/auth/user', {
-            credentials: 'include',
-          });
-          
-          if (retryResponse.ok) {
-            setLocation("/onboarding");
-          } else {
-            throw new Error("Session verification failed");
-          }
-        }
-      } catch (verifyError) {
-        console.error("Session verification error:", verifyError);
-        // Try redirecting anyway - onboarding page will handle auth check
-        setLocation("/onboarding");
-      }
+      // Redirect to onboarding
+      setLocation("/onboarding");
     } catch (error: any) {
       console.error("Auth error:", error);
       
-      // Try to extract a meaningful error message
+      // Firebase error messages are more user-friendly
       let errorMessage = "Something went wrong. Please try again.";
-      if (error?.message) {
-        // Extract just the error message without status codes
-        const match = error.message.match(/\d+:\s*(.+)/);
-        if (match) {
-          try {
-            const parsed = JSON.parse(match[1]);
-            errorMessage = parsed.message || parsed.error || errorMessage;
-          } catch {
-            errorMessage = match[1] || errorMessage;
-          }
+      if (error.code) {
+        switch (error.code) {
+          case "auth/email-already-in-use":
+            errorMessage = "An account with this email already exists.";
+            break;
+          case "auth/invalid-email":
+            errorMessage = "Invalid email address.";
+            break;
+          case "auth/weak-password":
+            errorMessage = "Password should be at least 6 characters.";
+            break;
+          case "auth/user-not-found":
+            errorMessage = "No account found with this email.";
+            break;
+          case "auth/wrong-password":
+            errorMessage = "Incorrect password.";
+            break;
+          case "auth/invalid-credential":
+            errorMessage = "Invalid email or password.";
+            break;
+          default:
+            errorMessage = error.message;
         }
       }
       
@@ -110,8 +113,36 @@ export default function Login() {
     }
   };
 
-  const handleSocialLogin = (provider: "google" | "github") => {
-    window.location.href = `/api/auth/${provider}`;
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    try {
+      await signInWithPopup(auth, googleProvider);
+      
+      toast({
+        title: "Success!",
+        description: "Logged in with Google successfully",
+      });
+      
+      // Redirect to onboarding
+      setLocation("/onboarding");
+    } catch (error: any) {
+      console.error("Google login error:", error);
+      
+      let errorMessage = "Failed to sign in with Google.";
+      if (error.code === "auth/popup-closed-by-user") {
+        errorMessage = "Sign in cancelled.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -214,9 +245,17 @@ export default function Login() {
             </div>
           </div>
 
-          <div className="text-center text-sm text-muted-foreground">
-            Social login (Google, GitHub) available when OAuth credentials are configured
-          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={handleGoogleLogin}
+            disabled={isLoading}
+            data-testid="button-google-login"
+          >
+            <SiGoogle className="mr-2 h-4 w-4" />
+            Continue with Google
+          </Button>
 
           <div className="text-center text-sm">
             {isSignup ? (

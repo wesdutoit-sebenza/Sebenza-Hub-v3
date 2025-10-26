@@ -106,6 +106,10 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Setup Firebase authentication routes first
+  const { setupFirebaseRoutes } = await import('./firebase-routes');
+  setupFirebaseRoutes(app);
+  
   const server = await registerRoutes(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

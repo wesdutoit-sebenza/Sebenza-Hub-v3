@@ -16,16 +16,17 @@ export const sessions = pgTable(
 );
 
 // Users table - single source of truth for all accounts
-// Supports multiple authentication methods: email/password, Google, GitHub
+// Supports multiple authentication methods: Firebase, email/password, Google, GitHub
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   email: varchar("email").unique(),
-  password: varchar("password"), // Hashed password for email/password auth
+  password: varchar("password"), // Hashed password for email/password auth (legacy - will be removed)
+  firebaseUid: varchar("firebase_uid").unique(), // Firebase Auth UID
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  googleId: varchar("google_id").unique(), // Google OAuth ID
-  githubId: varchar("github_id").unique(), // GitHub OAuth ID
+  googleId: varchar("google_id").unique(), // Google OAuth ID (legacy - will be removed)
+  githubId: varchar("github_id").unique(), // GitHub OAuth ID (legacy - will be removed)
   roles: text("roles").array().notNull().default(sql`'{}'::text[]`), // 'individual', 'business', 'recruiter', 'admin'
   onboardingComplete: jsonb("onboarding_complete").notNull().default(sql`'{}'::jsonb`), // { individual: true, business: false }
   createdAt: timestamp("created_at").defaultNow(),

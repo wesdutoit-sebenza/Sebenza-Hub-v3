@@ -2,8 +2,8 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Menu, X, User as UserIcon, LogOut, Database, Sparkles, Briefcase, Settings, Shield, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@shared/schema";
 import {
@@ -19,18 +19,34 @@ export default function Header() {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toast } = useToast();
+  const { user: firebaseUser, signOut } = useAuth();
 
-  // Fetch current user
+  // Fetch current user from database
   const { data: userData } = useQuery<{ user: User }>({
     queryKey: ['/api/auth/user'],
     retry: false,
+    enabled: !!firebaseUser, // Only fetch if Firebase user exists
   });
 
   const user = userData?.user;
 
-  // Replit Auth logout - redirect to /api/logout which handles the OIDC logout flow
-  const handleLogout = () => {
-    window.location.href = "/api/logout";
+  // Firebase logout
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Logged out",
+        description: "You've been successfully logged out.",
+      });
+      setLocation("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to logout. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const isActive = (path: string) => location === path;
