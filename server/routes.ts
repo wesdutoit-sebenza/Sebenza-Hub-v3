@@ -51,6 +51,7 @@ import path from "path";
 import shortlistRoutes from "./shortlist.routes";
 import organizationSettingsRoutes from "./organization-settings.routes";
 import adminRoutes from "./admin.routes";
+import tokenAuthRoutes from "./token-auth.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
@@ -3833,6 +3834,9 @@ Job Title: ${jobTitle}`;
   
   // Admin routes
   app.use("/api/admin", adminRoutes);
+  
+  // JWT token authentication routes (for mobile app)
+  app.use("/api/auth/token", tokenAuthRoutes);
 
   const httpServer = createServer(app);
 
