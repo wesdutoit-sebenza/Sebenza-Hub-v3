@@ -43,37 +43,19 @@ export default function Login() {
       const response = await apiRequest("POST", endpoint, body);
       const data = await response.json();
       
-      // Invalidate and refetch user query to refresh authentication state
+      // The signup/login endpoint sets the session cookie
+      // Simply trust it worked and redirect to onboarding
+      // The onboarding page will verify authentication
+      toast({
+        title: "Success!",
+        description: isSignup ? "Account created successfully" : "Logged in successfully",
+      });
+      
+      // Invalidate user query so it refetches with the new session
       await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       
-      // Wait a moment for the session cookie to be set properly
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Verify we're actually authenticated before redirecting
-      try {
-        const userResponse = await fetch('/api/auth/user', {
-          credentials: 'include',
-        });
-        
-        if (userResponse.ok) {
-          toast({
-            title: "Success!",
-            description: isSignup ? "Account created successfully" : "Logged in successfully",
-          });
-          
-          // Redirect to onboarding
-          setLocation("/onboarding");
-        } else {
-          throw new Error("Authentication verification failed");
-        }
-      } catch (verifyError) {
-        console.error("Auth verification error:", verifyError);
-        toast({
-          title: "Error",
-          description: "Login succeeded but verification failed. Please try refreshing the page.",
-          variant: "destructive",
-        });
-      }
+      // Redirect to onboarding - it will check authentication
+      setLocation("/onboarding");
     } catch (error) {
       console.error("Auth error:", error);
       toast({
