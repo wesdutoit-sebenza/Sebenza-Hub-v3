@@ -8,6 +8,7 @@ import { storage } from "./storage";
 import { eq, or } from "drizzle-orm";
 import { users, type User } from "@shared/schema";
 import { db } from "./db";
+import { verifyAccessToken, extractTokenFromHeader } from "./jwt";
 
 const SALT_ROUNDS = 10;
 
@@ -313,15 +314,16 @@ export function setupAuth(app: Express) {
     });
   });
 
-  // Get current user endpoint
-  app.get("/api/auth/user", async (req, res) => {
-    if (!req.isAuthenticated() || !req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-
+  // Get current user endpoint (supports both JWT and session auth)
+  app.get("/api/auth/user", async (req: AuthRequest, res) => {
     try {
-      // req.user is already populated by deserializeUser
-      res.json({ user: req.user });
+      const user = await authenticateRequest(req as AuthRequest);
+      
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      res.json({ user });
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user profile" });
@@ -331,14 +333,55 @@ export function setupAuth(app: Express) {
 
 // Middleware functions
 
+/**
+ * Hybrid authentication middleware - supports both JWT and session auth
+ * Checks for JWT token first, falls back to session if not present
+ */
+async function authenticateRequest(req: AuthRequest): Promise<User | null> {
+  // First, try JWT authentication
+  const authHeader = req.headers.authorization;
+  const token = extractTokenFromHeader(authHeader);
+  
+  if (token) {
+    try {
+      const payload = verifyAccessToken(token);
+      // Get user from database
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, payload.userId))
+        .limit(1);
+      
+      if (user) {
+        return user;
+      }
+    } catch (error) {
+      // JWT verification failed, fall through to session auth
+      console.log("JWT verification failed:", (error as Error).message);
+    }
+  }
+  
+  // Fall back to session authentication
+  if (req.isAuthenticated() && req.user) {
+    return req.user as User;
+  }
+  
+  return null;
+}
+
 export async function requireAuth(
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) {
-  if (!req.isAuthenticated() || !req.user) {
+  const user = await authenticateRequest(req);
+  
+  if (!user) {
     return res.status(401).json({ error: "Authentication required" });
   }
+  
+  // Attach user to request for downstream middleware/handlers
+  req.user = user;
   next();
 }
 
@@ -380,12 +423,16 @@ export async function requireAdmin(
   }
 }
 
-export function optionalAuth(
+export async function optionalAuth(
   req: AuthRequest,
   res: Response,
   next: NextFunction
 ) {
-  // With session-based auth, user is already available if authenticated
+  // Try to authenticate, but don't require it
+  const user = await authenticateRequest(req);
+  if (user) {
+    req.user = user;
+  }
   next();
 }
 
@@ -395,8 +442,12 @@ export async function isAuthenticated(
   res: Response,
   next: NextFunction
 ) {
-  if (!req.isAuthenticated() || !req.user) {
+  const user = await authenticateRequest(req);
+  
+  if (!user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
+  
+  req.user = user;
   next();
 }
