@@ -68,8 +68,8 @@ export default function OnboardingRecruiter() {
 
   // Auto-populate email when user data is loaded
   useEffect(() => {
-    if ((userData as any)?.email) {
-      form.setValue("email", (userData as any).email);
+    if ((userData as any)?.user?.email) {
+      form.setValue("email", (userData as any).user.email);
     }
   }, [userData, form]);
 

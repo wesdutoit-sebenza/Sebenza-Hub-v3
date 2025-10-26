@@ -580,7 +580,7 @@ Job Title: ${jobTitle}`;
     try {
       const [profile] = await db.select()
         .from(recruiterProfiles)
-        .where(eq(recruiterProfiles.userId, userId));
+        .where(eq(recruiterProfiles.userId, req.user.id));
 
       if (!profile) {
         return res.status(404).json({
@@ -603,12 +603,12 @@ Job Title: ${jobTitle}`;
     try {
       const validatedData = insertRecruiterProfileSchema.parse({
         ...req.body,
-        userId: userId,
+        userId: req.user.id,
       });
 
       const [existing] = await db.select()
         .from(recruiterProfiles)
-        .where(eq(recruiterProfiles.userId, userId));
+        .where(eq(recruiterProfiles.userId, req.user.id));
 
       if (existing) {
         return res.status(400).json({
@@ -642,7 +642,7 @@ Job Title: ${jobTitle}`;
     try {
       const [existing] = await db.select()
         .from(recruiterProfiles)
-        .where(eq(recruiterProfiles.userId, userId));
+        .where(eq(recruiterProfiles.userId, req.user.id));
 
       if (!existing) {
         return res.status(404).json({
@@ -655,7 +655,7 @@ Job Title: ${jobTitle}`;
       
       const [profile] = await db.update(recruiterProfiles)
         .set(validatedData)
-        .where(eq(recruiterProfiles.userId, userId))
+        .where(eq(recruiterProfiles.userId, req.user.id))
         .returning();
 
       res.json({
