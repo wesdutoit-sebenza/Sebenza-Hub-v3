@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { isAuthenticated, requireAdmin } from "./auth";
+import { authenticateFirebase, requireRole } from "./firebase-middleware";
 import { db } from "./db";
 import { users, candidateProfiles, recruiterProfiles, organizations, memberships, candidates, resumes, roles, screenings, fraudDetections } from "@shared/schema";
 import { eq, desc, and, sql, or, like, ilike } from "drizzle-orm";
@@ -7,8 +7,8 @@ import { eq, desc, and, sql, or, like, ilike } from "drizzle-orm";
 const router = Router();
 
 // All admin routes require authentication and admin role
-router.use(isAuthenticated);
-router.use(requireAdmin);
+router.use(authenticateFirebase);
+router.use(requireRole("admin"));
 
 // ===========================
 // OVERVIEW & STATS

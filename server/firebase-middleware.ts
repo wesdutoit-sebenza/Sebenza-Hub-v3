@@ -85,17 +85,20 @@ export async function authenticateFirebaseOptional(
 }
 
 /**
- * Middleware to check if authenticated user has a specific role
+ * Middleware to check if authenticated user has one of the specified roles
  */
-export function requireRole(role: string) {
+export function requireRole(...allowedRoles: string[]) {
   return async (req: AuthRequest, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    if (!req.user.roles.includes(role)) {
+    const userRoles = req.user.roles || [];
+    const hasRole = allowedRoles.some((role) => userRoles.includes(role));
+
+    if (!hasRole) {
       return res.status(403).json({ 
-        message: `Forbidden: ${role} role required` 
+        message: `Forbidden: One of [${allowedRoles.join(", ")}] roles required` 
       });
     }
 

@@ -5,8 +5,7 @@ import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidat
 import { db } from "./db";
 import { users, candidateProfiles, organizations, recruiterProfiles, memberships, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
-import { requireAuth, requireRole, optionalAuth, setupAuth } from "./auth";
-import { authenticateFirebase, type AuthRequest } from "./firebase-middleware";
+import { authenticateFirebase, requireRole, type AuthRequest } from "./firebase-middleware";
 import { screeningQueue, isQueueAvailable } from "./queue";
 import pg from "pg";
 import { z } from "zod";
@@ -55,8 +54,6 @@ import adminRoutes from "./admin.routes";
 import tokenAuthRoutes from "./token-auth.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  await setupAuth(app);
-
   app.post("/api/subscribe", async (req, res) => {
     try {
       const validatedData = insertSubscriberSchema.parse(req.body);
