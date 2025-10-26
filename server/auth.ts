@@ -248,7 +248,14 @@ export function setupAuth(app: Express) {
           console.error("Login error after signup:", err);
           return next(err);
         }
-        return res.json({ success: true, user: newUser });
+        // Force session save before sending response
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error after signup:", saveErr);
+            return next(saveErr);
+          }
+          return res.json({ success: true, user: newUser });
+        });
       });
     } catch (error) {
       console.error("Signup error:", error);
@@ -271,7 +278,14 @@ export function setupAuth(app: Express) {
         if (err) {
           return res.status(500).json({ message: "Error logging in" });
         }
-        res.json({ success: true, user });
+        // Force session save before sending response
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("Session save error after login:", saveErr);
+            return res.status(500).json({ message: "Error saving session" });
+          }
+          res.json({ success: true, user });
+        });
       });
     })(req, res, next);
   });

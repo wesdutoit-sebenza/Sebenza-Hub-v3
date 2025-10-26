@@ -27,6 +27,8 @@ Preferred communication style: Simple, everyday language.
 - **Background Job Processing**: BullMQ with Redis for asynchronous tasks like candidate screening and fraud detection.
 - **Authentication & Authorization**: Hybrid authentication system supporting both session-based auth (web) and JWT token-based auth (mobile app).
   - **Session Auth (Web)**: Replit Auth (OpenID Connect) with email/password and social logins (Google, GitHub, X/Twitter, Apple)
+    - Session persistence via PostgreSQL store with 30-day expiry
+    - Explicit session save after login/signup to prevent race conditions
   - **JWT Auth (Mobile)**: Token-based authentication with access tokens (15 min expiry) and refresh tokens (30 day expiry)
     - Refresh token rotation implemented for security
     - Tokens stored in database for revocation support
