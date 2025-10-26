@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type UpsertUser, type Subscriber, type InsertSubscriber, type Job, type InsertJob, type CV, type InsertCV } from "@shared/schema";
+import { type User, type InsertUser, type UpsertUser, type Subscriber, type InsertSubscriber, type Job, type InsertJob, type CV, type InsertCV, type RefreshToken, type InsertRefreshToken } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -18,6 +18,11 @@ export interface IStorage {
   updateCV(id: string, cv: Partial<InsertCV>): Promise<CV | undefined>;
   getAllCVs(): Promise<CV[]>;
   getCVByUserId(userId: string): Promise<CV | undefined>;
+  createRefreshToken(token: InsertRefreshToken): Promise<RefreshToken>;
+  findRefreshToken(hashedToken: string): Promise<RefreshToken | undefined>;
+  deleteRefreshToken(hashedToken: string): Promise<void>;
+  deleteUserRefreshTokens(userId: string): Promise<void>;
+  cleanupExpiredTokens(): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -25,12 +30,14 @@ export class MemStorage implements IStorage {
   private subscribers: Map<string, Subscriber>;
   private jobs: Map<string, Job>;
   private cvs: Map<string, CV>;
+  private refreshTokens: Map<string, RefreshToken>;
 
   constructor() {
     this.users = new Map();
     this.subscribers = new Map();
     this.jobs = new Map();
     this.cvs = new Map();
+    this.refreshTokens = new Map();
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -197,6 +204,40 @@ export class MemStorage implements IStorage {
     return Array.from(this.cvs.values()).find(
       (cv) => cv.userId === userId
     );
+  }
+
+  async createRefreshToken(insertToken: InsertRefreshToken): Promise<RefreshToken> {
+    const id = randomUUID();
+    const token: RefreshToken = {
+      ...insertToken,
+      id,
+      createdAt: new Date(),
+    };
+    this.refreshTokens.set(token.token, token);
+    return token;
+  }
+
+  async findRefreshToken(hashedToken: string): Promise<RefreshToken | undefined> {
+    return this.refreshTokens.get(hashedToken);
+  }
+
+  async deleteRefreshToken(hashedToken: string): Promise<void> {
+    this.refreshTokens.delete(hashedToken);
+  }
+
+  async deleteUserRefreshTokens(userId: string): Promise<void> {
+    const tokens = Array.from(this.refreshTokens.values()).filter(
+      (token) => token.userId === userId
+    );
+    tokens.forEach((token) => this.refreshTokens.delete(token.token));
+  }
+
+  async cleanupExpiredTokens(): Promise<void> {
+    const now = new Date();
+    const tokens = Array.from(this.refreshTokens.values()).filter(
+      (token) => token.expiresAt < now
+    );
+    tokens.forEach((token) => this.refreshTokens.delete(token.token));
   }
 }
 
