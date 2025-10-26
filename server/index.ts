@@ -121,7 +121,9 @@ app.use((req, res, next) => {
   }, () => {
     log(`serving on port ${port}`);
     
-    // DISABLED: Background workers temporarily disabled due to Redis request limit
-    console.log('[Workers] Background workers disabled to prevent Redis overload');
+    // Start background workers if Redis is available
+    import('./start-workers.js').catch(err => {
+      console.log('[Workers] Background workers not started:', err.message);
+    });
   });
 })();
