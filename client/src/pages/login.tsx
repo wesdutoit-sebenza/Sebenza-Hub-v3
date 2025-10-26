@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { SiGoogle } from "react-icons/si";
 import { Loader2 } from "lucide-react";
 import { 
@@ -19,6 +20,7 @@ import { auth, googleProvider } from "@/lib/firebase";
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user, loading } = useAuth();
   const [isSignup, setIsSignup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -28,6 +30,14 @@ export default function Login() {
     firstName: "",
     lastName: "",
   });
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      console.log("[Login] User already authenticated, redirecting to /onboarding");
+      setLocation("/onboarding");
+    }
+  }, [user, loading, setLocation]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -71,8 +81,7 @@ export default function Login() {
         description: isSignup ? "Account created successfully" : "Logged in successfully",
       });
       
-      // Redirect to onboarding
-      setLocation("/onboarding");
+      // Redirect will happen via useEffect when auth state updates
     } catch (error: any) {
       console.error("Auth error:", error);
       
@@ -123,8 +132,7 @@ export default function Login() {
         description: "Logged in with Google successfully",
       });
       
-      // Redirect to onboarding
-      setLocation("/onboarding");
+      // Redirect will happen via useEffect when auth state updates
     } catch (error: any) {
       console.error("Google login error:", error);
       

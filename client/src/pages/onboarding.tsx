@@ -4,6 +4,7 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Briefcase, Building2, UserCircle } from "lucide-react";
 
@@ -12,12 +13,15 @@ type UserRole = 'individual' | 'business' | 'recruiter';
 export default function Onboarding() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user: firebaseUser, loading: authLoading } = useAuth();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
 
+  // Only fetch user data if Firebase auth is ready and user is logged in
   const { data: userData, isLoading, error } = useQuery({
     queryKey: ['/api/auth/user'],
-    retry: 1, // Retry once if initial request fails
-    retryDelay: 100, // Wait 100ms before retry
+    retry: 1,
+    retryDelay: 100,
+    enabled: !authLoading && !!firebaseUser, // Only run when auth is ready and user exists
   });
 
   const selectRoleMutation = useMutation({
@@ -45,10 +49,14 @@ export default function Onboarding() {
   });
 
   useEffect(() => {
+    // Redirect to login if Firebase auth finished and no user found
+    if (!authLoading && !firebaseUser) {
+      setLocation('/login');
+      return;
+    }
+
     // Only redirect to login if we've finished loading AND there's an error
-    // This prevents redirecting during the initial query or refetch
-    if (error && !isLoading) {
-      // Give it a longer delay to allow session cookie to be processed
+    if (error && !isLoading && !authLoading) {
       const timer = setTimeout(() => {
         setLocation('/login');
       }, 1000);
@@ -64,14 +72,14 @@ export default function Onboarding() {
         setLocation('/');
       }
     }
-  }, [userData, error, isLoading, setLocation]);
+  }, [userData, error, isLoading, authLoading, firebaseUser, setLocation]);
 
   const handleSelectRole = (role: UserRole) => {
     setSelectedRole(role);
     selectRoleMutation.mutate(role);
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <div className="min-h-screen bg-charcoal flex items-center justify-center">
         <p className="text-slate">Loading...</p>

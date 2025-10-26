@@ -5,7 +5,8 @@ import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidat
 import { db } from "./db";
 import { users, candidateProfiles, organizations, recruiterProfiles, memberships, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
-import { requireAuth, requireRole, optionalAuth, type AuthRequest, setupAuth, isAuthenticated } from "./auth";
+import { requireAuth, requireRole, optionalAuth, setupAuth } from "./auth";
+import { authenticateFirebase, type AuthRequest } from "./firebase-middleware";
 import { screeningQueue, isQueueAvailable } from "./queue";
 import pg from "pg";
 import { z } from "zod";
@@ -379,7 +380,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get current authenticated user with Replit Auth
-  app.get("/api/auth/user", isAuthenticated, async (req, res) => {
+  app.get("/api/auth/user", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -397,7 +398,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.get("/api/my-membership", isAuthenticated, async (req, res) => {
+  app.get("/api/my-membership", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -424,7 +425,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.post("/api/me/role", isAuthenticated, async (req, res) => {
+  app.post("/api/me/role", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -462,7 +463,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.post("/api/profile/candidate", isAuthenticated, async (req, res) => {
+  app.post("/api/profile/candidate", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -529,7 +530,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.post("/api/organizations", isAuthenticated, async (req, res) => {
+  app.post("/api/organizations", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -576,7 +577,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.get("/api/profile/recruiter", isAuthenticated, async (req, res) => {
+  app.get("/api/profile/recruiter", authenticateFirebase, async (req, res) => {
     try {
       const [profile] = await db.select()
         .from(recruiterProfiles)
@@ -599,7 +600,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.post("/api/profile/recruiter", isAuthenticated, async (req, res) => {
+  app.post("/api/profile/recruiter", authenticateFirebase, async (req, res) => {
     try {
       const validatedData = insertRecruiterProfileSchema.parse({
         ...req.body,
@@ -638,7 +639,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.put("/api/profile/recruiter", isAuthenticated, async (req, res) => {
+  app.put("/api/profile/recruiter", authenticateFirebase, async (req, res) => {
     try {
       const [existing] = await db.select()
         .from(recruiterProfiles)
@@ -675,7 +676,7 @@ Job Title: ${jobTitle}`;
   // === CV SCREENING ENDPOINTS ===
   
   // Create a new screening job
-  app.post("/api/screening/jobs", isAuthenticated, async (req, res) => {
+  app.post("/api/screening/jobs", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -704,7 +705,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get screening jobs for user
-  app.get("/api/screening/jobs", isAuthenticated, async (req, res) => {
+  app.get("/api/screening/jobs", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -728,7 +729,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get screening dashboard statistics
-  app.get("/api/screening/stats", isAuthenticated, async (req, res) => {
+  app.get("/api/screening/stats", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -777,7 +778,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get a specific screening job with results
-  app.get("/api/screening/jobs/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/screening/jobs/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -822,7 +823,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Upload and process CVs for a screening job
-  app.post("/api/screening/jobs/:id/process", isAuthenticated, async (req, res) => {
+  app.post("/api/screening/jobs/:id/process", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -977,7 +978,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Export screening results as JSON
-  app.get("/api/screening/jobs/:id/export", isAuthenticated, async (req, res) => {
+  app.get("/api/screening/jobs/:id/export", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1036,7 +1037,7 @@ Job Title: ${jobTitle}`;
   // ============================================================================
 
   // Create new candidate
-  app.post("/api/ats/candidates", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1070,7 +1071,7 @@ Job Title: ${jobTitle}`;
   });
 
   // List all candidates with optional search/filter
-  app.get("/api/ats/candidates", isAuthenticated, async (req, res) => {
+  app.get("/api/ats/candidates", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1113,7 +1114,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get candidates dashboard statistics
-  app.get("/api/ats/stats", isAuthenticated, async (req, res) => {
+  app.get("/api/ats/stats", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1169,7 +1170,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get single candidate with all related data
-  app.get("/api/ats/candidates/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/ats/candidates/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1245,7 +1246,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Update candidate
-  app.put("/api/ats/candidates/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/ats/candidates/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1281,7 +1282,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Delete candidate (cascades to all related records)
-  app.delete("/api/ats/candidates/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/candidates/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1316,7 +1317,7 @@ Job Title: ${jobTitle}`;
   // ATS - Experiences Management
   // ============================================================================
 
-  app.post("/api/ats/candidates/:candidateId/experiences", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates/:candidateId/experiences", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1346,7 +1347,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.put("/api/ats/experiences/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/ats/experiences/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1381,7 +1382,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.delete("/api/ats/experiences/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/experiences/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1416,7 +1417,7 @@ Job Title: ${jobTitle}`;
   // ATS - Education Management
   // ============================================================================
 
-  app.post("/api/ats/candidates/:candidateId/education", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates/:candidateId/education", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1446,7 +1447,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.put("/api/ats/education/:id", isAuthenticated, async (req, res) => {
+  app.put("/api/ats/education/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1481,7 +1482,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.delete("/api/ats/education/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/education/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1516,7 +1517,7 @@ Job Title: ${jobTitle}`;
   // ATS - Certifications, Projects, Awards Management
   // ============================================================================
 
-  app.post("/api/ats/candidates/:candidateId/certifications", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates/:candidateId/certifications", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1546,7 +1547,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.delete("/api/ats/certifications/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/certifications/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1560,7 +1561,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.post("/api/ats/candidates/:candidateId/projects", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates/:candidateId/projects", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1590,7 +1591,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.delete("/api/ats/projects/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/projects/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1604,7 +1605,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.post("/api/ats/candidates/:candidateId/awards", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates/:candidateId/awards", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1634,7 +1635,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.delete("/api/ats/awards/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/awards/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1652,7 +1653,7 @@ Job Title: ${jobTitle}`;
   // ATS - Skills Management
   // ============================================================================
 
-  app.post("/api/ats/candidates/:candidateId/skills", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/candidates/:candidateId/skills", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1705,7 +1706,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.delete("/api/ats/candidates/:candidateId/skills/:skillId", isAuthenticated, async (req, res) => {
+  app.delete("/api/ats/candidates/:candidateId/skills/:skillId", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -1766,7 +1767,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Enhanced endpoint: Upload actual file (PDF/DOCX/TXT)
-  app.post("/api/ats/resumes/upload", isAuthenticated, upload.single('file'), async (req, res) => {
+  app.post("/api/ats/resumes/upload", authenticateFirebase, upload.single('file'), async (req, res) => {
     const uploadedFile = req.file;
 
     try {
@@ -1993,7 +1994,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Legacy endpoint: Parse resume from raw text (keep for backwards compatibility)
-  app.post("/api/ats/resumes/parse", isAuthenticated, async (req, res) => {
+  app.post("/api/ats/resumes/parse", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -2206,7 +2207,7 @@ Job Title: ${jobTitle}`;
   // ============================================================================
 
   // Individual resume upload endpoint (file upload)
-  app.post("/api/individuals/resume/upload", isAuthenticated, upload.single('file'), async (req, res) => {
+  app.post("/api/individuals/resume/upload", authenticateFirebase, upload.single('file'), async (req, res) => {
     const uploadedFile = req.file;
 
     try {
@@ -2443,7 +2444,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get individual's own profile (complete with all details)
-  app.get("/api/individuals/profile", isAuthenticated, async (req, res) => {
+  app.get("/api/individuals/profile", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -2477,7 +2478,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Update individual's profile
-  app.put("/api/individuals/profile", isAuthenticated, async (req, res) => {
+  app.put("/api/individuals/profile", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -2534,7 +2535,7 @@ Job Title: ${jobTitle}`;
   // ===== INTERVIEW COACH ENDPOINTS =====
   
   // Start interview coach session
-  app.post("/api/interview-coach/start", isAuthenticated, async (req, res) => {
+  app.post("/api/interview-coach/start", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -2559,7 +2560,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Send message to interview coach
-  app.post("/api/interview-coach/chat", isAuthenticated, async (req, res) => {
+  app.post("/api/interview-coach/chat", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -2590,7 +2591,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get session transcript
-  app.get("/api/interview-coach/transcript/:sessionId", isAuthenticated, async (req, res) => {
+  app.get("/api/interview-coach/transcript/:sessionId", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -2614,7 +2615,7 @@ Job Title: ${jobTitle}`;
   });
 
   // End interview coach session
-  app.post("/api/interview-coach/end", isAuthenticated, async (req, res) => {
+  app.post("/api/interview-coach/end", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -2638,7 +2639,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Individual resume parse endpoint (text paste)
-  app.post("/api/individuals/resume/parse", isAuthenticated, async (req, res) => {
+  app.post("/api/individuals/resume/parse", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -2862,7 +2863,7 @@ Job Title: ${jobTitle}`;
   // ============================================================================
 
   // Create a new role
-  app.post("/api/roles", isAuthenticated, async (req, res) => {
+  app.post("/api/roles", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -2892,7 +2893,7 @@ Job Title: ${jobTitle}`;
   });
 
   // List all roles with optional filtering
-  app.get("/api/roles", isAuthenticated, async (req, res) => {
+  app.get("/api/roles", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -2930,7 +2931,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get roles dashboard statistics
-  app.get("/api/roles/stats", isAuthenticated, async (req, res) => {
+  app.get("/api/roles/stats", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -2986,7 +2987,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get a single role by ID
-  app.get("/api/roles/:id", isAuthenticated, async (req, res) => {
+  app.get("/api/roles/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3018,7 +3019,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Update a role
-  app.patch("/api/roles/:id", isAuthenticated, async (req, res) => {
+  app.patch("/api/roles/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3059,7 +3060,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Soft delete a role (set isActive = 0)
-  app.delete("/api/roles/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/roles/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3093,7 +3094,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Screen ATS candidates against a role
-  app.post("/api/roles/:roleId/screen", isAuthenticated, async (req, res) => {
+  app.post("/api/roles/:roleId/screen", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3285,7 +3286,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get all screenings for a role (ranked by score)
-  app.get("/api/roles/:roleId/screenings", isAuthenticated, async (req, res) => {
+  app.get("/api/roles/:roleId/screenings", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3324,7 +3325,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get all screenings for a candidate
-  app.get("/api/candidates/:candidateId/screenings", isAuthenticated, async (req, res) => {
+  app.get("/api/candidates/:candidateId/screenings", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3363,7 +3364,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Delete a screening result
-  app.delete("/api/screenings/:id", isAuthenticated, async (req, res) => {
+  app.delete("/api/screenings/:id", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3399,7 +3400,7 @@ Job Title: ${jobTitle}`;
   // ========================================
   
   // Get individual's candidate profile
-  app.get("/api/individual/profile", isAuthenticated, async (req, res) => {
+  app.get("/api/individual/profile", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3429,7 +3430,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Update individual's candidate profile
-  app.patch("/api/individual/profile", isAuthenticated, async (req, res) => {
+  app.patch("/api/individual/profile", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3466,7 +3467,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get individual's job preferences
-  app.get("/api/individual/preferences", isAuthenticated, async (req, res) => {
+  app.get("/api/individual/preferences", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3496,7 +3497,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Update individual's job preferences
-  app.patch("/api/individual/preferences", isAuthenticated, async (req, res) => {
+  app.patch("/api/individual/preferences", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3539,7 +3540,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get individual's notification settings
-  app.get("/api/individual/notifications", isAuthenticated, async (req, res) => {
+  app.get("/api/individual/notifications", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3569,7 +3570,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Update individual's notification settings
-  app.patch("/api/individual/notifications", isAuthenticated, async (req, res) => {
+  app.patch("/api/individual/notifications", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3612,7 +3613,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Delete account request (soft delete - just marks data for deletion)
-  app.post("/api/individual/delete-account", isAuthenticated, async (req, res) => {
+  app.post("/api/individual/delete-account", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3643,7 +3644,7 @@ Job Title: ${jobTitle}`;
   // ============================================================================
 
   // Get all fraud detections with filters
-  app.get("/api/admin/fraud-detections", isAuthenticated, async (req, res) => {
+  app.get("/api/admin/fraud-detections", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3692,7 +3693,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Get fraud detection statistics
-  app.get("/api/admin/fraud-detections/stats", isAuthenticated, async (req, res) => {
+  app.get("/api/admin/fraud-detections/stats", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3739,7 +3740,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Approve flagged content
-  app.post("/api/admin/fraud-detections/:id/approve", isAuthenticated, async (req, res) => {
+  app.post("/api/admin/fraud-detections/:id/approve", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;
@@ -3780,7 +3781,7 @@ Job Title: ${jobTitle}`;
   });
 
   // Reject flagged content
-  app.post("/api/admin/fraud-detections/:id/reject", isAuthenticated, async (req, res) => {
+  app.post("/api/admin/fraud-detections/:id/reject", authenticateFirebase, async (req, res) => {
     try {
       const user = req.user as any;
       const userId = user.id;

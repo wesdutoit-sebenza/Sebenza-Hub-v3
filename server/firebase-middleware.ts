@@ -1,18 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { firebaseAuth } from "./firebase-admin";
 import { db } from "./db";
-import { users } from "@shared/schema";
+import { users, type User } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string | null;
-    roles: string[];
-    onboardingComplete: Record<string, boolean>;
-    firstName?: string | null;
-    lastName?: string | null;
-  };
+  user?: User;
   firebaseUid?: string;
 }
 
@@ -62,15 +55,8 @@ export async function authenticateFirebase(
       dbUser = newUser;
     }
 
-    // Attach user to request
-    req.user = {
-      id: dbUser.id,
-      email: dbUser.email,
-      roles: dbUser.roles,
-      onboardingComplete: dbUser.onboardingComplete as Record<string, boolean>,
-      firstName: dbUser.firstName,
-      lastName: dbUser.lastName,
-    };
+    // Attach full user object to request
+    req.user = dbUser;
 
     next();
   } catch (error) {
@@ -97,3 +83,27 @@ export async function authenticateFirebaseOptional(
   // If token is present, verify it
   return authenticateFirebase(req, res, next);
 }
+
+/**
+ * Middleware to check if authenticated user has a specific role
+ */
+export function requireRole(role: string) {
+  return async (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!req.user.roles.includes(role)) {
+      return res.status(403).json({ 
+        message: `Forbidden: ${role} role required` 
+      });
+    }
+
+    next();
+  };
+}
+
+/**
+ * Middleware specifically for admin routes
+ */
+export const requireAdmin = requireRole("admin");

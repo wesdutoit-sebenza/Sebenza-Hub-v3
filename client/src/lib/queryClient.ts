@@ -21,9 +21,12 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
     try {
       const idToken = await currentUser.getIdToken();
       headers["Authorization"] = `Bearer ${idToken}`;
+      console.log("[Auth] Firebase token added to request");
     } catch (error) {
-      console.error("Failed to get Firebase ID token:", error);
+      console.error("[Auth] Failed to get Firebase ID token:", error);
     }
+  } else {
+    console.log("[Auth] No current Firebase user, skipping token");
   }
   
   return headers;

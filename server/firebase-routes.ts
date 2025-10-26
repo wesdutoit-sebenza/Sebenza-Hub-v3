@@ -1,8 +1,9 @@
 import { Express } from "express";
 import { authenticateFirebase, AuthRequest } from "./firebase-middleware";
+import { firebaseAuth } from "./firebase-admin";
 import { db } from "./db";
 import { users } from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export function setupFirebaseRoutes(app: Express) {
   // Get current user endpoint - uses Firebase authentication
@@ -70,6 +71,80 @@ export function setupFirebaseRoutes(app: Express) {
     } catch (error) {
       console.error("Error during logout:", error);
       res.status(500).json({ message: "Failed to logout" });
+    }
+  });
+
+  // Admin setup endpoint - only works if no admin exists
+  app.post("/api/admin/setup", async (req, res) => {
+    try {
+      const { email, password, firstName, lastName } = req.body;
+
+      // Validate input
+      if (!email || !password || !firstName || !lastName) {
+        return res.status(400).json({ 
+          message: "Email, password, first name, and last name are required" 
+        });
+      }
+
+      // Check if any admin already exists
+      const existingAdmins = await db
+        .select()
+        .from(users)
+        .where(sql`'admin' = ANY(${users.roles})`)
+        .limit(1);
+
+      if (existingAdmins.length > 0) {
+        return res.status(403).json({ 
+          message: "Admin setup is disabled. An admin already exists." 
+        });
+      }
+
+      // Create user in Firebase
+      let firebaseUser;
+      try {
+        firebaseUser = await firebaseAuth.createUser({
+          email,
+          password,
+          displayName: `${firstName} ${lastName}`.trim(),
+        });
+      } catch (firebaseError: any) {
+        console.error("Firebase user creation error:", firebaseError);
+        return res.status(400).json({ 
+          message: firebaseError.message || "Failed to create Firebase user" 
+        });
+      }
+
+      // Create user in database with admin role
+      const [newAdmin] = await db
+        .insert(users)
+        .values({
+          firebaseUid: firebaseUser.uid,
+          email,
+          roles: ["admin"],
+          onboardingComplete: { admin: true },
+          firstName,
+          lastName,
+        })
+        .returning();
+
+      // Set custom claims in Firebase for admin role
+      await firebaseAuth.setCustomUserClaims(firebaseUser.uid, { 
+        admin: true 
+      });
+
+      res.json({ 
+        success: true, 
+        message: "Admin account created successfully",
+        admin: {
+          id: newAdmin.id,
+          email: newAdmin.email,
+          firstName: newAdmin.firstName,
+          lastName: newAdmin.lastName,
+        }
+      });
+    } catch (error) {
+      console.error("Admin setup error:", error);
+      res.status(500).json({ message: "Failed to create admin account" });
     }
   });
 }
