@@ -43,16 +43,21 @@ export default function Onboarding() {
   });
 
   useEffect(() => {
-    // Redirect to login if user is not authenticated
+    // Only redirect to login if we've finished loading AND there's an error
+    // This prevents redirecting during the initial query or refetch
     if (error && !isLoading) {
-      setLocation('/login');
-      return;
+      // Give it a moment in case we just logged in and query is refetching
+      const timer = setTimeout(() => {
+        setLocation('/login');
+      }, 200);
+      return () => clearTimeout(timer);
     }
 
     if (userData?.user) {
       const roles = userData.user.roles || [];
       const onboarding = userData.user.onboardingComplete || {};
 
+      // If user has already completed onboarding for their role, go to dashboard
       if (roles.length > 0 && Object.keys(onboarding).some((key) => onboarding[key])) {
         setLocation('/');
       }
