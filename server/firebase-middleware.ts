@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response, NextFunction, RequestHandler } from "express";
 import { firebaseAuth } from "./firebase-admin";
 import { db } from "./db";
 import { users, type User } from "@shared/schema";
@@ -13,15 +13,17 @@ export interface AuthRequest extends Request {
  * Middleware to authenticate requests using Firebase ID tokens
  * Verifies the token and syncs the Firebase user with our PostgreSQL database
  */
-export async function authenticateFirebase(
-  req: AuthRequest,
+export const authenticateFirebase: RequestHandler = async (
+  req: Request,
   res: Response,
   next: NextFunction
-) {
+): Promise<void> => {
+  const authReq = req as AuthRequest;
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized: No token provided" });
+    res.status(401).json({ message: "Unauthorized: No token provided" });
+    return;
   }
 
   const idToken = authHeader.split("Bearer ")[1];
@@ -29,7 +31,7 @@ export async function authenticateFirebase(
   try {
     // Verify the Firebase ID token
     const decodedToken = await firebaseAuth.verifyIdToken(idToken);
-    req.firebaseUid = decodedToken.uid;
+    authReq.firebaseUid = decodedToken.uid;
 
     // Get or create user in our database
     let [dbUser] = await db
@@ -56,50 +58,56 @@ export async function authenticateFirebase(
     }
 
     // Attach full user object to request
-    req.user = dbUser;
+    authReq.user = dbUser;
 
     next();
   } catch (error) {
     console.error("Firebase token verification error:", error);
-    return res.status(401).json({ message: "Unauthorized: Invalid token" });
+    res.status(401).json({ message: "Unauthorized: Invalid token" });
+    return;
   }
-}
+};
 
 /**
  * Optional middleware - only authenticates if token is present
  * Useful for routes that can work with or without authentication
  */
-export async function authenticateFirebaseOptional(
-  req: AuthRequest,
+export const authenticateFirebaseOptional: RequestHandler = async (
+  req: Request,
   res: Response,
   next: NextFunction
-) {
+): Promise<void> => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return next(); // Continue without authentication
+    next(); // Continue without authentication
+    return;
   }
 
   // If token is present, verify it
-  return authenticateFirebase(req, res, next);
-}
+  await authenticateFirebase(req, res, next);
+};
 
 /**
  * Middleware to check if authenticated user has one of the specified roles
  */
-export function requireRole(...allowedRoles: string[]) {
-  return async (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.user) {
-      return res.status(401).json({ message: "Unauthorized" });
+export function requireRole(...allowedRoles: string[]): RequestHandler {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const authReq = req as AuthRequest;
+    
+    if (!authReq.user) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
     }
 
-    const userRoles = req.user.roles || [];
+    const userRoles = authReq.user.roles || [];
     const hasRole = allowedRoles.some((role) => userRoles.includes(role));
 
     if (!hasRole) {
-      return res.status(403).json({ 
+      res.status(403).json({ 
         message: `Forbidden: One of [${allowedRoles.join(", ")}] roles required` 
       });
+      return;
     }
 
     next();
