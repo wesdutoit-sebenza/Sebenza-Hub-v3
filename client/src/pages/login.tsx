@@ -44,15 +44,16 @@ export default function Login() {
       const data = await response.json();
       
       // The signup/login endpoint sets the session cookie
-      // Simply trust it worked and redirect to onboarding
-      // The onboarding page will verify authentication
+      // Remove any stale query data and reset error state
+      queryClient.removeQueries({ queryKey: ['/api/auth/user'] });
+      
       toast({
         title: "Success!",
         description: isSignup ? "Account created successfully" : "Logged in successfully",
       });
       
-      // Invalidate user query so it refetches with the new session
-      await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      // Small delay to ensure session cookie is set before redirect
+      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Redirect to onboarding - it will check authentication
       setLocation("/onboarding");

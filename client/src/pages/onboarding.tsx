@@ -16,6 +16,8 @@ export default function Onboarding() {
 
   const { data: userData, isLoading, error } = useQuery({
     queryKey: ['/api/auth/user'],
+    retry: 1, // Retry once if initial request fails
+    retryDelay: 100, // Wait 100ms before retry
   });
 
   const selectRoleMutation = useMutation({
@@ -46,10 +48,10 @@ export default function Onboarding() {
     // Only redirect to login if we've finished loading AND there's an error
     // This prevents redirecting during the initial query or refetch
     if (error && !isLoading) {
-      // Give it a moment in case we just logged in and query is refetching
+      // Give it a longer delay to allow session cookie to be processed
       const timer = setTimeout(() => {
         setLocation('/login');
-      }, 200);
+      }, 1000);
       return () => clearTimeout(timer);
     }
 
