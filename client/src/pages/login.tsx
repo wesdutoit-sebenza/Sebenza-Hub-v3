@@ -57,11 +57,27 @@ export default function Login() {
       
       // Redirect to onboarding - it will check authentication
       setLocation("/onboarding");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Auth error:", error);
+      
+      // Try to extract a meaningful error message
+      let errorMessage = "Something went wrong. Please try again.";
+      if (error?.message) {
+        // Extract just the error message without status codes
+        const match = error.message.match(/\d+:\s*(.+)/);
+        if (match) {
+          try {
+            const parsed = JSON.parse(match[1]);
+            errorMessage = parsed.message || parsed.error || errorMessage;
+          } catch {
+            errorMessage = match[1] || errorMessage;
+          }
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Something went wrong. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

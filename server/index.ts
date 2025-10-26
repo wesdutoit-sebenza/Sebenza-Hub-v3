@@ -5,8 +5,17 @@ import cookieParser from "cookie-parser";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import pg from "pg";
+import cors from "cors";
 
 const app = express();
+
+// CORS configuration for external browser access
+app.use(cors({
+  origin: true, // Allow all origins in development
+  credentials: true, // Allow cookies
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 declare module 'http' {
   interface IncomingMessage {
