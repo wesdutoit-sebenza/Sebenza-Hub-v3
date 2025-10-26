@@ -357,12 +357,11 @@ async function authenticateRequest(req: AuthRequest): Promise<User | null> {
       }
     } catch (error) {
       // JWT verification failed, fall through to session auth
-      console.log("JWT verification failed:", (error as Error).message);
     }
   }
   
   // Fall back to session authentication
-  if (req.isAuthenticated() && req.user) {
+  if (typeof req.isAuthenticated === 'function' && req.isAuthenticated() && req.user) {
     return req.user as User;
   }
   

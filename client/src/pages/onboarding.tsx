@@ -14,7 +14,7 @@ export default function Onboarding() {
   const { toast } = useToast();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
 
-  const { data: userData, isLoading } = useQuery({
+  const { data: userData, isLoading, error } = useQuery({
     queryKey: ['/api/auth/user'],
   });
 
@@ -43,6 +43,12 @@ export default function Onboarding() {
   });
 
   useEffect(() => {
+    // Redirect to login if user is not authenticated
+    if (error && !isLoading) {
+      setLocation('/login');
+      return;
+    }
+
     if (userData?.user) {
       const roles = userData.user.roles || [];
       const onboarding = userData.user.onboardingComplete || {};
@@ -51,7 +57,7 @@ export default function Onboarding() {
         setLocation('/');
       }
     }
-  }, [userData, setLocation]);
+  }, [userData, error, isLoading, setLocation]);
 
   const handleSelectRole = (role: UserRole) => {
     setSelectedRole(role);
