@@ -20,11 +20,13 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toast } = useToast();
 
-  // Use Replit Auth - /api/auth/user endpoint
-  const { data: user } = useQuery<User>({
+  // Fetch current user
+  const { data: userData } = useQuery<{ user: User }>({
     queryKey: ['/api/auth/user'],
     retry: false,
   });
+
+  const user = userData?.user;
 
   // Replit Auth logout - redirect to /api/logout which handles the OIDC logout flow
   const handleLogout = () => {
