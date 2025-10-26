@@ -1209,3 +1209,20 @@ export const insertFraudDetectionSchema = createInsertSchema(fraudDetections).om
 
 export type InsertFraudDetection = z.infer<typeof insertFraudDetectionSchema>;
 export type FraudDetection = typeof fraudDetections.$inferSelect;
+
+// Refresh Tokens - JWT refresh tokens for mobile app authentication
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  token: text("token").notNull().unique(), // Hashed refresh token
+  expiresAt: timestamp("expires_at").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertRefreshTokenSchema = createInsertSchema(refreshTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertRefreshToken = z.infer<typeof insertRefreshTokenSchema>;
+export type RefreshToken = typeof refreshTokens.$inferSelect;
