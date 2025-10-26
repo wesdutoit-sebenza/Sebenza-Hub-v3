@@ -52,11 +52,36 @@ export default function Login() {
         description: isSignup ? "Account created successfully" : "Logged in successfully",
       });
       
-      // Small delay to ensure session cookie is set before redirect
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait longer to ensure browser has processed the session cookie
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Redirect to onboarding - it will check authentication
-      setLocation("/onboarding");
+      // Verify the session is working before redirecting
+      try {
+        const verifyResponse = await fetch('/api/auth/user', {
+          credentials: 'include',
+        });
+        
+        if (verifyResponse.ok) {
+          // Session is working, safe to redirect
+          setLocation("/onboarding");
+        } else {
+          // Session not working yet, wait a bit more and try again
+          await new Promise(resolve => setTimeout(resolve, 500));
+          const retryResponse = await fetch('/api/auth/user', {
+            credentials: 'include',
+          });
+          
+          if (retryResponse.ok) {
+            setLocation("/onboarding");
+          } else {
+            throw new Error("Session verification failed");
+          }
+        }
+      } catch (verifyError) {
+        console.error("Session verification error:", verifyError);
+        // Try redirecting anyway - onboarding page will handle auth check
+        setLocation("/onboarding");
+      }
     } catch (error: any) {
       console.error("Auth error:", error);
       
