@@ -254,6 +254,7 @@ export function setupAuth(app: Express) {
             console.error("Session save error after signup:", saveErr);
             return next(saveErr);
           }
+          console.log(`✅ Signup & Session saved - User: ${newUser.id}, Session: ${req.sessionID}`);
           return res.json({ success: true, user: newUser });
         });
       });
@@ -284,6 +285,7 @@ export function setupAuth(app: Express) {
             console.error("Session save error after login:", saveErr);
             return res.status(500).json({ message: "Error saving session" });
           }
+          console.log(`✅ Login & Session saved - User: ${user.id}, Session: ${req.sessionID}`);
           res.json({ success: true, user });
         });
       });
@@ -331,12 +333,15 @@ export function setupAuth(app: Express) {
   // Get current user endpoint (supports both JWT and session auth)
   app.get("/api/auth/user", async (req: AuthRequest, res) => {
     try {
+      console.log(`🔍 Auth check - Session: ${req.sessionID}, Has cookie: ${!!req.headers.cookie}`);
       const user = await authenticateRequest(req as AuthRequest);
       
       if (!user) {
+        console.log(`❌ No user found for session: ${req.sessionID}`);
         return res.status(401).json({ message: "Unauthorized" });
       }
 
+      console.log(`✅ User found: ${user.id}`);
       res.json({ user });
     } catch (error) {
       console.error("Error fetching user:", error);

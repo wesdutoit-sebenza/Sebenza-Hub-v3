@@ -10,11 +10,16 @@ import cors from "cors";
 const app = express();
 
 // CORS configuration for external browser access
+// More permissive for Safari and other browsers
 app.use(cors({
-  origin: true, // Allow all origins in development
+  origin: function(origin, callback) {
+    // Allow any origin in development
+    callback(null, true);
+  },
   credentials: true, // Allow cookies
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  exposedHeaders: ['Set-Cookie'],
 }));
 
 declare module 'http' {
@@ -55,8 +60,10 @@ app.use(
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // "none" for cross-origin in production
+      domain: undefined, // Don't restrict domain in development
     },
+    proxy: true, // Trust the reverse proxy
   })
 );
 
