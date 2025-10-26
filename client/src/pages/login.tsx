@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { SiGoogle, SiGithub } from "react-icons/si";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
 
 export default function Login() {
@@ -42,6 +42,9 @@ export default function Login() {
 
       const response = await apiRequest("POST", endpoint, body);
       const data = await response.json();
+      
+      // Invalidate user query to refresh authentication state
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       
       toast({
         title: "Success!",
