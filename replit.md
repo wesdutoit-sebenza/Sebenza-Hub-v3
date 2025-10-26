@@ -25,8 +25,15 @@ Preferred communication style: Simple, everyday language.
 - **AI Integration**: Powers CV screening, resume ingestion, interview coaching, and fraud detection.
 - **Fraud & Spam Detection**: Real-time AI-powered system using OpenAI GPT-4o-mini for scanning submissions, risk scoring, and flagging.
 - **Background Job Processing**: BullMQ with Redis for asynchronous tasks like candidate screening and fraud detection.
-- **Authentication & Authorization**: Replit Auth (OpenID Connect) with email/password and social logins (Google, GitHub, X/Twitter, Apple). Multi-role system (`individual`, `business`, `recruiter`, `admin`) with role-based access control and POPIA compliance.
-  - **Admin Role**: Platform administrators have access to comprehensive admin dashboard at `/api/admin/*` routes for managing users, recruiters, businesses, CVs, roles, screenings, and monitoring fraud detection.
+- **Authentication & Authorization**: Hybrid authentication system supporting both session-based auth (web) and JWT token-based auth (mobile app).
+  - **Session Auth (Web)**: Replit Auth (OpenID Connect) with email/password and social logins (Google, GitHub, X/Twitter, Apple)
+  - **JWT Auth (Mobile)**: Token-based authentication with access tokens (15 min expiry) and refresh tokens (30 day expiry)
+    - Refresh token rotation implemented for security
+    - Tokens stored in database for revocation support
+    - Endpoints: `/api/auth/token/register`, `/api/auth/token/login`, `/api/auth/token/refresh`, `/api/auth/token/logout`
+  - **Hybrid Middleware**: All API endpoints support both session cookies and JWT Bearer tokens via Authorization header
+  - **Multi-Role System**: `individual`, `business`, `recruiter`, `admin` with role-based access control and POPIA compliance
+  - **Admin Role**: Platform administrators have access to comprehensive admin dashboard at `/api/admin/*` routes for managing users, recruiters, businesses, CVs, roles, screenings, and monitoring fraud detection
   - **Admin User**: First admin created with email `admin@sebenzahub.com` (ID: `admin-001`)
   - **Migration**: Legacy users automatically migrated from magic link auth to OIDC, preserving roles and onboarding status
 

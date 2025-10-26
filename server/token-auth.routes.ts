@@ -247,12 +247,24 @@ router.post("/refresh", async (req: Request, res: Response) => {
       });
     }
 
-    // Generate new access token
+    // Generate new tokens (refresh token rotation for security)
     const newAccessToken = generateAccessToken(user);
+    const { token: newRefreshTokenValue, hashedToken: newHashedToken, expiresAt: newExpiresAt } = generateRefreshToken(user);
+
+    // Delete old refresh token and store new one in a transaction (atomic operation)
+    await db.transaction(async (tx) => {
+      await tx.delete(refreshTokens).where(eq(refreshTokens.token, hashedToken));
+      await tx.insert(refreshTokens).values({
+        userId: user.id,
+        token: newHashedToken,
+        expiresAt: newExpiresAt,
+      });
+    });
 
     res.json({
       success: true,
       accessToken: newAccessToken,
+      refreshToken: newRefreshTokenValue,
       expiresIn: 900, // 15 minutes in seconds
     });
   } catch (error: any) {
