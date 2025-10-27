@@ -86,19 +86,33 @@ export function setupFirebaseRoutes(app: Express) {
         });
       }
 
-      // Create user in Firebase
+      // Create or get existing user in Firebase
       let firebaseUser;
       try {
+        // Try to create the user
         firebaseUser = await firebaseAuth.createUser({
           email,
           password,
           displayName: `${firstName} ${lastName}`.trim(),
         });
       } catch (firebaseError: any) {
-        console.error("Firebase user creation error:", firebaseError);
-        return res.status(400).json({ 
-          message: firebaseError.message || "Failed to create Firebase user" 
-        });
+        // If user already exists in Firebase, get the existing user
+        if (firebaseError.code === 'auth/email-already-exists') {
+          try {
+            firebaseUser = await firebaseAuth.getUserByEmail(email);
+            console.log("Using existing Firebase user for admin setup:", email);
+          } catch (getUserError) {
+            console.error("Failed to get existing Firebase user:", getUserError);
+            return res.status(400).json({ 
+              message: "Email already exists but failed to retrieve user" 
+            });
+          }
+        } else {
+          console.error("Firebase user creation error:", firebaseError);
+          return res.status(400).json({ 
+            message: firebaseError.message || "Failed to create Firebase user" 
+          });
+        }
       }
 
       // Create user in database with admin role

@@ -1,17 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Shield } from "lucide-react";
+import { Loader2, Shield, AlertTriangle } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function AdminSetup() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [adminExists, setAdminExists] = useState<boolean | null>(null);
   
   const [formData, setFormData] = useState({
     email: "",
@@ -19,6 +20,32 @@ export default function AdminSetup() {
     firstName: "",
     lastName: "",
   });
+
+  // Check if admin already exists
+  useEffect(() => {
+    const checkAdminExists = async () => {
+      try {
+        const response = await apiRequest("POST", "/api/admin/setup", {
+          email: "test@test.com",
+          password: "test123",
+          firstName: "Test",
+          lastName: "Test",
+        });
+        // If request succeeds, no admin exists
+        setAdminExists(false);
+      } catch (error: any) {
+        // Parse error message
+        const errorMessage = error?.message || "";
+        if (errorMessage.includes("Admin setup is disabled") || errorMessage.includes("admin already exists")) {
+          setAdminExists(true);
+        } else {
+          setAdminExists(false);
+        }
+      }
+    };
+
+    checkAdminExists();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -69,6 +96,45 @@ export default function AdminSetup() {
       setIsLoading(false);
     }
   };
+
+  // Show loading while checking
+  if (adminExists === null) {
+    return (
+      <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
+        <Loader2 className="h-8 w-8 animate-spin text-amber" />
+      </div>
+    );
+  }
+
+  // Show error if admin already exists
+  if (adminExists) {
+    return (
+      <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="space-y-1">
+            <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-red-500/10 flex items-center justify-center">
+              <AlertTriangle className="h-8 w-8 text-red-500" />
+            </div>
+            <CardTitle className="text-2xl text-center" data-testid="text-admin-exists-title">
+              Admin Already Exists
+            </CardTitle>
+            <CardDescription className="text-center" data-testid="text-admin-exists-description">
+              An administrator account has already been created. This setup page is now disabled.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button
+              onClick={() => setLocation("/login")}
+              className="w-full bg-amber-gradient text-charcoal"
+              data-testid="button-go-to-login"
+            >
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
