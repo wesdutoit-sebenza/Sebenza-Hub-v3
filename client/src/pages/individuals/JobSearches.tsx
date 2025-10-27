@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Briefcase, MapPin, DollarSign, Clock, Search, Filter, ExternalLink } from "lucide-react";
+import { Briefcase, MapPin, DollarSign, Clock, Search, Filter, ExternalLink, FileText } from "lucide-react";
 
 interface Job {
   id: string;
@@ -23,6 +24,7 @@ interface Job {
 }
 
 export default function IndividualJobSearches() {
+  const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("all");
   const [industryFilter, setIndustryFilter] = useState("all");
@@ -182,14 +184,25 @@ export default function IndividualJobSearches() {
                       <h4 className="font-semibold mb-2">Description</h4>
                       <p className="text-sm text-muted-foreground line-clamp-3">{job.description}</p>
                     </div>
-                    <Button 
-                      onClick={() => handleApplyViaWhatsApp(job)}
-                      className="w-full bg-green-600 hover:bg-green-700"
-                      data-testid={`button-apply-${job.id}`}
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Apply via WhatsApp
-                    </Button>
+                    <div className="flex gap-3">
+                      <Button 
+                        onClick={() => setLocation(`/jobs/${job.id}`)}
+                        variant="outline"
+                        className="flex-1"
+                        data-testid={`button-view-details-${job.id}`}
+                      >
+                        <FileText className="h-4 w-4 mr-2" />
+                        View Details
+                      </Button>
+                      <Button 
+                        onClick={() => handleApplyViaWhatsApp(job)}
+                        className="flex-1 bg-green-600 hover:bg-green-700"
+                        data-testid={`button-apply-${job.id}`}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Apply via WhatsApp
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

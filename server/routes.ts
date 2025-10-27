@@ -147,14 +147,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { status } = req.query;
       
-      let query = db.select().from(jobs);
-      
       // Filter by status if provided (e.g., ?status=Live for individuals)
-      if (status) {
-        query = query.where(sql`${jobs.admin}->>'status' = ${status}`);
-      }
-      
-      const allJobs = await query.orderBy(desc(jobs.createdAt));
+      const allJobs = status
+        ? await db.select()
+            .from(jobs)
+            .where(sql`${jobs.admin}->>'status' = ${status}`)
+            .orderBy(desc(jobs.createdAt))
+        : await db.select()
+            .from(jobs)
+            .orderBy(desc(jobs.createdAt));
       
       res.json({
         success: true,
@@ -166,6 +167,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Error fetching jobs.",
+      });
+    }
+  });
+
+  app.get("/api/jobs/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const [job] = await db.select()
+        .from(jobs)
+        .where(eq(jobs.id, id));
+      
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: "Job not found.",
+        });
+      }
+      
+      res.json({
+        success: true,
+        job,
+      });
+    } catch (error) {
+      console.error("Error fetching job:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching job.",
       });
     }
   });

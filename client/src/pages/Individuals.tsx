@@ -485,7 +485,7 @@ export default function Individuals() {
                       <div className="flex items-center gap-2">
                         <DollarSign size={16} />
                         <span data-testid="text-job-salary" className="font-semibold text-white-brand">
-                          R{job.salaryMin.toLocaleString()} - R{job.salaryMax.toLocaleString()}
+                          R{job.salaryMin?.toLocaleString() || 'N/A'} - R{job.salaryMax?.toLocaleString() || 'N/A'}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -496,11 +496,11 @@ export default function Individuals() {
 
                     <div className="mb-4">
                       <h4 className="font-semibold text-sm mb-2 text-white-brand">About the role:</h4>
-                      <p className="text-slate text-sm mb-3" data-testid="text-job-description">
+                      <p className="text-slate text-sm mb-3 line-clamp-3" data-testid="text-job-description">
                         {job.description}
                       </p>
                       <h4 className="font-semibold text-sm mb-2 text-white-brand">Requirements:</h4>
-                      <p className="text-slate text-sm" data-testid="text-job-requirements">
+                      <p className="text-slate text-sm line-clamp-2" data-testid="text-job-requirements">
                         {job.requirements}
                       </p>
                     </div>
@@ -509,7 +509,10 @@ export default function Individuals() {
                       <Button
                         className="bg-amber-gradient text-charcoal hover:opacity-90"
                         size="sm"
-                        onClick={() => window.open(`https://wa.me/${job.whatsappContact.replace(/\D/g, '')}`, '_blank')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`https://wa.me/${job.whatsappContact?.replace(/\D/g, '')}`, '_blank');
+                        }}
                         data-testid="button-apply-whatsapp"
                       >
                         <MessageCircle size={16} className="mr-2" />
@@ -518,9 +521,11 @@ export default function Individuals() {
                       <Button
                         variant="outline"
                         size="sm"
-                        data-testid="button-save-job"
+                        onClick={() => setLocation(`/jobs/${job.id}`)}
+                        data-testid="button-view-details"
                       >
-                        Save Job
+                        <FileText size={16} className="mr-2" />
+                        View Details
                       </Button>
                     </div>
                   </Card>
