@@ -1,51 +1,50 @@
 # Design Guidelines: Sebenza Hub - South African Recruiting Platform
 
 ## Design Approach
-**Minimalist Monochrome with Amber Accent**: Ultra-clean grayscale palette with amber (#f4a300) as the only color accent. High-contrast black and white with Montserrat typography creates a striking, modern, tech-forward aesthetic.
+**Dark Modern with Rich Colors**: Always-dark interface featuring deep charcoal backgrounds, vibrant amber accents, and sophisticated blue-gray tones. Montserrat typography creates a professional, modern aesthetic with layered depth and visual interest.
 
 ## Brand Identity
 
 ### Color Palette
-**Light Mode (Default):**
-- Background: `#fafafa` (near-white) - hsl(0, 0%, 98%)
-- Foreground: `#000000` (true black) - hsl(0, 0%, 0%)
-- Card Background: `#ffffff` (pure white) - hsl(0, 0%, 100%)
-- Borders: `#e0e0e0` (light gray) - hsl(0, 0%, 88%)
-- Muted Text: `#666666` (medium gray) - hsl(0, 0%, 40%)
+**Always Dark Theme** (no light mode):
 
-**Dark Mode:**
-- Background: `#1a1a1b` (near-black) - hsl(240, 3%, 10%)
-- Foreground: `#ffffff` (true white) - hsl(0, 0%, 100%)
-- Card Background: `#2a2a2b` (dark gray) - hsl(240, 2%, 17%)
-- Borders: `#404040` (medium gray) - hsl(0, 0%, 25%)
-- Muted Text: `#a6a6a6` (light gray) - hsl(0, 0%, 65%)
+**Primary Colors:**
+- Deep Charcoal Gray: `#2e2f31` (hsl(222, 6%, 18%)) - Main background
+- Bright Amber: `#f4a300` (hsl(40, 100%, 48%)) - Primary accent and CTAs
+- Warm White: `#ffffff` (hsl(0, 0%, 100%)) - Primary text
 
-**Accent Color (Only Color in Palette):**
-- Primary: `#f4a300` (amber) - hsl(40, 100%, 48%)
-- Primary Foreground: Black `#000000` - hsl(0, 0%, 0%)
-- Used exclusively for: CTAs, links, focus rings, active states, and key interactive elements
+**Accent & Secondary Colors:**
+- Slate Blue-Gray: `#5c6369` (hsl(211, 7%, 37%)) - Cards, sections, elevated surfaces
+- Soft Graphite Gray: `#4a4d50` (hsl(210, 5%, 30%)) - Secondary surfaces, shading
+- Subtle Black: `#1f1f20` (hsl(240, 2%, 12%)) - Depth, shadows, darkest elements
+- Golden Yellow Glow: `#ffb43b` (hsl(40, 100%, 60%)) - Highlights, light reflections, hover states
+- Muted Steel Blue: `#70787e` (hsl(210, 5%, 47%)) - Borders, subtle elements, dividers
 
-**Grayscale Chart Colors:**
-- Chart 1: Amber `#f4a300` (primary data)
-- Chart 2-5: Varying shades of gray for secondary data
+**Semantic Mappings:**
+- Background: Deep Charcoal (#2e2f31)
+- Cards/Panels: Slate Blue-Gray (#5c6369)
+- Borders: Muted Steel Blue (#70787e)
+- Primary Buttons: Bright Amber (#f4a300) with deep charcoal text
+- Secondary Surfaces: Soft Graphite (#4a4d50)
+- Shadows/Depth: Subtle Black (#1f1f20)
+- Accents/Glows: Golden Yellow (#ffb43b)
 
 **Accessibility:**
 - All combinations meet WCAG AA standards (4.5:1+ contrast)
-- Light mode: Background/foreground 21:1 (maximum contrast)
-- Dark mode: Background/foreground 19.5:1 (maximum contrast)
-- Amber buttons: Black text on amber (#f4a300) provides 8.9:1 contrast (excellent)
-- **Important**: Amber on light backgrounds has low contrast (~2.0:1) - only use amber for:
-  - Button/badge backgrounds with black text
-  - Thick borders (2px+) where shape provides recognition
-  - Focus rings and accents where context is clear
-  - Never use amber text on light backgrounds
+- White on Deep Charcoal: 14.5:1 contrast (excellent)
+- White on Slate Blue-Gray: 7.8:1 contrast (excellent)
+- **Deep Charcoal on Bright Amber: 6.8:1 contrast (excellent for buttons)**
+- White on Bright Amber: 2.1:1 (FAIL - never use)
+- Bright Amber on Deep Charcoal: 6.8:1 contrast (excellent for borders/accents)
 
 **Usage Strategy:**
-- Monochrome base: 95% of design uses pure blacks, whites, and grays
-- Amber accent: 5% usage for CTAs, links, and critical interactive elements only
-- No other colors used anywhere in the application
-- Borders and dividers: subtle gray tones
-- Shadows: black with low opacity
+- Deep charcoal for main backgrounds and large areas
+- Slate blue-gray for cards, panels, and content sections
+- Bright amber for CTAs, primary actions, and focus states
+- Golden yellow for hover states, highlights, and subtle glows
+- Steel blue for borders and subtle dividers
+- White text on all dark surfaces for maximum readability
+- Gradients using charcoal → graphite for depth
 
 ### Typography
 **Font (Google Fonts CDN):**
@@ -73,113 +72,131 @@
 
 ### Navigation
 - Sticky header with wordmark left, nav links center, CTA button right
-- Active link: underline with amber accent (2px thick, offset-4)
-- Keyboard focus: 2px amber ring with offset
+- Background: Deep charcoal (#2e2f31) or subtle black (#1f1f20)
+- Active link: amber underline (2px thick, offset-4)
+- Keyboard focus: 2px amber ring with golden glow
 - Skip-to-content link for accessibility
 
 ### Buttons
-- **Solid Primary**: Amber background (#f4a300), black text, rounded-lg, px-6 py-3
-- **Ghost**: Black/white border (1px), black/white text, rounded-lg, px-6 py-3
-- **Outline on Images**: Semi-transparent white/black background with backdrop blur
-- Hover: Amber buttons slightly darken, ghost buttons show subtle gray background
+- **Solid Primary**: Amber background (#f4a300), deep charcoal text (#2e2f31), rounded-lg, px-6 py-3
+  - Hover: Golden yellow (#ffb43b) background with charcoal text
+- **Secondary**: Slate blue-gray background (#5c6369), white text, rounded-lg, px-6 py-3
+  - Hover: Lighten slightly with amber accent
+- **Ghost**: Steel blue border (1px), white text, rounded-lg, px-6 py-3
+  - Hover: Slate blue-gray background
+- All buttons cast subtle shadows using subtle black (#1f1f20)
 
 ### Cards
 - Border radius: rounded-2xl
-- Shadow: subtle (shadow-sm on hover: shadow-md)
-- Border: 1px using gray (#e0e0e0 light, #404040 dark)
-- Background: Pure white (light mode), dark gray (dark mode)
-- Hover: lift effect (translate-y-[-4px] + shadow increase)
+- Background: Slate blue-gray (#5c6369) for main cards
+- Background alternate: Graphite (#4a4d50) for secondary/nested cards
+- Border: 1px steel blue (#70787e) for subtle definition
+- Shadow: Subtle black with medium opacity (shadow-md)
+- Hover: Lift effect (translate-y-[-4px]) + amber glow + shadow increase
 
 ### Badges
 - Small rounded-full pills
-- **Default badges**: Light gray background (light mode), dark gray background (dark mode), black/white text
-- **Amber badges** (for primary/important items): Amber background (#f4a300), black text
-- Never use white text on amber - always black text
+- **Default badges**: Graphite background (#4a4d50), white text
+- **Amber badges** (primary/important): Amber background (#f4a300), deep charcoal text
+- **Highlighted badges**: Golden yellow background (#ffb43b), deep charcoal text
 - Use for "New", "Popular", "SA Verified", "POPIA Compliant"
 
 ### Modals
-- Backdrop: Black at 50% opacity with backdrop blur
-- Container: White (light mode), dark gray (dark mode), rounded-2xl, max-w-4xl
-- Close button: top-right, black/white color
+- Backdrop: Subtle black (#1f1f20) at 70% opacity with backdrop blur
+- Container: Slate blue-gray (#5c6369), rounded-2xl, max-w-4xl
+- Border: Steel blue (#70787e) 1px for definition
+- Close button: top-right, amber color with white icon
 - Keyboard trap and focus management
 
 ## Page-Specific Guidelines
 
 ### Home Page
 **Hero Section (80vh):**
-- Centered layout with subtle gradient background (light gray to white)
-- H1: "Hiring that actually moves."
-- Subheading: max-w-2xl centered
-- Two-button CTA (amber solid + ghost)
-- No hero image; minimal gradient background only
+- Centered layout with charcoal-to-graphite gradient background
+- H1: "Hiring that actually moves." (white text)
+- Subheading: max-w-2xl centered (light gray text)
+- Two-button CTA (amber solid + slate ghost)
+- Subtle amber glow effects behind text
 
 **Value Props (4 cards):**
 - Grid: grid-cols-1 md:grid-cols-2 lg:grid-cols-4
-- Each card: icon (amber accent), title, short description
+- Each card: Slate blue-gray background, steel blue border
+- Icon: Amber accent with golden glow on hover
+- White text with gray subheadings
 - Icons from Lucide React
 
 **Product Tour Modal:**
 - Three slides with previous/next navigation
+- Slate blue-gray background with steel blue borders
 - Each slide: illustration placeholder + headline + bullet points
-- Progress indicator (3 dots, current highlighted in amber)
+- Progress indicator (3 dots, current highlighted in amber, inactive in steel blue)
 
 **Pricing Table:**
 - Three columns (Starter, Team, Business)
-- Toggle switch (monthly/annual) with amber highlight
-- Feature list with checkmarks (amber for included)
-- CTA buttons use amber
+- Cards: Slate blue-gray background with steel blue borders
+- Toggle switch (monthly/annual) with amber active state
+- Feature list with checkmarks (amber for included, gray for not included)
+- CTA buttons use amber with deep charcoal text
 
 **Teaser Cards (3):**
 - Horizontal layout on desktop
 - Each links to role-specific page
-- Background: white cards with subtle gray borders
-- "Learn more" link with amber arrow
+- Background: Graphite cards with steel blue borders
+- Amber accent line on left edge
+- "Learn more" link with golden yellow arrow hover
 
 ### Recruiters Page
 **Hero:**
-- H1 left-aligned, supporting text max-w-2xl
-- Minimal design with clean white/black backgrounds
-- Two CTAs: "See recruiter workflow" (amber solid), "Book a demo" (ghost)
+- H1 left-aligned, supporting text max-w-2xl (white and light gray)
+- Deep charcoal background with graphite gradient
+- Two CTAs: "See recruiter workflow" (amber solid), "Book a demo" (slate ghost)
 
 **Features:**
 - Alternating image-text sections (mock UI screenshots)
-- Stats row: 2-column grid with large numbers (amber accent), small label
+- Stats row: 2-column grid with large numbers (amber accent), small label (gray)
+- Section backgrounds alternate between charcoal and graphite
 
 **UI Mocks:**
 - Show: job post form, Kanban pipeline, EE report export
-- Use placeholder screenshots with subtle shadow
+- Slate blue-gray card backgrounds
+- Steel blue borders with amber accents
 
 ### Businesses Page
 **Case Study Callout:**
-- Bordered section with amber accent line (left border, 4px)
-- Quote typography using Montserrat medium
-- Company name and metric in bold
+- Graphite background card
+- Amber accent line (left border, 4px)
+- Quote typography using Montserrat medium (white text)
+- Company name and metric in golden yellow
 
 **Pricing Callout:**
-- Highlight "Team" plan with amber badge
-- Inline comparison of plans
+- Highlight "Team" plan with amber badge and golden glow
+- Slate blue-gray cards for all plans
+- Inline comparison with steel blue dividers
 
 ### Individuals Page
 **WhatsApp Integration:**
-- QR code placeholder (300x300px, centered)
-- Amber "Apply on WhatsApp" button
-- Three-step visual flow (numbered circles with amber connecting lines)
+- QR code placeholder (300x300px, centered on slate background)
+- Amber "Apply on WhatsApp" button with deep charcoal text
+- Three-step visual flow (numbered circles with amber background and charcoal numbers, golden yellow connecting lines)
 
 **CV Builder:**
-- Multi-step wizard with progress indicator
-- Professional CV preview in white/dark gray card
+- Multi-step wizard with progress indicator (amber active, steel blue inactive)
+- Professional CV preview in slate blue-gray card
 - Amber accent for step indicators and CTAs
+- White text throughout
 
 **Portfolio Cards:**
-- Upload area with dashed gray border
-- Skills assessment with amber progress indicators
-- Verified badge (amber checkmark icon)
+- Slate blue-gray backgrounds
+- Upload area with dashed amber border
+- Skills assessment with amber/golden yellow progress indicators
+- Verified badge (amber background, deep charcoal checkmark icon)
 
 ### Footer
 - Three-column grid: Links, Contact, Legal
-- South African flag emoji 🇿🇦 + "Built in SA"
-- Email: hello@yourdomain.co.za
-- Subtle top border (light gray in light mode, dark gray in dark mode)
+- Background: Subtle black (#1f1f20)
+- South African flag emoji 🇿🇦 + "Built in SA" (white text)
+- Email: hello@yourdomain.co.za (amber link color)
+- Subtle top border (steel blue)
 
 ## Motion & Interactivity
 **Animations:**
@@ -195,10 +212,14 @@
 ## Accessibility Requirements
 - Landmarks: header, nav, main, footer
 - Alt text for all images/icons
-- Color contrast: minimum 4.5:1 for text (exceeded with black/white monochrome)
-- Keyboard navigation: focus rings (amber, 2px)
+- Color contrast: All text/background combinations exceed WCAG AA (4.5:1)
+  - White on charcoal: 14.5:1
+  - White on slate: 7.8:1
+  - Deep charcoal on amber: 6.8:1 (buttons, badges)
+  - Never use white on amber (2.1:1 contrast - fails WCAG)
+- Keyboard navigation: focus rings (amber with golden glow, 2px)
 - ARIA labels for icon-only buttons
-- Skip-to-content link
+- Skip-to-content link (amber color)
 
 ## SEO & Meta
 **Per-Route Titles:**

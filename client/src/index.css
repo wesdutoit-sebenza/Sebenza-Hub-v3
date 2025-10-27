@@ -2,86 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE */
+/* DARK MODERN THEME - Always Dark */
 :root {
   /* === Sebenza Hub Brand Colors === */
-  /* Logo specific - charcoal background with amber/white text */
-  --logo-charcoal: #2e2f31;      /* logo background */
-  --logo-amber: #f4a300;          /* "HUB" text in logo */
-  --logo-white: #ffffff;          /* "Sebenza" text in logo */
+  --deep-charcoal: #2e2f31;       /* Main background */
+  --bright-amber: #f4a300;         /* Primary accent */
+  --warm-white: #ffffff;           /* Primary text */
+  --slate-blue-gray: #5c6369;      /* Cards and sections */
+  --graphite: #4a4d50;             /* Shading and secondary surfaces */
+  --subtle-black: #1f1f20;         /* Depth and shadows */
+  --golden-yellow: #ffb43b;        /* Highlights and glows */
+  --steel-blue: #70787e;           /* Subtle elements */
   /* === End Brand Colors === */
   
-  --button-outline: rgba(0,0,0, .10);
-  --badge-outline: rgba(0,0,0, .05);
+  --button-outline: rgba(255,255,255, .15);
+  --badge-outline: rgba(255,255,255, .10);
 
   /* Automatic computation of border around primary / danger buttons */
-  --opaque-button-border-intensity: -8; /* In terms of percentages */
+  --opaque-button-border-intensity: 8; /* In terms of percentages */
 
   /* Backgrounds applied on top of other backgrounds when hovered/active */
-  --elevate-1: rgba(0,0,0, .03);
-  --elevate-2: rgba(0,0,0, .08);
+  --elevate-1: rgba(244,163,0, .08);
+  --elevate-2: rgba(244,163,0, .15);
 
-  --background: 0 0% 98%;
+  --background: 222 6% 18%;
 
-  --foreground: 0 0% 0%;
+  --foreground: 0 0% 100%;
 
-  --border: 0 0% 88%;
+  --border: 210 5% 47%;
 
-  --card: 0 0% 100%;
+  --card: 211 7% 37%;
 
-  --card-foreground: 0 0% 0%;
+  --card-foreground: 0 0% 100%;
 
-  --card-border: 0 0% 92%;
+  --card-border: 210 5% 52%;
 
-  --sidebar: 0 0% 98%;
+  --sidebar: 222 6% 18%;
 
-  --sidebar-foreground: 0 0% 0%;
+  --sidebar-foreground: 0 0% 100%;
 
-  --sidebar-border: 0 0% 88%;
+  --sidebar-border: 210 5% 47%;
 
   --sidebar-primary: 40 100% 48%;
 
-  --sidebar-primary-foreground: 0 0% 0%;
+  --sidebar-primary-foreground: 222 6% 18%;
 
-  --sidebar-accent: 0 0% 92%;
+  --sidebar-accent: 211 7% 37%;
 
-  --sidebar-accent-foreground: 0 0% 0%;
+  --sidebar-accent-foreground: 0 0% 100%;
 
   --sidebar-ring: 40 100% 48%;
 
-  --popover: 0 0% 100%;
+  --popover: 211 7% 30%;
 
-  --popover-foreground: 0 0% 0%;
+  --popover-foreground: 0 0% 100%;
 
-  --popover-border: 0 0% 88%;
+  --popover-border: 210 5% 47%;
 
   --primary: 40 100% 48%;
 
-  --primary-foreground: 0 0% 0%;
+  --primary-foreground: 222 6% 18%;
 
-  --secondary: 0 0% 75%;
+  --secondary: 211 7% 37%;
 
-  --secondary-foreground: 0 0% 0%;
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 0 0% 92%;
+  --muted: 210 5% 47%;
 
-  --muted-foreground: 0 0% 40%;
+  --muted-foreground: 0 0% 75%;
 
-  --accent: 0 0% 95%;
+  --accent: 40 100% 60%;
 
-  --accent-foreground: 0 0% 0%;
+  --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84% 60%;
 
   --destructive-foreground: 0 10% 98%;
 
-  --input: 0 0% 88%;
+  --input: 210 5% 47%;
   --ring: 40 100% 48%;
   --chart-1: 40 100% 48%;
-  --chart-2: 0 0% 60%;
-  --chart-3: 0 0% 40%;
-  --chart-4: 0 0% 80%;
-  --chart-5: 0 0% 20%;
+  --chart-2: 40 100% 60%;
+  --chart-3: 211 7% 37%;
+  --chart-4: 210 5% 47%;
+  --chart-5: 0 0% 100%;
 
   --font-sans: Montserrat, system-ui, -apple-system, sans-serif;
   --font-serif: Montserrat, Georgia, serif;
@@ -129,115 +133,7 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
-.dark {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
-
-  --opaque-button-border-intensity: 9;  /* In terms of percentages */
-
-  /* Backgrounds applied on top of other backgrounds when hovered/active */
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
-
-  --background: 240 3% 10%;
-
-  --foreground: 0 0% 100%;
-
-  --border: 0 0% 25%;
-
-  --card: 240 2% 17%;
-
-  --card-foreground: 0 0% 100%;
-
-  --card-border: 0 0% 22%;
-
-  --sidebar: 240 3% 10%;
-
-  --sidebar-foreground: 0 0% 100%;
-
-  --sidebar-border: 0 0% 25%;
-
-  --sidebar-primary: 40 100% 48%;
-
-  --sidebar-primary-foreground: 0 0% 0%;
-
-  --sidebar-accent: 0 0% 22%;
-
-  --sidebar-accent-foreground: 0 0% 100%;
-
-  --sidebar-ring: 40 100% 48%;
-
-  --popover: 240 2% 17%;
-
-  --popover-foreground: 0 0% 100%;
-
-  --popover-border: 0 0% 25%;
-
-  --primary: 40 100% 48%;
-
-  --primary-foreground: 0 0% 0%;
-
-  --secondary: 0 0% 30%;
-
-  --secondary-foreground: 0 0% 100%;
-
-  --muted: 0 0% 25%;
-
-  --muted-foreground: 0 0% 65%;
-
-  --accent: 0 0% 20%;
-
-  --accent-foreground: 0 0% 100%;
-
-  --destructive: 0 84% 60%;
-
-  --destructive-foreground: 0 10% 98%;
-
-  --input: 0 0% 30%;
-  --ring: 40 100% 48%;
-  --chart-1: 40 100% 48%;
-  --chart-2: 0 0% 60%;
-  --chart-3: 0 0% 50%;
-  --chart-4: 0 0% 70%;
-  --chart-5: 0 0% 85%;
-
-  --shadow-2xs: 0px 1px 2px 0px hsl(216 76% 6% / 0.20);
-  --shadow-xs: 0px 1px 3px 0px hsl(216 76% 6% / 0.30);
-  --shadow-sm: 0px 2px 4px 0px hsl(216 76% 6% / 0.25), 0px 1px 2px -1px hsl(216 76% 6% / 0.30);
-  --shadow: 0px 4px 6px -1px hsl(216 76% 6% / 0.30), 0px 2px 4px -2px hsl(216 76% 6% / 0.25);
-  --shadow-md: 0px 6px 12px -2px hsl(216 76% 6% / 0.35), 0px 3px 6px -3px hsl(216 76% 6% / 0.30);
-  --shadow-lg: 0px 10px 20px -4px hsl(216 76% 6% / 0.40), 0px 4px 8px -4px hsl(216 76% 6% / 0.30);
-  --shadow-xl: 0px 20px 30px -6px hsl(216 76% 6% / 0.45), 0px 8px 12px -6px hsl(216 76% 6% / 0.35);
-  --shadow-2xl: 0px 30px 50px -8px hsl(216 76% 6% / 0.50);
-
-  /* Fallback for older browsers */
-  --sidebar-primary-border: hsl(var(--sidebar-primary));
-  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-
-  /* Fallback for older browsers */
-  --sidebar-accent-border: hsl(var(--sidebar-accent));
-  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-
-  /* Fallback for older browsers */
-  --primary-border: hsl(var(--primary));
-  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-
-  /* Fallback for older browsers */
-  --secondary-border: hsl(var(--secondary));
-  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-
-  /* Fallback for older browsers */
-  --muted-border: hsl(var(--muted));
-  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-
-  /* Fallback for older browsers */
-  --accent-border: hsl(var(--accent));
-  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-
-  /* Fallback for older browsers */
-  --destructive-border: hsl(var(--destructive));
-  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
-}
+/* No separate dark mode - always dark theme */
 
 @layer base {
   * {
@@ -323,9 +219,36 @@
     inset: -1px;
   }
 
-  /* === Sebenza Hub Logo Utility Classes === */
-  /* Logo-specific utilities for the brand logo component only */
-  .logo-sebenza { color: var(--logo-white); }
-  .logo-hub { color: var(--logo-amber); }
-  .logo-background { background: var(--logo-charcoal); }
+  /* === Sebenza Hub Brand Utility Classes === */
+  
+  /* Backgrounds */
+  .bg-charcoal { background: var(--deep-charcoal); }
+  .bg-amber { background: var(--bright-amber); }
+  .bg-slate { background: var(--slate-blue-gray); }
+  .bg-graphite { background: var(--graphite); }
+  .bg-subtle-black { background: var(--subtle-black); }
+  
+  /* Text colors */
+  .text-amber { color: var(--bright-amber); }
+  .text-golden { color: var(--golden-yellow); }
+  .text-slate { color: var(--slate-blue-gray); }
+  .text-steel { color: var(--steel-blue); }
+  
+  /* Borders */
+  .border-amber { border-color: var(--bright-amber); }
+  .border-steel { border-color: var(--steel-blue); }
+  
+  /* Gradients */
+  .bg-charcoal-gradient {
+    background: linear-gradient(135deg, var(--deep-charcoal), var(--graphite));
+  }
+  
+  .bg-amber-gradient {
+    background: linear-gradient(135deg, var(--bright-amber), var(--golden-yellow));
+  }
+  
+  /* Logo utilities */
+  .logo-sebenza { color: var(--warm-white); }
+  .logo-hub { color: var(--bright-amber); }
+  .logo-background { background: var(--deep-charcoal); }
 }
