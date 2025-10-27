@@ -40,7 +40,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles } from "lucide-react";
-import { type Job, insertJobSchema } from "@shared/schema";
+import { type Job, type RecruiterProfile, insertJobSchema } from "@shared/schema";
 import { JobDescriptionAIDialog } from "@/components/JobDescriptionAIDialog";
 import {
   SA_PROVINCES,
@@ -178,6 +178,10 @@ export default function RecruiterJobPostings() {
     queryKey: ["/api/jobs"],
   });
 
+  const { data: recruiterProfileData } = useQuery<{ success: boolean; profile: RecruiterProfile }>({
+    queryKey: ["/api/profile/recruiter"],
+  });
+
   const jobs = jobsData?.jobs || [];
   
   const filteredJobs = jobs.filter((job) =>
@@ -282,6 +286,13 @@ export default function RecruiterJobPostings() {
   const jobTitle = form.watch("title");
   const selectedSkills = form.watch("core.requiredSkills") || [];
 
+  // Auto-populate recruiting agency from profile
+  useEffect(() => {
+    if (recruiterProfileData?.profile?.agencyName) {
+      form.setValue("companyDetails.recruitingAgency", recruiterProfileData.profile.agencyName);
+    }
+  }, [recruiterProfileData, form]);
+
   // Debounced job title for skill suggestions
   const [debouncedJobTitle, setDebouncedJobTitle] = useState("");
   
@@ -385,10 +396,15 @@ export default function RecruiterJobPostings() {
                     <FormItem>
                       <FormLabel>Recruiting Agency</FormLabel>
                       <FormControl>
-                        <Input placeholder="Agency name (if applicable)" {...field} data-testid="input-recruiting-agency" />
+                        <Input 
+                          placeholder="Agency name from profile" 
+                          {...field} 
+                          disabled 
+                          data-testid="input-recruiting-agency" 
+                        />
                       </FormControl>
                       <FormDescription>
-                        Leave blank if hiring directly
+                        Auto-populated from your recruiter profile
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
