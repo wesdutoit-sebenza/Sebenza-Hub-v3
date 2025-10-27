@@ -10,7 +10,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Frontend
 - **Framework & Tooling**: React with TypeScript (Vite), Wouter for routing, TanStack React Query for state management, shadcn/ui (Radix UI) for components, and Tailwind CSS for styling.
-- **Design System**: Features a Charcoal/Amber color palette, Inter and Newsreader typography, custom theming, and mobile-first responsive design.
+- **Design System**: Minimalist monochrome palette (black/white/grays) with amber (#f4a300) as the only color accent. Montserrat typography, custom theming, mobile-first responsive design, and full WCAG AA accessibility compliance.
 - **Key Features**:
     - **Recruiters Portal**: Job posting forms with WhatsApp integration, recruiter profiles, and job listings. Includes an AI Job Description Generator and status-based workflow.
       - **Status-Based Publishing**: Jobs saved as drafts with lenient validation, published by changing status to Live via action buttons on job cards.
