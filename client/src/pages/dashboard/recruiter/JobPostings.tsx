@@ -304,10 +304,13 @@ export default function RecruiterJobPostings() {
   }>({
     queryKey: ["/api/jobs/suggest-skills", debouncedJobTitle],
     queryFn: async () => {
-      const response = await apiRequest("POST", "/api/jobs/suggest-skills", {
-        jobTitle: debouncedJobTitle,
-      });
-      return response;
+      return apiRequest<{ success: boolean; suggestions: string[] }>(
+        "POST", 
+        "/api/jobs/suggest-skills", 
+        {
+          jobTitle: debouncedJobTitle,
+        }
+      );
     },
     enabled: debouncedJobTitle.length >= 3,
     retry: 1,
@@ -316,7 +319,7 @@ export default function RecruiterJobPostings() {
   // Filter out already-selected skills from suggestions
   const filteredSuggestions = useMemo(() => {
     const suggestions = skillSuggestionsData?.suggestions || [];
-    return suggestions.filter(skill => !selectedSkills.includes(skill));
+    return suggestions.filter((skill: string) => !selectedSkills.includes(skill));
   }, [skillSuggestionsData, selectedSkills]);
 
   const createJobMutation = useMutation({
