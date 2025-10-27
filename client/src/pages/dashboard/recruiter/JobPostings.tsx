@@ -312,14 +312,14 @@ export default function RecruiterJobPostings() {
   const { data: skillSuggestionsData, isLoading: isLoadingSuggestions, error: suggestionsError } = useQuery({
     queryKey: ["/api/jobs/suggest-skills", debouncedJobTitle],
     queryFn: async () => {
-      const response = await apiRequest<{ success: boolean; suggestions: string[] }>(
+      const response = await apiRequest(
         "POST", 
         "/api/jobs/suggest-skills", 
         {
           jobTitle: debouncedJobTitle,
         }
       );
-      return response;
+      return response.json();
     },
     enabled: debouncedJobTitle.length >= 3,
     retry: 1,
