@@ -12,6 +12,7 @@ import Businesses from "@/pages/Businesses";
 import Individuals from "@/pages/Individuals";
 import Screening from "@/pages/screening";
 import Login from "@/pages/login";
+import VerifyEmail from "@/pages/verify-email";
 import AdminSetup from "@/pages/admin-setup";
 import Onboarding from "@/pages/onboarding";
 import OnboardingIndividual from "@/pages/onboarding-individual";
@@ -130,6 +131,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
+      <Route path="/verify-email" component={VerifyEmail} />
       <Route path="/admin/setup" component={AdminSetup} />
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/onboarding/individual" component={OnboardingIndividual} />

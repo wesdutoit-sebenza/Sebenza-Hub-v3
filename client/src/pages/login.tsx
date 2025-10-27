@@ -13,7 +13,8 @@ import {
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
   signInWithPopup,
-  updateProfile
+  updateProfile,
+  sendEmailVerification
 } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 
@@ -34,8 +35,13 @@ export default function Login() {
   // Redirect if user is already logged in
   useEffect(() => {
     if (!loading && user) {
-      console.log("[Login] User already authenticated, redirecting to /onboarding");
-      setLocation("/onboarding");
+      if (!user.emailVerified) {
+        console.log("[Login] User not verified, redirecting to /verify-email");
+        setLocation("/verify-email");
+      } else {
+        console.log("[Login] User already authenticated, redirecting to /onboarding");
+        setLocation("/onboarding");
+      }
     }
   }, [user, loading, setLocation]);
 
@@ -67,6 +73,17 @@ export default function Login() {
             displayName: `${formData.firstName} ${formData.lastName}`.trim()
           });
         }
+
+        // Send email verification
+        await sendEmailVerification(userCredential.user, {
+          url: `${window.location.origin}/onboarding`,
+          handleCodeInApp: true
+        });
+
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account.",
+        });
       } else {
         // Sign in existing user
         userCredential = await signInWithEmailAndPassword(
@@ -74,12 +91,12 @@ export default function Login() {
           formData.email,
           formData.password
         );
-      }
 
-      toast({
-        title: "Success!",
-        description: isSignup ? "Account created successfully" : "Logged in successfully",
-      });
+        toast({
+          title: "Success!",
+          description: "Logged in successfully",
+        });
+      }
       
       // Redirect will happen via useEffect when auth state updates
     } catch (error: any) {

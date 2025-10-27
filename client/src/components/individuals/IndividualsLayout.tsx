@@ -1,4 +1,6 @@
 import { Link, useLocation } from "wouter";
+import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Sidebar,
   SidebarContent,
@@ -57,7 +59,14 @@ interface IndividualsLayoutProps {
 }
 
 export function IndividualsLayout({ children }: IndividualsLayoutProps) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && user && !user.emailVerified) {
+      setLocation("/verify-email");
+    }
+  }, [user, loading, setLocation]);
 
   const style = {
     "--sidebar-width": "18rem",

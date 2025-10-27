@@ -55,6 +55,12 @@ export default function Onboarding() {
       return;
     }
 
+    // Redirect to verify-email if email is not verified
+    if (!authLoading && firebaseUser && !firebaseUser.emailVerified) {
+      setLocation('/verify-email');
+      return;
+    }
+
     // Only redirect to login if we've finished loading AND there's an error
     if (error && !isLoading && !authLoading) {
       const timer = setTimeout(() => {
