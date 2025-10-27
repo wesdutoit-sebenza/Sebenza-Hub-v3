@@ -1211,6 +1211,21 @@ export const insertFraudDetectionSchema = createInsertSchema(fraudDetections).om
 export type InsertFraudDetection = z.infer<typeof insertFraudDetectionSchema>;
 export type FraudDetection = typeof fraudDetections.$inferSelect;
 
+// API Request/Response Schemas
+
+// Suggest Skills - AI-powered skill suggestions based on job title
+export const suggestSkillsRequestSchema = z.object({
+  jobTitle: z.string().min(3, "Job title must be at least 3 characters"),
+});
+
+export const suggestSkillsResponseSchema = z.object({
+  success: z.boolean(),
+  suggestions: z.array(z.string()),
+});
+
+export type SuggestSkillsRequest = z.infer<typeof suggestSkillsRequestSchema>;
+export type SuggestSkillsResponse = z.infer<typeof suggestSkillsResponseSchema>;
+
 // Refresh Tokens - JWT refresh tokens for mobile app authentication
 export const refreshTokens = pgTable("refresh_tokens", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
