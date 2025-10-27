@@ -143,9 +143,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/jobs", async (_req, res) => {
+  app.get("/api/jobs", async (req, res) => {
     try {
-      const allJobs = await db.select().from(jobs).orderBy(desc(jobs.createdAt));
+      const { status } = req.query;
+      
+      let query = db.select().from(jobs);
+      
+      // Filter by status if provided (e.g., ?status=Live for individuals)
+      if (status) {
+        query = query.where(sql`${jobs.admin}->>'status' = ${status}`);
+      }
+      
+      const allJobs = await query.orderBy(desc(jobs.createdAt));
+      
       res.json({
         success: true,
         count: allJobs.length,

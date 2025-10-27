@@ -29,7 +29,7 @@ export default function IndividualJobSearches() {
   const [typeFilter, setTypeFilter] = useState("all");
 
   const { data: jobsData, isLoading } = useQuery<{ success: boolean; jobs: Job[] }>({
-    queryKey: ["/api/jobs"],
+    queryKey: ["/api/jobs?status=Live"],
   });
 
   // Extract unique values for filters
