@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,7 +40,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles, AlertCircle } from "lucide-react";
+import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles, AlertCircle, Play, Pause, Eye, EyeOff, Trash2, Edit, CheckCircle2 } from "lucide-react";
 import { type Job, type RecruiterProfile, insertJobSchema } from "@shared/schema";
 import { JobDescriptionAIDialog } from "@/components/JobDescriptionAIDialog";
 import {
@@ -219,7 +219,7 @@ export default function RecruiterJobPostings() {
   }, [jobTitleSearchQuery]);
 
   const form = useForm<FormData>({
-    resolver: zodResolver(insertJobSchema),
+    mode: "onSubmit",
     defaultValues: {
       title: "",
       jobIndustry: "",
@@ -333,6 +333,26 @@ export default function RecruiterJobPostings() {
     return suggestions.filter((skill: string) => !selectedSkills.includes(skill));
   }, [skillSuggestionsData, selectedSkills]);
 
+  const updateJobStatusMutation = useMutation({
+    mutationFn: async ({ jobId, status }: { jobId: number; status: string }) => {
+      return apiRequest("PATCH", `/api/jobs/${jobId}/status`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
+      toast({
+        title: "Success!",
+        description: "Job status updated successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update job status.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const createJobMutation = useMutation({
     mutationFn: async (data: FormData) => {
       // Transform data to include legacy fields for backward compatibility
@@ -371,6 +391,35 @@ export default function RecruiterJobPostings() {
 
   const onSubmit = (data: FormData) => {
     console.log("Form submitted with data:", data);
+    
+    // If status is Draft, skip strict validation
+    if (data.admin?.status === "Draft") {
+      console.log("Saving as draft - skipping strict validation");
+      createJobMutation.mutate(data);
+      return;
+    }
+    
+    // For Live/Paused/Closed/Filled, validate strictly
+    const validationResult = insertJobSchema.safeParse(data);
+    
+    if (!validationResult.success) {
+      const errors = validationResult.error.format();
+      console.log("Validation errors for non-draft:", errors);
+      
+      // Extract first error message
+      const firstError = validationResult.error.errors[0];
+      const errorPath = firstError.path.join(" > ");
+      const errorMessage = `${errorPath}: ${firstError.message}`;
+      
+      toast({
+        title: "Cannot save - validation failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Validation passed, submit the form
     createJobMutation.mutate(data);
   };
 
@@ -1480,7 +1529,7 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Legal Consents */}
-            <FormSection title="Legal Consents" description="Required before publishing">
+            <FormSection title="Legal Consents" description="Required for Live jobs">
               <div className="space-y-3">
                 <FormField
                   control={form.control}
@@ -1556,7 +1605,7 @@ export default function RecruiterJobPostings() {
                 disabled={createJobMutation.isPending}
                 data-testid="button-submit"
               >
-                {createJobMutation.isPending ? "Publishing..." : "Publish Job"}
+                {createJobMutation.isPending ? "Saving..." : "Save Job"}
               </Button>
             </div>
           </form>
@@ -1671,6 +1720,108 @@ export default function RecruiterJobPostings() {
                   <p className="text-sm text-muted-foreground line-clamp-2">{job.description}</p>
                 </CardContent>
               )}
+              <CardFooter className="flex flex-wrap gap-2 justify-between border-t pt-4">
+                <div className="flex gap-2">
+                  {/* Status-based action button */}
+                  {(() => {
+                    const status = (job as any).admin?.status || "Draft";
+                    
+                    if (status === "Draft") {
+                      return (
+                        <Button
+                          size="sm"
+                          onClick={() => updateJobStatusMutation.mutate({ jobId: job.id, status: "Live" })}
+                          disabled={updateJobStatusMutation.isPending}
+                          data-testid={`button-publish-${job.id}`}
+                        >
+                          <Play className="mr-1 h-3 w-3" />
+                          Publish
+                        </Button>
+                      );
+                    }
+                    
+                    if (status === "Live") {
+                      return (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => updateJobStatusMutation.mutate({ jobId: job.id, status: "Paused" })}
+                          disabled={updateJobStatusMutation.isPending}
+                          data-testid={`button-pause-${job.id}`}
+                        >
+                          <Pause className="mr-1 h-3 w-3" />
+                          Pause
+                        </Button>
+                      );
+                    }
+                    
+                    if (status === "Paused") {
+                      return (
+                        <Button
+                          size="sm"
+                          onClick={() => updateJobStatusMutation.mutate({ jobId: job.id, status: "Live" })}
+                          disabled={updateJobStatusMutation.isPending}
+                          data-testid={`button-resume-${job.id}`}
+                        >
+                          <Play className="mr-1 h-3 w-3" />
+                          Resume
+                        </Button>
+                      );
+                    }
+                    
+                    if (status === "Closed") {
+                      return (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => updateJobStatusMutation.mutate({ jobId: job.id, status: "Live" })}
+                          disabled={updateJobStatusMutation.isPending}
+                          data-testid={`button-reopen-${job.id}`}
+                        >
+                          <Eye className="mr-1 h-3 w-3" />
+                          Reopen
+                        </Button>
+                      );
+                    }
+                    
+                    if (status === "Filled") {
+                      return (
+                        <Badge variant="default" className="gap-1" data-testid={`badge-filled-${job.id}`}>
+                          <CheckCircle2 className="h-3 w-3" />
+                          Filled
+                        </Badge>
+                      );
+                    }
+                    
+                    return null;
+                  })()}
+                  
+                  {/* Status badge */}
+                  <Badge variant="outline" data-testid={`badge-status-${job.id}`}>
+                    {(job as any).admin?.status || "Draft"}
+                  </Badge>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    data-testid={`button-edit-${job.id}`}
+                  >
+                    <Edit className="mr-1 h-3 w-3" />
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive hover:text-destructive"
+                    data-testid={`button-delete-${job.id}`}
+                  >
+                    <Trash2 className="mr-1 h-3 w-3" />
+                    Delete
+                  </Button>
+                </div>
+              </CardFooter>
             </Card>
           ))}
         </div>

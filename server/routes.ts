@@ -108,17 +108,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/jobs", async (req, res) => {
     try {
-      const validatedData = insertJobSchema.parse(req.body);
+      const requestData = req.body;
+      const jobStatus = requestData.admin?.status || "Draft";
+      
+      // For drafts, skip strict validation
+      let validatedData;
+      if (jobStatus === "Draft") {
+        console.log("Creating job as draft - skipping strict validation");
+        validatedData = requestData; // Allow partial data for drafts
+      } else {
+        // For Live/Paused/Closed/Filled, validate strictly
+        validatedData = insertJobSchema.parse(requestData);
+      }
+      
       const job = await storage.createJob(validatedData);
       
-      console.log(`New job posted: ${job.title} at ${job.company}`);
+      console.log(`New job created: ${job.title} at ${job.company} (Status: ${jobStatus})`);
       
       // Queue fraud detection for job posting
       await queueFraudDetection('job_post', job.id, job, job.postedByUserId || undefined);
       
       res.json({
         success: true,
-        message: "Job posted successfully!",
+        message: jobStatus === "Draft" ? "Draft saved successfully!" : "Job posted successfully!",
         job,
       });
     } catch (error: any) {
@@ -175,6 +187,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({
         success: false,
         message: error.errors ? "Invalid job data." : "Error updating job.",
+      });
+    }
+  });
+
+  // Update job status
+  app.patch("/api/jobs/:id/status", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      // Validate status
+      const validStatuses = ["Draft", "Live", "Paused", "Closed", "Filled"];
+      if (!status || !validStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+        });
+      }
+      
+      // Get existing job to merge admin fields properly
+      const existingJob = await storage.getJobById(id);
+      
+      if (!existingJob) {
+        return res.status(404).json({
+          success: false,
+          message: "Job not found.",
+        });
+      }
+      
+      // Merge status into existing admin object
+      const updatedAdmin = {
+        ...(existingJob.admin || {}),
+        status,
+      };
+      
+      const job = await storage.updateJob(id, {
+        admin: updatedAdmin
+      });
+      
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: "Job not found.",
+        });
+      }
+
+      console.log(`Job status updated: ${job.title} - ${status}`);
+      
+      res.json({
+        success: true,
+        message: `Job status updated to ${status}`,
+        job,
+      });
+    } catch (error: any) {
+      console.error("Job status update error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Error updating job status.",
       });
     }
   });
