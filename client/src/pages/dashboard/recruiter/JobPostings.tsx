@@ -968,11 +968,11 @@ export default function RecruiterJobPostings() {
                             </Badge>
                           ))}
                         </div>
-                      ) : !isLoadingSuggestions && skillSuggestionsData && skillSuggestionsData.suggestions.length === 0 ? (
+                      ) : !isLoadingSuggestions && skillSuggestionsData?.suggestions && skillSuggestionsData.suggestions.length === 0 ? (
                         <p className="text-sm text-muted-foreground" data-testid="text-no-suggestions">
                           No suggestions available for this role
                         </p>
-                      ) : !isLoadingSuggestions && skillSuggestionsData ? (
+                      ) : !isLoadingSuggestions && skillSuggestionsData?.suggestions && filteredSuggestions.length === 0 ? (
                         <p className="text-sm text-muted-foreground" data-testid="text-all-added">
                           All suggested skills have been added
                         </p>
