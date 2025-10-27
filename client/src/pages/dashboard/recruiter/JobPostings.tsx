@@ -850,7 +850,8 @@ export default function RecruiterJobPostings() {
 
             {/* Responsibilities & Requirements */}
             <FormSection title="Responsibilities & Requirements" description="What the role entails and who we're looking for">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                {/* Key Responsibilities - Full Width */}
                 <div>
                   <FormLabel>Key Responsibilities * (min 5)</FormLabel>
                   <div className="space-y-2 mt-2">
@@ -890,6 +891,7 @@ export default function RecruiterJobPostings() {
                   </div>
                 </div>
 
+                {/* Required Skills - Full Width */}
                 <div>
                   <FormLabel>Required Skills * (min 5)</FormLabel>
                   <Controller
