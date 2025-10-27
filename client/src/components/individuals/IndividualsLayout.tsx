@@ -16,6 +16,7 @@ import {
   User,
   FileText,
   Briefcase,
+  ClipboardList,
   MessageCircle,
   CreditCard,
   Settings,
@@ -36,6 +37,11 @@ const menuItems = [
     title: "Job Searches",
     url: "/dashboard/individual/jobs",
     icon: Briefcase,
+  },
+  {
+    title: "My Applications",
+    url: "/dashboard/individual/applications",
+    icon: ClipboardList,
   },
   {
     title: "Coaching",

@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, insertIndividualPreferencesSchema, insertIndividualNotificationSettingsSchema, type User } from "@shared/schema";
 import { db } from "./db";
-import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections } from "@shared/schema";
+import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { authenticateFirebase, requireRole, type AuthRequest } from "./firebase-middleware";
 import { screeningQueue, isQueueAvailable } from "./queue";
@@ -291,6 +291,147 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({
         success: false,
         message: "Error updating job status.",
+      });
+    }
+  });
+
+  // Job Applications API - Track which jobs users have applied to
+  
+  // Create a new job application
+  app.post("/api/applications", authenticateFirebase, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { jobId, status, notes } = req.body;
+      
+      if (!jobId) {
+        return res.status(400).json({
+          success: false,
+          message: "Job ID is required.",
+        });
+      }
+      
+      // Check if user already applied to this job
+      const [existing] = await db.select()
+        .from(jobApplications)
+        .where(and(
+          eq(jobApplications.userId, user.id),
+          eq(jobApplications.jobId, jobId)
+        ));
+      
+      if (existing) {
+        return res.status(409).json({
+          success: false,
+          message: "You have already applied to this job.",
+          application: existing,
+        });
+      }
+      
+      // Create the application
+      const [application] = await db.insert(jobApplications)
+        .values({
+          userId: user.id,
+          jobId,
+          status: status || "Applied",
+          notes: notes || null,
+        })
+        .returning();
+      
+      console.log(`New job application: User ${user.id} applied to job ${jobId}`);
+      
+      res.json({
+        success: true,
+        message: "Application tracked successfully!",
+        application,
+      });
+    } catch (error: any) {
+      console.error("Job application error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error tracking application.",
+      });
+    }
+  });
+  
+  // Get all applications for the authenticated user
+  app.get("/api/applications", authenticateFirebase, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      // Get applications with job details
+      const applications = await db.select({
+        application: jobApplications,
+        job: jobs,
+      })
+        .from(jobApplications)
+        .leftJoin(jobs, eq(jobApplications.jobId, jobs.id))
+        .where(eq(jobApplications.userId, user.id))
+        .orderBy(desc(jobApplications.appliedAt));
+      
+      res.json({
+        success: true,
+        count: applications.length,
+        applications: applications.map(a => ({
+          ...a.application,
+          job: a.job,
+        })),
+      });
+    } catch (error) {
+      console.error("Error fetching applications:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching applications.",
+      });
+    }
+  });
+  
+  // Update application status
+  app.patch("/api/applications/:id/status", authenticateFirebase, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { id } = req.params;
+      const { status, notes } = req.body;
+      
+      // Validate status
+      const validStatuses = ["Applied", "Viewed", "Interview", "Rejected", "Offer"];
+      if (!status || !validStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+        });
+      }
+      
+      // Update application (only if it belongs to the user)
+      const [application] = await db.update(jobApplications)
+        .set({ 
+          status,
+          notes: notes !== undefined ? notes : undefined,
+          updatedAt: new Date(),
+        })
+        .where(and(
+          eq(jobApplications.id, id),
+          eq(jobApplications.userId, user.id)
+        ))
+        .returning();
+      
+      if (!application) {
+        return res.status(404).json({
+          success: false,
+          message: "Application not found or you don't have permission to update it.",
+        });
+      }
+      
+      console.log(`Application status updated: ${id} - ${status}`);
+      
+      res.json({
+        success: true,
+        message: `Application status updated to ${status}`,
+        application,
+      });
+    } catch (error: any) {
+      console.error("Application status update error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error updating application status.",
       });
     }
   });

@@ -1,10 +1,10 @@
 import { useParams, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type Job } from "@shared/schema";
+import { type Job, type JobApplication } from "@shared/schema";
 import {
   ArrowLeft,
   MapPin,
@@ -14,13 +14,17 @@ import {
   Clock,
   MessageCircle,
   Share2,
+  CheckCircle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export default function JobDetail() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const { data: jobData, isLoading, error } = useQuery<{
     success: boolean;
@@ -39,6 +43,40 @@ export default function JobDetail() {
 
   const job = jobData?.job;
 
+  // Check if user has already applied to this job
+  const { data: applicationsData } = useQuery<{
+    success: boolean;
+    applications: JobApplication[];
+  }>({
+    queryKey: ["/api/applications"],
+    enabled: !!user,
+  });
+
+  const existingApplication = applicationsData?.applications?.find(
+    (app) => app.jobId === job?.id
+  );
+
+  // Mutation to track application
+  const trackApplicationMutation = useMutation({
+    mutationFn: async (data: { jobId: string }) => {
+      return apiRequest("POST", "/api/applications", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/applications"] });
+      toast({
+        title: "Application tracked!",
+        description: "Your application has been saved to your dashboard.",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to track application. Please try again.",
+      });
+    },
+  });
+
   const handleApplyViaWhatsApp = () => {
     if (!job?.whatsappContact) return;
 
@@ -50,6 +88,11 @@ export default function JobDetail() {
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`;
 
     window.open(whatsappUrl, "_blank");
+
+    // Track application if user is logged in and hasn't applied yet
+    if (user && job.id && !existingApplication) {
+      trackApplicationMutation.mutate({ jobId: job.id });
+    }
   };
 
   const handleShare = async () => {
@@ -269,6 +312,19 @@ export default function JobDetail() {
             )}
 
             <div className="pt-6 border-t border-border">
+              {existingApplication && (
+                <div className="mb-4 p-4 bg-accent/50 rounded-lg border border-accent flex items-center gap-3">
+                  <CheckCircle className="h-5 w-5 text-green-600 shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-medium text-white-brand" data-testid="text-application-status">
+                      You've applied to this position
+                    </p>
+                    <p className="text-sm text-slate">
+                      Applied on {new Date(existingApplication.appliedAt).toLocaleDateString("en-ZA")} • Status: {existingApplication.status}
+                    </p>
+                  </div>
+                </div>
+              )}
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
                   size="lg"
@@ -278,7 +334,7 @@ export default function JobDetail() {
                   data-testid="button-apply-whatsapp"
                 >
                   <MessageCircle className="mr-2 h-5 w-5" />
-                  Apply via WhatsApp
+                  {existingApplication ? "Apply Again via WhatsApp" : "Apply via WhatsApp"}
                 </Button>
                 <Button
                   size="lg"

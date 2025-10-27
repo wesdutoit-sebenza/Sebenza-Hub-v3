@@ -424,6 +424,28 @@ export const insertJobSchema = z.object({
 export type InsertJob = z.infer<typeof insertJobSchema>;
 export type Job = typeof jobs.$inferSelect;
 
+// Job Applications - tracks which jobs individuals have applied to
+export const jobApplications = pgTable("job_applications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  jobId: varchar("job_id").notNull(),
+  appliedAt: timestamp("applied_at").notNull().defaultNow(),
+  status: text("status").notNull().default("Applied"), // Applied, Viewed, Interview, Rejected, Offer
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertJobApplicationSchema = createInsertSchema(jobApplications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  appliedAt: true,
+});
+
+export type InsertJobApplication = z.infer<typeof insertJobApplicationSchema>;
+export type JobApplication = typeof jobApplications.$inferSelect;
+
 // CV Schema with Zod types for validation
 export const cvPersonalInfoSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),

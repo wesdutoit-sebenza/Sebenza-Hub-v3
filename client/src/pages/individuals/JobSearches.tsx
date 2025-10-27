@@ -221,28 +221,6 @@ export default function IndividualJobSearches() {
         </div>
       </div>
 
-      {/* Job Search Tracking Section (Coming Soon) */}
-      <div className="bg-graphite rounded-lg p-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2 text-white" data-testid="text-jobs-title">
-            My Job Applications
-          </h1>
-          <p className="text-white/80">Track your job search activity and applications</p>
-        </div>
-
-        <Card className="bg-white">
-          <CardContent className="p-12 text-center">
-            <Search className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h3 className="text-xl font-semibold mb-2" data-testid="text-no-searches">No Job Applications Yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Your job application history will appear here
-            </p>
-            <p className="text-sm text-muted-foreground">
-              This feature is coming soon. You'll be able to see all the jobs you've applied to and track their status.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
