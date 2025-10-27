@@ -309,19 +309,17 @@ export default function RecruiterJobPostings() {
   }, [jobTitle]);
 
   // Fetch AI skill suggestions based on job title
-  const { data: skillSuggestionsData, isLoading: isLoadingSuggestions, error: suggestionsError } = useQuery<{
-    success: boolean;
-    suggestions: string[];
-  }>({
+  const { data: skillSuggestionsData, isLoading: isLoadingSuggestions, error: suggestionsError } = useQuery({
     queryKey: ["/api/jobs/suggest-skills", debouncedJobTitle],
     queryFn: async () => {
-      return apiRequest<{ success: boolean; suggestions: string[] }>(
+      const response = await apiRequest<{ success: boolean; suggestions: string[] }>(
         "POST", 
         "/api/jobs/suggest-skills", 
         {
           jobTitle: debouncedJobTitle,
         }
       );
+      return response;
     },
     enabled: debouncedJobTitle.length >= 3,
     retry: 1,
@@ -329,7 +327,8 @@ export default function RecruiterJobPostings() {
 
   // Filter out already-selected skills from suggestions
   const filteredSuggestions = useMemo(() => {
-    const suggestions = skillSuggestionsData?.suggestions || [];
+    if (!skillSuggestionsData) return [];
+    const suggestions = (skillSuggestionsData as { success: boolean; suggestions: string[] }).suggestions || [];
     return suggestions.filter((skill: string) => !selectedSkills.includes(skill));
   }, [skillSuggestionsData, selectedSkills]);
 
@@ -968,11 +967,11 @@ export default function RecruiterJobPostings() {
                             </Badge>
                           ))}
                         </div>
-                      ) : !isLoadingSuggestions && skillSuggestionsData?.suggestions && skillSuggestionsData.suggestions.length === 0 ? (
+                      ) : !isLoadingSuggestions && skillSuggestionsData && (skillSuggestionsData as { success: boolean; suggestions: string[] }).suggestions?.length === 0 ? (
                         <p className="text-sm text-muted-foreground" data-testid="text-no-suggestions">
                           No suggestions available for this role
                         </p>
-                      ) : !isLoadingSuggestions && skillSuggestionsData?.suggestions && filteredSuggestions.length === 0 ? (
+                      ) : !isLoadingSuggestions && skillSuggestionsData && filteredSuggestions.length === 0 ? (
                         <p className="text-sm text-muted-foreground" data-testid="text-all-added">
                           All suggested skills have been added
                         </p>
