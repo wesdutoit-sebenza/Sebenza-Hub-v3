@@ -39,7 +39,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles, AlertCircle } from "lucide-react";
 import { type Job, type RecruiterProfile, insertJobSchema } from "@shared/schema";
 import { JobDescriptionAIDialog } from "@/components/JobDescriptionAIDialog";
 import {
@@ -369,7 +370,22 @@ export default function RecruiterJobPostings() {
   });
 
   const onSubmit = (data: FormData) => {
+    console.log("Form submitted with data:", data);
     createJobMutation.mutate(data);
+  };
+
+  const onInvalid = (errors: any) => {
+    console.log("Form validation errors:", errors);
+    
+    // Show toast with first error
+    const firstError = Object.values(errors)[0] as any;
+    const errorMessage = firstError?.message || "Please check required fields";
+    
+    toast({
+      title: "Form validation failed",
+      description: errorMessage,
+      variant: "destructive",
+    });
   };
 
   if (showForm) {
@@ -384,7 +400,25 @@ export default function RecruiterJobPostings() {
         </div>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
+            {/* Form Validation Errors Alert */}
+            {Object.keys(form.formState.errors).length > 0 && (
+              <Alert variant="destructive" data-testid="alert-form-errors">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Form has validation errors</AlertTitle>
+                <AlertDescription>
+                  Please review and fix the highlighted fields before publishing. Check:
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    {Object.entries(form.formState.errors).map(([key, error]) => (
+                      <li key={key}>
+                        <span className="font-medium">{key}</span>: {(error as any)?.message || "Invalid value"}
+                      </li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* Company Information */}
             <FormSection title="Company Information" description="Recruiting agency and company details">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
