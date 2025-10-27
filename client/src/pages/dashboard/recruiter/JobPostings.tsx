@@ -298,12 +298,19 @@ export default function RecruiterJobPostings() {
   }, [jobTitle]);
 
   // Fetch AI skill suggestions based on job title
-  const { data: skillSuggestionsData, isLoading: isLoadingSuggestions } = useQuery<{
+  const { data: skillSuggestionsData, isLoading: isLoadingSuggestions, error: suggestionsError } = useQuery<{
     success: boolean;
     suggestions: string[];
   }>({
     queryKey: ["/api/jobs/suggest-skills", debouncedJobTitle],
+    queryFn: async () => {
+      const response = await apiRequest("POST", "/api/jobs/suggest-skills", {
+        jobTitle: debouncedJobTitle,
+      });
+      return response;
+    },
     enabled: debouncedJobTitle.length >= 3,
+    retry: 1,
   });
 
   // Filter out already-selected skills from suggestions
@@ -916,6 +923,10 @@ export default function RecruiterJobPostings() {
                             />
                           ))}
                         </div>
+                      ) : suggestionsError ? (
+                        <p className="text-sm text-muted-foreground" data-testid="text-suggestions-error">
+                          Unable to load suggestions. Please try again.
+                        </p>
                       ) : filteredSuggestions.length > 0 ? (
                         <div className="flex flex-wrap gap-2">
                           {filteredSuggestions.map((skill, index) => (
@@ -936,8 +947,12 @@ export default function RecruiterJobPostings() {
                             </Badge>
                           ))}
                         </div>
+                      ) : !isLoadingSuggestions && skillSuggestionsData && skillSuggestionsData.suggestions.length === 0 ? (
+                        <p className="text-sm text-muted-foreground" data-testid="text-no-suggestions">
+                          No suggestions available for this role
+                        </p>
                       ) : !isLoadingSuggestions && skillSuggestionsData ? (
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-sm text-muted-foreground" data-testid="text-all-added">
                           All suggested skills have been added
                         </p>
                       ) : null}
