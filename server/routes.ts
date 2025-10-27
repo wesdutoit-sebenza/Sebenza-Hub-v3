@@ -297,6 +297,120 @@ Job Title: ${jobTitle}`;
     }
   });
 
+  // AI Skill Suggestions based on Job Title
+  app.post("/api/jobs/suggest-skills", async (req, res) => {
+    try {
+      const { suggestSkillsRequestSchema } = await import("@shared/schema");
+      const { ALL_SKILLS } = await import("@shared/skills");
+      
+      // Validate request
+      const { jobTitle } = suggestSkillsRequestSchema.parse(req.body);
+
+      // Check if AI is configured
+      if (!isAIConfigured()) {
+        return res.status(503).json({
+          success: false,
+          message: "AI service is not configured.",
+          suggestions: [],
+        });
+      }
+
+      // Initialize OpenAI client
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+      });
+
+      // Build system prompt
+      const systemPrompt = `You are an expert South African recruitment assistant helping recruiters select the most relevant skills for job postings.
+
+Your task: Analyze a job title and suggest the most relevant skills from a provided list.
+
+Guidelines:
+- Suggest 5-8 skills that are most relevant to the role
+- Prioritize skills that are essential for the position
+- Include a mix of technical and soft skills when appropriate
+- Consider South African job market context
+- Return ONLY a JSON array of skill names (strings), no explanations
+- Skills must be EXACTLY as they appear in the provided list (case-sensitive)
+- Suggest skills across multiple categories when relevant
+
+Example response format:
+["Software Development", "Project Management", "Database Management (SQL, MySQL)", "Communication Skills", "Problem-Solving"]`;
+
+      // Build user prompt with job title and available skills
+      const userPrompt = `Job Title: ${jobTitle}
+
+Available skills to choose from:
+${ALL_SKILLS.join(', ')}
+
+Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the list above. Return as a JSON array.`;
+
+      // Call OpenAI API
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.5,
+        max_tokens: 200,
+        response_format: { type: "json_object" },
+      });
+
+      const responseContent = completion.choices[0]?.message?.content?.trim();
+
+      if (!responseContent) {
+        throw new Error("No response from AI");
+      }
+
+      // Parse the response - OpenAI with json_object should return {"skills": [...]} or similar
+      let suggestedSkills: string[] = [];
+      try {
+        const parsed = JSON.parse(responseContent);
+        // Try different possible response structures
+        if (Array.isArray(parsed)) {
+          suggestedSkills = parsed;
+        } else if (parsed.skills && Array.isArray(parsed.skills)) {
+          suggestedSkills = parsed.skills;
+        } else if (parsed.suggestions && Array.isArray(parsed.suggestions)) {
+          suggestedSkills = parsed.suggestions;
+        } else {
+          // Extract any array from the parsed object
+          const arrays = Object.values(parsed).filter(v => Array.isArray(v));
+          if (arrays.length > 0) {
+            suggestedSkills = arrays[0] as string[];
+          }
+        }
+      } catch (parseError) {
+        console.error("Failed to parse AI response:", parseError);
+        // Fallback: return empty suggestions
+        suggestedSkills = [];
+      }
+
+      // Filter to only include skills that exist in ALL_SKILLS (prevent hallucinations)
+      const validSuggestions = suggestedSkills
+        .filter(skill => typeof skill === 'string')
+        .filter(skill => ALL_SKILLS.includes(skill))
+        .slice(0, 8); // Limit to 8 suggestions
+
+      res.json({
+        success: true,
+        suggestions: validSuggestions,
+      });
+    } catch (error: any) {
+      console.error("Skill suggestion error:", error);
+      
+      // Return graceful error response
+      res.status(500).json({
+        success: false,
+        message: "Failed to generate skill suggestions.",
+        suggestions: [],
+      });
+    }
+  });
+
   app.post("/api/cvs", async (req, res) => {
     try {
       const validatedData = insertCVSchema.parse(req.body);
