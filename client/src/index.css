@@ -2,90 +2,99 @@
 @tailwind components;
 @tailwind utilities;
 
-/* DARK MODERN THEME - Always Dark */
+/* LIGHT MODE */
 :root {
   /* === Sebenza Hub Brand Colors === */
-  --deep-charcoal: #2e2f31;       /* Main background */
-  --bright-amber: #f4a300;         /* Primary accent */
-  --warm-white: #ffffff;           /* Primary text */
-  --slate-blue-gray: #5c6369;      /* Cards and sections */
-  --graphite: #4a4d50;             /* Shading and secondary surfaces */
-  --subtle-black: #1f1f20;         /* Depth and shadows */
-  --golden-yellow: #ffb43b;        /* Highlights and glows */
-  --steel-blue: #70787e;           /* Subtle elements */
+  /* Primary */
+  --charcoal-1: #2e2f31;         /* background/shadow */
+  --charcoal-2: #3a3b3d;
+  --amber-1: #f4a300;            /* HUB text / accents */
+  --amber-2: #ffb43b;
+  --white: #ffffff;              /* "Sebenza" text */
+  
+  /* Accent & Secondary */
+  --slate-1: #5c6369;            /* small spheres / mids */
+  --slate-2: #70787e;
+  --graphite: #4a4d50;           /* transitions/shading */
+  --black-deep: #1f1f20;         /* depth */
+  
+  /* Brand aliases */
+  --bg-main: var(--charcoal-1);
+  --text-main: var(--white);
+  --brand-accent: var(--amber-1);
   /* === End Brand Colors === */
   
-  --button-outline: rgba(255,255,255, .15);
-  --badge-outline: rgba(255,255,255, .10);
+  --button-outline: rgba(0,0,0, .10);
+  --badge-outline: rgba(0,0,0, .05);
 
   /* Automatic computation of border around primary / danger buttons */
-  --opaque-button-border-intensity: 8; /* In terms of percentages */
+  --opaque-button-border-intensity: -8; /* In terms of percentages */
 
   /* Backgrounds applied on top of other backgrounds when hovered/active */
-  --elevate-1: rgba(244,163,0, .08);
-  --elevate-2: rgba(244,163,0, .15);
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .08);
 
-  --background: 222 6% 18%;
+  --background: 40 30% 84%;
 
-  --foreground: 0 0% 100%;
+  --foreground: 355 11% 22%;
 
-  --border: 210 5% 47%;
+  --border: 33 19% 70%;
 
-  --card: 211 7% 37%;
+  --card: 15 24% 93%;
 
-  --card-foreground: 0 0% 100%;
+  --card-foreground: 355 11% 22%;
 
-  --card-border: 210 5% 52%;
+  --card-border: 33 19% 75%;
 
-  --sidebar: 222 6% 18%;
+  --sidebar: 40 25% 88%;
 
-  --sidebar-foreground: 0 0% 100%;
+  --sidebar-foreground: 355 11% 22%;
 
-  --sidebar-border: 210 5% 47%;
+  --sidebar-border: 33 19% 70%;
 
-  --sidebar-primary: 40 100% 48%;
+  --sidebar-primary: 29 35% 35%;
 
-  --sidebar-primary-foreground: 222 6% 18%;
+  --sidebar-primary-foreground: 0 0% 100%;
 
-  --sidebar-accent: 211 7% 37%;
+  --sidebar-accent: 33 19% 70%;
 
-  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-accent-foreground: 355 11% 22%;
 
-  --sidebar-ring: 40 100% 48%;
+  --sidebar-ring: 29 29% 43%;
 
-  --popover: 211 7% 30%;
+  --popover: 15 24% 90%;
 
-  --popover-foreground: 0 0% 100%;
+  --popover-foreground: 355 11% 22%;
 
-  --popover-border: 210 5% 47%;
+  --popover-border: 33 19% 70%;
 
-  --primary: 40 100% 48%;
+  --primary: 29 35% 35%;
 
-  --primary-foreground: 222 6% 18%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 211 7% 37%;
+  --secondary: 33 19% 60%;
 
-  --secondary-foreground: 0 0% 100%;
+  --secondary-foreground: 355 11% 22%;
 
-  --muted: 210 5% 47%;
+  --muted: 33 19% 70%;
 
-  --muted-foreground: 0 0% 75%;
+  --muted-foreground: 355 11% 22%;
 
-  --accent: 40 100% 60%;
+  --accent: 40 25% 88%;
 
-  --accent-foreground: 0 0% 100%;
+  --accent-foreground: 355 11% 22%;
 
   --destructive: 0 84% 60%;
 
   --destructive-foreground: 0 10% 98%;
 
-  --input: 210 5% 47%;
-  --ring: 40 100% 48%;
-  --chart-1: 40 100% 48%;
-  --chart-2: 40 100% 60%;
-  --chart-3: 211 7% 37%;
-  --chart-4: 210 5% 47%;
-  --chart-5: 0 0% 100%;
+  --input: 33 19% 65%;
+  --ring: 29 29% 43%;
+  --chart-1: 29 29% 43%;
+  --chart-2: 33 19% 60%;
+  --chart-3: 9 10% 41%;
+  --chart-4: 40 30% 84%;
+  --chart-5: 355 11% 22%;
 
   --font-sans: Montserrat, system-ui, -apple-system, sans-serif;
   --font-serif: Montserrat, Georgia, serif;
@@ -133,7 +142,115 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
-/* No separate dark mode - always dark theme */
+.dark {
+  --button-outline: rgba(255,255,255, .10);
+  --badge-outline: rgba(255,255,255, .05);
+
+  --opaque-button-border-intensity: 9;  /* In terms of percentages */
+
+  /* Backgrounds applied on top of other backgrounds when hovered/active */
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
+
+  --background: 355 11% 12%;
+
+  --foreground: 40 30% 84%;
+
+  --border: 9 10% 30%;
+
+  --card: 355 11% 16%;
+
+  --card-foreground: 40 30% 84%;
+
+  --card-border: 9 10% 25%;
+
+  --sidebar: 355 11% 16%;
+
+  --sidebar-foreground: 40 30% 84%;
+
+  --sidebar-border: 9 10% 28%;
+
+  --sidebar-primary: 29 35% 52%;
+
+  --sidebar-primary-foreground: 0 0% 100%;
+
+  --sidebar-accent: 9 10% 28%;
+
+  --sidebar-accent-foreground: 40 30% 84%;
+
+  --sidebar-ring: 29 29% 50%;
+
+  --popover: 355 11% 18%;
+
+  --popover-foreground: 40 30% 84%;
+
+  --popover-border: 9 10% 30%;
+
+  --primary: 29 35% 52%;
+
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 9 10% 30%;
+
+  --secondary-foreground: 40 30% 84%;
+
+  --muted: 9 10% 28%;
+
+  --muted-foreground: 33 19% 72%;
+
+  --accent: 9 10% 25%;
+
+  --accent-foreground: 40 30% 84%;
+
+  --destructive: 0 84% 60%;
+
+  --destructive-foreground: 0 10% 98%;
+
+  --input: 9 10% 35%;
+  --ring: 29 29% 50%;
+  --chart-1: 29 29% 50%;
+  --chart-2: 33 19% 60%;
+  --chart-3: 9 10% 41%;
+  --chart-4: 40 30% 70%;
+  --chart-5: 40 30% 84%;
+
+  --shadow-2xs: 0px 1px 2px 0px hsl(216 76% 6% / 0.20);
+  --shadow-xs: 0px 1px 3px 0px hsl(216 76% 6% / 0.30);
+  --shadow-sm: 0px 2px 4px 0px hsl(216 76% 6% / 0.25), 0px 1px 2px -1px hsl(216 76% 6% / 0.30);
+  --shadow: 0px 4px 6px -1px hsl(216 76% 6% / 0.30), 0px 2px 4px -2px hsl(216 76% 6% / 0.25);
+  --shadow-md: 0px 6px 12px -2px hsl(216 76% 6% / 0.35), 0px 3px 6px -3px hsl(216 76% 6% / 0.30);
+  --shadow-lg: 0px 10px 20px -4px hsl(216 76% 6% / 0.40), 0px 4px 8px -4px hsl(216 76% 6% / 0.30);
+  --shadow-xl: 0px 20px 30px -6px hsl(216 76% 6% / 0.45), 0px 8px 12px -6px hsl(216 76% 6% / 0.35);
+  --shadow-2xl: 0px 30px 50px -8px hsl(216 76% 6% / 0.50);
+
+  /* Fallback for older browsers */
+  --sidebar-primary-border: hsl(var(--sidebar-primary));
+  --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --sidebar-accent-border: hsl(var(--sidebar-accent));
+  --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --primary-border: hsl(var(--primary));
+  --primary-border: hsl(from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --secondary-border: hsl(var(--secondary));
+  --secondary-border: hsl(from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --muted-border: hsl(var(--muted));
+  --muted-border: hsl(from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --accent-border: hsl(var(--accent));
+  --accent-border: hsl(from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+
+  /* Fallback for older browsers */
+  --destructive-border: hsl(var(--destructive));
+  --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
+}
 
 @layer base {
   * {
@@ -221,34 +338,40 @@
 
   /* === Sebenza Hub Brand Utility Classes === */
   
-  /* Backgrounds */
-  .bg-charcoal { background: var(--deep-charcoal); }
-  .bg-amber { background: var(--bright-amber); }
-  .bg-slate { background: var(--slate-blue-gray); }
-  .bg-graphite { background: var(--graphite); }
-  .bg-subtle-black { background: var(--subtle-black); }
-  
-  /* Text colors */
-  .text-amber { color: var(--bright-amber); }
-  .text-golden { color: var(--golden-yellow); }
-  .text-slate { color: var(--slate-blue-gray); }
-  .text-steel { color: var(--steel-blue); }
-  
-  /* Borders */
-  .border-amber { border-color: var(--bright-amber); }
-  .border-steel { border-color: var(--steel-blue); }
-  
   /* Gradients */
   .bg-charcoal-gradient {
-    background: linear-gradient(135deg, var(--deep-charcoal), var(--graphite));
+    background: linear-gradient(135deg, var(--charcoal-1), var(--charcoal-2));
   }
   
   .bg-amber-gradient {
-    background: linear-gradient(135deg, var(--bright-amber), var(--golden-yellow));
+    background: linear-gradient(135deg, var(--amber-1), var(--amber-2));
   }
   
-  /* Logo utilities */
-  .logo-sebenza { color: var(--warm-white); }
-  .logo-hub { color: var(--bright-amber); }
-  .logo-background { background: var(--deep-charcoal); }
+  .bg-slate-gradient {
+    background: linear-gradient(135deg, var(--slate-1), var(--slate-2));
+  }
+  
+  /* Background helpers */
+  .bg-charcoal { background: var(--charcoal-1); }
+  .bg-amber { background: var(--amber-1); }
+  .bg-white-brand { background: var(--white); }
+  .bg-slate { background: var(--slate-1); }
+  .bg-graphite { background: var(--graphite); }
+  .bg-deep { background: var(--black-deep); }
+  
+  /* Text helpers */
+  .text-amber { color: var(--amber-1); }
+  .text-white-brand { color: var(--white); }
+  .text-charcoal { color: var(--charcoal-2); }
+  .text-slate { color: var(--slate-2); }
+  .text-graphite { color: var(--graphite); }
+  
+  /* Border helpers */
+  .border-amber { border-color: var(--amber-1); }
+  .border-slate { border-color: var(--slate-2); }
+  .border-charcoal { border-color: var(--charcoal-2); }
+  
+  /* Logo tokens */
+  .logo-sebenza { color: var(--white); }
+  .logo-hub { color: var(--amber-1); }
 }
