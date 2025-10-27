@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -280,6 +280,37 @@ export default function RecruiterJobPostings() {
   const workArrangement = form.watch("core.workArrangement");
   const applicationMethod = form.watch("application.method");
   const jobTitle = form.watch("title");
+  const selectedSkills = form.watch("core.requiredSkills") || [];
+
+  // Debounced job title for skill suggestions
+  const [debouncedJobTitle, setDebouncedJobTitle] = useState("");
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (jobTitle && jobTitle.trim().length >= 3) {
+        setDebouncedJobTitle(jobTitle.trim());
+      } else {
+        setDebouncedJobTitle("");
+      }
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [jobTitle]);
+
+  // Fetch AI skill suggestions based on job title
+  const { data: skillSuggestionsData, isLoading: isLoadingSuggestions } = useQuery<{
+    success: boolean;
+    suggestions: string[];
+  }>({
+    queryKey: ["/api/jobs/suggest-skills", debouncedJobTitle],
+    enabled: debouncedJobTitle.length >= 3,
+  });
+
+  // Filter out already-selected skills from suggestions
+  const filteredSuggestions = useMemo(() => {
+    const suggestions = skillSuggestionsData?.suggestions || [];
+    return suggestions.filter(skill => !selectedSkills.includes(skill));
+  }, [skillSuggestionsData, selectedSkills]);
 
   const createJobMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -865,6 +896,52 @@ export default function RecruiterJobPostings() {
                   />
                   {form.formState.errors.core?.requiredSkills && (
                     <p className="text-sm text-destructive">{form.formState.errors.core.requiredSkills.message}</p>
+                  )}
+                  
+                  {/* AI Skill Suggestions */}
+                  {debouncedJobTitle && (
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        <span>Suggested skills</span>
+                      </div>
+                      
+                      {isLoadingSuggestions ? (
+                        <div className="flex flex-wrap gap-2">
+                          {[1, 2, 3, 4, 5].map((i) => (
+                            <div
+                              key={i}
+                              className="h-7 w-24 animate-pulse bg-muted rounded-md"
+                              data-testid={`skeleton-suggestion-${i}`}
+                            />
+                          ))}
+                        </div>
+                      ) : filteredSuggestions.length > 0 ? (
+                        <div className="flex flex-wrap gap-2">
+                          {filteredSuggestions.map((skill, index) => (
+                            <Badge
+                              key={skill}
+                              variant="outline"
+                              className="cursor-pointer hover-elevate active-elevate-2"
+                              onClick={() => {
+                                const currentSkills = form.getValues("core.requiredSkills") || [];
+                                if (!currentSkills.includes(skill) && currentSkills.length < 20) {
+                                  form.setValue("core.requiredSkills", [...currentSkills, skill]);
+                                }
+                              }}
+                              data-testid={`button-suggested-skill-${index}`}
+                            >
+                              <Plus className="h-3 w-3 mr-1" />
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : !isLoadingSuggestions && skillSuggestionsData ? (
+                        <p className="text-sm text-muted-foreground">
+                          All suggested skills have been added
+                        </p>
+                      ) : null}
+                    </div>
                   )}
                 </div>
               </div>
