@@ -55,7 +55,7 @@ export default function Individuals() {
   });
 
   const { data: jobsData, isLoading } = useQuery<{ success: boolean; count: number; jobs: Job[] }>({
-    queryKey: ["/api/jobs"],
+    queryKey: ["/api/jobs?status=Live"],
   });
 
   const handleCreateCVClick = () => {

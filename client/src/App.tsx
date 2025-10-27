@@ -139,6 +139,7 @@ function Router() {
       <Route path="/onboarding/recruiter" component={OnboardingRecruiter} />
       <Route path="/recruiters" component={Recruiters} />
       <Route path="/businesses" component={Businesses} />
+      <Route path="/individuals/job-searches" component={IndividualDashboardJobs} />
       <Route path="/individuals" component={Individuals} />
       <Route path="/screening" component={Screening} />
       <Route path="/candidates" component={Candidates} />
