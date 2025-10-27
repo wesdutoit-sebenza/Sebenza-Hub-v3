@@ -178,7 +178,7 @@ export default function RecruiterJobPostings() {
     queryKey: ["/api/jobs"],
   });
 
-  const { data: recruiterProfileData } = useQuery<{ success: boolean; profile: RecruiterProfile }>({
+  const { data: recruiterProfile } = useQuery<RecruiterProfile>({
     queryKey: ["/api/profile/recruiter"],
   });
 
@@ -288,10 +288,10 @@ export default function RecruiterJobPostings() {
 
   // Auto-populate recruiting agency from profile
   useEffect(() => {
-    if (recruiterProfileData?.profile?.agencyName) {
-      form.setValue("companyDetails.recruitingAgency", recruiterProfileData.profile.agencyName);
+    if (recruiterProfile?.agencyName) {
+      form.setValue("companyDetails.recruitingAgency", recruiterProfile.agencyName);
     }
-  }, [recruiterProfileData, form]);
+  }, [recruiterProfile, form]);
 
   // Debounced job title for skill suggestions
   const [debouncedJobTitle, setDebouncedJobTitle] = useState("");
