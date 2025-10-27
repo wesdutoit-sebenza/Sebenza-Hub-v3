@@ -12,7 +12,10 @@ Preferred communication style: Simple, everyday language.
 - **Framework & Tooling**: React with TypeScript (Vite), Wouter for routing, TanStack React Query for state management, shadcn/ui (Radix UI) for components, and Tailwind CSS for styling.
 - **Design System**: Features a Charcoal/Amber color palette, Inter and Newsreader typography, custom theming, and mobile-first responsive design.
 - **Key Features**:
-    - **Recruiters Portal**: Job posting forms with WhatsApp integration, recruiter profiles, and job listings. Includes an AI Job Description Generator.
+    - **Recruiters Portal**: Job posting forms with WhatsApp integration, recruiter profiles, and job listings. Includes an AI Job Description Generator and status-based workflow.
+      - **Status-Based Publishing**: Jobs saved as drafts with lenient validation, published by changing status to Live via action buttons on job cards.
+      - **Status Transitions**: Draft → Live → Paused → Live or Closed → Live. Filled status is display-only.
+      - **Conditional Validation**: Draft allows partial data; Live/Paused/Closed/Filled require complete fields.
     - **Individuals Portal**: CV upload, profile management, and an AI Interview Coach ("Jabu") providing configurable interview types, personalized questions, and real-time feedback.
     - **ATS (Applicant Tracking System)**: Comprehensive candidate management with AI-powered resume ingestion and semantic search.
     - **Integrated Roles & Screening**: Management of hiring roles, configurable scoring weights, and AI-evaluated candidate screening.
@@ -22,6 +25,8 @@ Preferred communication style: Simple, everyday language.
 ### Backend
 - **Server Framework**: Express.js with TypeScript.
 - **API Endpoints**: Manages subscriptions, job postings, CVs, roles/screening, ATS, organization settings, and interview coach interactions.
+  - **Job Status Management**: PATCH `/api/jobs/:id/status` updates job status with proper admin field merging to preserve metadata (jobId, pipeline, etc.).
+  - **Conditional Job Validation**: POST `/api/jobs` applies strict validation for Live/Paused/Closed/Filled status, lenient validation for Draft status.
 - **AI Integration**: Powers CV screening, resume ingestion, interview coaching, and fraud detection.
 - **Fraud & Spam Detection**: Real-time AI-powered system using OpenAI GPT-4o-mini for scanning submissions, risk scoring, and flagging.
 - **Background Job Processing**: BullMQ with Redis for asynchronous tasks like candidate screening and fraud detection.
