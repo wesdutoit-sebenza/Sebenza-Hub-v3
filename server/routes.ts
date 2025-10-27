@@ -652,11 +652,9 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         await queueFraudDetection('candidate_profile', profile.id, profile, profile.userId);
       }
 
-      const onboardingComplete = fullUser.onboardingComplete as any || {};
-      onboardingComplete.individual = true;
-
+      // Mark onboarding as complete for Individual role
       await db.update(users)
-        .set({ onboardingComplete })
+        .set({ onboardingComplete: 1 })
         .where(eq(users.id, userId));
 
       res.json({
