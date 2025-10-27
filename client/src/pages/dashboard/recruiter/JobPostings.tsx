@@ -807,47 +807,6 @@ export default function RecruiterJobPostings() {
               </div>
             </FormSection>
 
-            {/* Job Summary */}
-            <FormSection title="Job Summary" description="Provide a compelling overview of this opportunity">
-              <div className="space-y-4">
-                <div className="flex items-start justify-between gap-4">
-                  <FormField
-                    control={form.control}
-                    name="core.summary"
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel>Job Summary *</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="2–4 lines summarizing the role and what makes it exciting"
-                            className="min-h-[100px]"
-                            {...field}
-                            data-testid="textarea-summary"
-                          />
-                        </FormControl>
-                        <FormDescription>
-                          Give candidates a compelling overview of this opportunity
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="pt-8">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setAIDialogOpen(true)}
-                      className="whitespace-nowrap"
-                      data-testid="button-ai-assistant"
-                    >
-                      <Sparkles className="h-4 w-4 mr-2" />
-                      AI Assistant
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </FormSection>
-
             {/* Responsibilities & Requirements */}
             <FormSection title="Responsibilities & Requirements" description="What the role entails and who we're looking for">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -946,6 +905,47 @@ export default function RecruiterJobPostings() {
                     </FormItem>
                   )}
                 />
+              </div>
+            </FormSection>
+
+            {/* Job Summary */}
+            <FormSection title="Job Summary" description="Provide a compelling overview of this opportunity">
+              <div className="space-y-4">
+                <div className="flex items-start justify-between gap-4">
+                  <FormField
+                    control={form.control}
+                    name="core.summary"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormLabel>Job Summary *</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="2–4 lines summarizing the role and what makes it exciting"
+                            className="min-h-[100px]"
+                            {...field}
+                            data-testid="textarea-summary"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Give candidates a compelling overview of this opportunity
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="pt-8">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setAIDialogOpen(true)}
+                      className="whitespace-nowrap"
+                      data-testid="button-ai-assistant"
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      AI Assistant
+                    </Button>
+                  </div>
+                </div>
               </div>
             </FormSection>
 
