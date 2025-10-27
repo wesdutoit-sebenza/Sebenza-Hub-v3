@@ -1697,7 +1697,7 @@ export default function RecruiterJobPostings() {
                         {job.location && (
                           <span className="flex items-center gap-1">
                             <MapPin className="h-4 w-4" />
-                            {job.location}
+                            {typeof job.location === 'string' ? job.location : (job.location as any)?.name || 'Location'}
                           </span>
                         )}
                         {job.salaryMin && job.salaryMax && (
