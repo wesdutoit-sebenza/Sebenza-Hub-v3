@@ -36,10 +36,15 @@ Preferred communication style: Simple, everyday language.
   - **Admin Setup**: Special `/api/admin/setup` endpoint creates first admin user if none exists
     - Frontend page at `/admin/setup` for initial admin account creation
     - Admin role required for `/api/admin/*` routes
-  - **Multi-Role System**: `individual`, `business`, `recruiter`, `admin` with role-based access control and POPIA compliance
+  - **Single-Role System**: Users can only have ONE role at a time (`individual`, `business`, `recruiter`, or `admin`)
+    - Changed from array-based `roles` to single `role` field (October 2025)
+    - Role switching replaces previous role and resets onboarding status
+    - Role-based access control with `requireRole()` middleware
+    - POPIA compliance enforced per role
   - **User Database**: Users linked to Firebase via `firebaseUid` field
     - Auto-created on first login with default "individual" role
-    - Roles and profile data stored in PostgreSQL
+    - Single role and profile data stored in PostgreSQL
+    - `onboardingComplete` is binary flag (0 or 1)
 
 ### Data Storage
 - **Database**: PostgreSQL (Neon) with Drizzle ORM and pgvector extension.
