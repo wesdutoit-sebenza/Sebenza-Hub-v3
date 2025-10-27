@@ -613,11 +613,9 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       const user = req.user as any;
       const userId = user.id;
 
-      const fullUser = await storage.getUser(userId);
-      if (!fullUser) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
+      // User is already verified by authenticateFirebase middleware
+      // No need to check again - if we got here, user exists
+      
       const validatedData = insertCandidateProfileSchema.parse({
         ...req.body,
         userId: userId,
