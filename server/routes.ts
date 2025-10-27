@@ -182,7 +182,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Job Description Generator
   app.post("/api/jobs/generate-description", async (req, res) => {
     try {
-      const { jobTitle, companyName, industry, jobIndustry, seniorityLevel, employmentType, workArrangement, tone } = req.body;
+      const { jobTitle, companyName, industry, jobIndustry, seniorityLevel, employmentType, workArrangement, responsibilities, requiredSkills, tone } = req.body;
 
       // Validate required fields
       if (!jobTitle) {
@@ -245,9 +245,26 @@ Job Title: ${jobTitle}`;
       if (seniorityLevel) userPrompt += `\nSeniority Level: ${seniorityLevel}`;
       if (employmentType) userPrompt += `\nEmployment Type: ${employmentType}`;
       if (workArrangement) userPrompt += `\nWork Arrangement: ${workArrangement}`;
-      if (tone) userPrompt += `\nTone: ${tone}`;
       
-      userPrompt += `\n\nGenerate a job summary that will attract top South African talent. Return ONLY the job summary text, no additional formatting or explanations.`;
+      // Add responsibilities if provided (filter out empty strings)
+      if (responsibilities && Array.isArray(responsibilities) && responsibilities.length > 0) {
+        const validResponsibilities = responsibilities.filter(r => r && r.trim().length > 0);
+        if (validResponsibilities.length > 0) {
+          userPrompt += `\n\nKey Responsibilities:\n${validResponsibilities.map((r, i) => `${i + 1}. ${r}`).join('\n')}`;
+        }
+      }
+      
+      // Add required skills if provided (filter out empty strings)
+      if (requiredSkills && Array.isArray(requiredSkills) && requiredSkills.length > 0) {
+        const validSkills = requiredSkills.filter(s => s && s.trim().length > 0);
+        if (validSkills.length > 0) {
+          userPrompt += `\n\nRequired Skills:\n${validSkills.join(', ')}`;
+        }
+      }
+      
+      if (tone) userPrompt += `\n\nTone: ${tone}`;
+      
+      userPrompt += `\n\nGenerate a job summary that will attract top South African talent. The summary should reflect the responsibilities and skills listed above, highlighting what makes this role exciting and impactful. Return ONLY the job summary text, no additional formatting or explanations.`;
 
       // Call OpenAI API
       const completion = await openai.chat.completions.create({

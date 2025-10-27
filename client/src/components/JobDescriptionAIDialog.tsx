@@ -17,6 +17,8 @@ interface JobDescriptionAIDialogProps {
     seniorityLevel?: string;
     employmentType?: string;
     workArrangement?: string;
+    responsibilities?: string[];
+    requiredSkills?: string[];
   };
   onInsert: (description: string) => void;
 }
@@ -63,6 +65,8 @@ export function JobDescriptionAIDialog({
         seniorityLevel: jobContext.seniorityLevel,
         employmentType: jobContext.employmentType,
         workArrangement: jobContext.workArrangement,
+        responsibilities: jobContext.responsibilities,
+        requiredSkills: jobContext.requiredSkills,
         tone,
       });
 
@@ -158,6 +162,24 @@ export function JobDescriptionAIDialog({
                 <div className="flex gap-2">
                   <span className="text-muted-foreground min-w-[140px]">Work Arrangement:</span>
                   <span className="font-medium">{jobContext.workArrangement}</span>
+                </div>
+              )}
+              {jobContext.responsibilities && jobContext.responsibilities.length > 0 && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground min-w-[140px]">Responsibilities:</span>
+                  <span className="font-medium">
+                    {jobContext.responsibilities.slice(0, 3).join(", ")}
+                    {jobContext.responsibilities.length > 3 && ` +${jobContext.responsibilities.length - 3} more`}
+                  </span>
+                </div>
+              )}
+              {jobContext.requiredSkills && jobContext.requiredSkills.length > 0 && (
+                <div className="flex gap-2">
+                  <span className="text-muted-foreground min-w-[140px]">Required Skills:</span>
+                  <span className="font-medium">
+                    {jobContext.requiredSkills.slice(0, 5).join(", ")}
+                    {jobContext.requiredSkills.length > 5 && ` +${jobContext.requiredSkills.length - 5} more`}
+                  </span>
                 </div>
               )}
             </div>

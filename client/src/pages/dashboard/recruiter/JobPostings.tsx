@@ -1428,6 +1428,8 @@ export default function RecruiterJobPostings() {
             seniorityLevel: form.watch("core.seniority"),
             employmentType: form.watch("employmentType"),
             workArrangement: form.watch("core.workArrangement"),
+            responsibilities: form.watch("core.responsibilities"),
+            requiredSkills: form.watch("core.requiredSkills"),
           }}
           onInsert={(description) => {
             form.setValue("core.summary", description);
