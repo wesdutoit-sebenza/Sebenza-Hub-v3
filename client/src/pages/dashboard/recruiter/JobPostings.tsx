@@ -61,11 +61,11 @@ import {
 } from "@shared/jobTaxonomies";
 import { JOB_TITLES, JOB_TITLES_BY_INDUSTRY, getIndustryForJobTitle } from "@shared/jobTitles";
 import { CITIES_BY_PROVINCE, getLocationDataForCity } from "@shared/cities";
-import { ALL_SKILLS } from "@shared/skills";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
 import { GoogleAddressSearch } from "@/components/GoogleAddressSearch";
+import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
 
 type FormData = z.infer<typeof insertJobSchema>;
 
@@ -855,12 +855,11 @@ export default function RecruiterJobPostings() {
                     control={form.control}
                     name="core.requiredSkills"
                     render={({ field }) => (
-                      <MultiAdd
-                        items={field.value || []}
-                        onAdd={(v) => field.onChange([...(field.value || []), v])}
-                        onRemove={(i) => field.onChange((field.value || []).filter((_, idx) => idx !== i))}
-                        placeholder="Type a skill and press Add"
-                        suggestions={ALL_SKILLS}
+                      <SkillsMultiSelect
+                        value={field.value || []}
+                        onChange={field.onChange}
+                        maxSkills={20}
+                        placeholder="Select required skills..."
                       />
                     )}
                   />
