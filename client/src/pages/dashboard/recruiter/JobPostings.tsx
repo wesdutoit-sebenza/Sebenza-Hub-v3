@@ -49,7 +49,6 @@ import {
   WORK_ARRANGEMENTS,
   PAY_TYPES,
   INDUSTRIES,
-  COMMON_SKILLS,
   TOOLS_TECH,
   TRAVEL_REQUIREMENTS,
   SHIFT_PATTERNS,
@@ -62,6 +61,7 @@ import {
 } from "@shared/jobTaxonomies";
 import { JOB_TITLES, JOB_TITLES_BY_INDUSTRY, getIndustryForJobTitle } from "@shared/jobTitles";
 import { CITIES_BY_PROVINCE, getLocationDataForCity } from "@shared/cities";
+import { ALL_SKILLS } from "@shared/skills";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
@@ -860,7 +860,7 @@ export default function RecruiterJobPostings() {
                         onAdd={(v) => field.onChange([...(field.value || []), v])}
                         onRemove={(i) => field.onChange((field.value || []).filter((_, idx) => idx !== i))}
                         placeholder="Type a skill and press Add"
-                        suggestions={COMMON_SKILLS}
+                        suggestions={ALL_SKILLS}
                       />
                     )}
                   />
