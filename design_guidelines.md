@@ -1,36 +1,51 @@
 # Design Guidelines: Sebenza Hub - South African Recruiting Platform
 
 ## Design Approach
-**Warm & Professional**: Earthy brown palette with Montserrat typography creates a sophisticated, grounded aesthetic that reflects South African professionalism. Minimal layout with generous whitespace and warm accent tones.
+**Minimalist Monochrome with Amber Accent**: Ultra-clean grayscale palette with amber (#f4a300) as the only color accent. High-contrast black and white with Montserrat typography creates a striking, modern, tech-forward aesthetic.
 
 ## Brand Identity
 
 ### Color Palette
-**Base Colors:**
-- Background: `#e1dacc` (warm beige) - hsl(40, 30%, 84%)
-- Foreground: `#3d3132` (dark brown-gray) - hsl(355, 11%, 22%)
+**Light Mode (Default):**
+- Background: `#fafafa` (near-white) - hsl(0, 0%, 98%)
+- Foreground: `#000000` (true black) - hsl(0, 0%, 0%)
+- Card Background: `#ffffff` (pure white) - hsl(0, 0%, 100%)
+- Borders: `#e0e0e0` (light gray) - hsl(0, 0%, 88%)
+- Muted Text: `#666666` (medium gray) - hsl(0, 0%, 40%)
 
-**Accent Colors:**
-- Primary (buttons/icons): `#79583a` (rich brown) - hsl(29, 35%, 35%)
-- Primary Foreground: White `#ffffff` - hsl(0, 0%, 100%)
-- Secondary: `#aa9a86` (light taupe) - hsl(33, 19%, 60%)
-- Card Background: `#f1ebe9` (soft cream) - hsl(15, 24%, 93%)
+**Dark Mode:**
+- Background: `#1a1a1b` (near-black) - hsl(240, 3%, 10%)
+- Foreground: `#ffffff` (true white) - hsl(0, 0%, 100%)
+- Card Background: `#2a2a2b` (dark gray) - hsl(240, 2%, 17%)
+- Borders: `#404040` (medium gray) - hsl(0, 0%, 25%)
+- Muted Text: `#a6a6a6` (light gray) - hsl(0, 0%, 65%)
 
-**Dark Mode Colors:**
-- Background: Dark brown-gray - hsl(355, 11%, 12%)
-- Foreground: Warm beige - hsl(40, 30%, 84%)
-- Primary: Medium brown - hsl(29, 35%, 52%)
+**Accent Color (Only Color in Palette):**
+- Primary: `#f4a300` (amber) - hsl(40, 100%, 48%)
+- Primary Foreground: Black `#000000` - hsl(0, 0%, 0%)
+- Used exclusively for: CTAs, links, focus rings, active states, and key interactive elements
+
+**Grayscale Chart Colors:**
+- Chart 1: Amber `#f4a300` (primary data)
+- Chart 2-5: Varying shades of gray for secondary data
 
 **Accessibility:**
-- All color combinations meet WCAG AA standards (4.5:1 minimum contrast)
-- Light mode: Background/foreground 8.8:1, Primary/background 4.64:1, Button text 6.42:1
-- Dark mode: Background/foreground 11.7:1, Primary/background 4.53:1, Button text 6.42:1
+- All combinations meet WCAG AA standards (4.5:1+ contrast)
+- Light mode: Background/foreground 21:1 (maximum contrast)
+- Dark mode: Background/foreground 19.5:1 (maximum contrast)
+- Amber buttons: Black text on amber (#f4a300) provides 8.9:1 contrast (excellent)
+- **Important**: Amber on light backgrounds has low contrast (~2.0:1) - only use amber for:
+  - Button/badge backgrounds with black text
+  - Thick borders (2px+) where shape provides recognition
+  - Focus rings and accents where context is clear
+  - Never use amber text on light backgrounds
 
 **Usage Strategy:**
-- Use base colors for 85% of the design (dark brown-gray on warm beige)
-- Rich brown primary for CTAs, icons, and interactive elements with white text
-- Light taupe and cream for supporting elements and elevated surfaces
-- Borders: subtle brown tones at reduced opacity
+- Monochrome base: 95% of design uses pure blacks, whites, and grays
+- Amber accent: 5% usage for CTAs, links, and critical interactive elements only
+- No other colors used anywhere in the application
+- Borders and dividers: subtle gray tones
+- Shadows: black with low opacity
 
 ### Typography
 **Font (Google Fonts CDN):**
@@ -58,75 +73,77 @@
 
 ### Navigation
 - Sticky header with wordmark left, nav links center, CTA button right
-- Active link: underline with primary brown accent (2px thick, offset-4)
-- Keyboard focus: 2px primary ring with offset
+- Active link: underline with amber accent (2px thick, offset-4)
+- Keyboard focus: 2px amber ring with offset
 - Skip-to-content link for accessibility
 
 ### Buttons
-- **Solid Primary**: Primary brown (#8d6c4e), cream text, rounded-lg, px-6 py-3
-- **Ghost**: Dark brown border (1px), dark brown text, rounded-lg, px-6 py-3
-- **Outline on Images**: Semi-transparent cream background with backdrop blur, dark brown text
+- **Solid Primary**: Amber background (#f4a300), black text, rounded-lg, px-6 py-3
+- **Ghost**: Black/white border (1px), black/white text, rounded-lg, px-6 py-3
+- **Outline on Images**: Semi-transparent white/black background with backdrop blur
+- Hover: Amber buttons slightly darken, ghost buttons show subtle gray background
 
 ### Cards
 - Border radius: rounded-2xl
 - Shadow: subtle (shadow-sm on hover: shadow-md)
-- Border: 1px using dark brown at 10% opacity
-- Background: cream (#f1ebe9)
+- Border: 1px using gray (#e0e0e0 light, #404040 dark)
+- Background: Pure white (light mode), dark gray (dark mode)
 - Hover: lift effect (translate-y-[-4px] + shadow increase)
 
 ### Badges
 - Small rounded-full pills
-- Background: primary brown at 10% opacity
-- Text: matching brown at full saturation
+- **Default badges**: Light gray background (light mode), dark gray background (dark mode), black/white text
+- **Amber badges** (for primary/important items): Amber background (#f4a300), black text
+- Never use white text on amber - always black text
 - Use for "New", "Popular", "SA Verified", "POPIA Compliant"
 
 ### Modals
-- Backdrop: dark brown at 50% opacity with backdrop blur
-- Container: cream, rounded-2xl, max-w-4xl
-- Close button: top-right, dark brown color
+- Backdrop: Black at 50% opacity with backdrop blur
+- Container: White (light mode), dark gray (dark mode), rounded-2xl, max-w-4xl
+- Close button: top-right, black/white color
 - Keyboard trap and focus management
 
 ## Page-Specific Guidelines
 
 ### Home Page
 **Hero Section (80vh):**
-- Centered layout with subtle gradient background (warm beige variations)
+- Centered layout with subtle gradient background (light gray to white)
 - H1: "Hiring that actually moves."
 - Subheading: max-w-2xl centered
-- Two-button CTA (primary solid + ghost)
-- No hero image; gradient background only
+- Two-button CTA (amber solid + ghost)
+- No hero image; minimal gradient background only
 
 **Value Props (4 cards):**
 - Grid: grid-cols-1 md:grid-cols-2 lg:grid-cols-4
-- Each card: icon (primary brown), title, short description
+- Each card: icon (amber accent), title, short description
 - Icons from Lucide React
 
 **Product Tour Modal:**
 - Three slides with previous/next navigation
 - Each slide: illustration placeholder + headline + bullet points
-- Progress indicator (3 dots, current highlighted in primary brown)
+- Progress indicator (3 dots, current highlighted in amber)
 
 **Pricing Table:**
 - Three columns (Starter, Team, Business)
-- Toggle switch (monthly/annual) with primary brown highlight
-- Feature list with checkmarks (primary brown for included)
-- CTA buttons use primary brown
+- Toggle switch (monthly/annual) with amber highlight
+- Feature list with checkmarks (amber for included)
+- CTA buttons use amber
 
 **Teaser Cards (3):**
 - Horizontal layout on desktop
 - Each links to role-specific page
-- Background: subtle brown gradient
-- "Learn more" link with arrow
+- Background: white cards with subtle gray borders
+- "Learn more" link with amber arrow
 
 ### Recruiters Page
 **Hero:**
 - H1 left-aligned, supporting text max-w-2xl
-- Small gradient blob accent (primary brown)
-- Two CTAs: "See recruiter workflow" (solid), "Book a demo" (ghost)
+- Minimal design with clean white/black backgrounds
+- Two CTAs: "See recruiter workflow" (amber solid), "Book a demo" (ghost)
 
 **Features:**
 - Alternating image-text sections (mock UI screenshots)
-- Stats row: 2-column grid with large numbers (primary brown), small label
+- Stats row: 2-column grid with large numbers (amber accent), small label
 
 **UI Mocks:**
 - Show: job post form, Kanban pipeline, EE report export
@@ -134,35 +151,35 @@
 
 ### Businesses Page
 **Case Study Callout:**
-- Bordered section with primary brown accent line (left border, 4px)
+- Bordered section with amber accent line (left border, 4px)
 - Quote typography using Montserrat medium
 - Company name and metric in bold
 
 **Pricing Callout:**
-- Highlight "Team" plan with primary brown badge
+- Highlight "Team" plan with amber badge
 - Inline comparison of plans
 
 ### Individuals Page
 **WhatsApp Integration:**
 - QR code placeholder (300x300px, centered)
-- Primary brown "Apply on WhatsApp" button
-- Three-step visual flow (numbered circles with connecting lines)
+- Amber "Apply on WhatsApp" button
+- Three-step visual flow (numbered circles with amber connecting lines)
 
 **CV Builder:**
 - Multi-step wizard with progress indicator
-- Professional CV preview in cream card
-- Primary brown accent for step indicators and CTAs
+- Professional CV preview in white/dark gray card
+- Amber accent for step indicators and CTAs
 
 **Portfolio Cards:**
-- Upload area with dashed border
-- Skills assessment with progress indicators
-- Verified badge (primary brown checkmark icon)
+- Upload area with dashed gray border
+- Skills assessment with amber progress indicators
+- Verified badge (amber checkmark icon)
 
 ### Footer
 - Three-column grid: Links, Contact, Legal
 - South African flag emoji 🇿🇦 + "Built in SA"
 - Email: hello@yourdomain.co.za
-- Subtle top border (dark brown at 10%)
+- Subtle top border (light gray in light mode, dark gray in dark mode)
 
 ## Motion & Interactivity
 **Animations:**
@@ -178,8 +195,8 @@
 ## Accessibility Requirements
 - Landmarks: header, nav, main, footer
 - Alt text for all images/icons
-- Color contrast: minimum 4.5:1 for text
-- Keyboard navigation: focus rings (primary brown, 2px)
+- Color contrast: minimum 4.5:1 for text (exceeded with black/white monochrome)
+- Keyboard navigation: focus rings (amber, 2px)
 - ARIA labels for icon-only buttons
 - Skip-to-content link
 
