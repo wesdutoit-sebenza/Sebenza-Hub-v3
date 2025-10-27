@@ -27,8 +27,8 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   googleId: varchar("google_id").unique(), // Google OAuth ID (legacy - will be removed)
   githubId: varchar("github_id").unique(), // GitHub OAuth ID (legacy - will be removed)
-  roles: text("roles").array().notNull().default(sql`'{}'::text[]`), // 'individual', 'business', 'recruiter', 'admin'
-  onboardingComplete: jsonb("onboarding_complete").notNull().default(sql`'{}'::jsonb`), // { individual: true, business: false }
+  role: text("role").notNull().default('individual'), // 'individual', 'business', 'recruiter', or 'admin' - each user has ONE role
+  onboardingComplete: integer("onboarding_complete").notNull().default(0), // 0 = not complete, 1 = complete
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

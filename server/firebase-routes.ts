@@ -20,7 +20,7 @@ export function setupFirebaseRoutes(app: Express) {
     }
   });
 
-  // Select/add role for user
+  // Set user's role (replaces previous role)
   app.post("/api/me/role", authenticateFirebase, async (req: AuthRequest, res) => {
     try {
       if (!req.user) {
@@ -33,27 +33,14 @@ export function setupFirebaseRoutes(app: Express) {
         return res.status(400).json({ message: "Invalid role" });
       }
 
-      // Get current user's roles
-      const [currentUser] = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, req.user.id))
-        .limit(1);
-
-      if (!currentUser) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // Add role if not already present
-      const currentRoles = currentUser.roles || [];
-      if (!currentRoles.includes(role)) {
-        const updatedRoles = [...currentRoles, role];
-        
-        await db
-          .update(users)
-          .set({ roles: updatedRoles })
-          .where(eq(users.id, req.user.id));
-      }
+      // Update user's role (only one role allowed)
+      await db
+        .update(users)
+        .set({ 
+          role: role,
+          onboardingComplete: 0 // Reset onboarding when switching roles
+        })
+        .where(eq(users.id, req.user.id));
 
       res.json({ success: true });
     } catch (error) {
@@ -90,7 +77,7 @@ export function setupFirebaseRoutes(app: Express) {
       const existingAdmins = await db
         .select()
         .from(users)
-        .where(sql`'admin' = ANY(${users.roles})`)
+        .where(eq(users.role, 'admin'))
         .limit(1);
 
       if (existingAdmins.length > 0) {
@@ -120,8 +107,8 @@ export function setupFirebaseRoutes(app: Express) {
         .values({
           firebaseUid: firebaseUser.uid,
           email,
-          roles: ["admin"],
-          onboardingComplete: { admin: true },
+          role: "admin",
+          onboardingComplete: 1, // Admin setup complete
           firstName,
           lastName,
         })

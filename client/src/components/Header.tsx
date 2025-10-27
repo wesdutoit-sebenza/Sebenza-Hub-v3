@@ -111,7 +111,7 @@ export default function Header() {
                     {user.email}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {user.roles?.includes('admin') && (
+                  {user.role === 'admin' && (
                     <>
                       <DropdownMenuItem
                         onClick={() => setLocation('/admin/overview')}
@@ -124,7 +124,7 @@ export default function Header() {
                       <DropdownMenuSeparator />
                     </>
                   )}
-                  {user.roles?.includes('individual') && (
+                  {user.role === 'individual' && (
                     <>
                       <DropdownMenuItem
                         onClick={() => setLocation('/dashboard/individual/profile')}
@@ -137,7 +137,7 @@ export default function Header() {
                       <DropdownMenuSeparator />
                     </>
                   )}
-                  {user.roles?.includes('recruiter') && (
+                  {user.role === 'recruiter' && (
                     <>
                       <DropdownMenuItem
                         onClick={() => setLocation('/dashboard/recruiter/profile')}
@@ -231,7 +231,7 @@ export default function Header() {
                   <div className="mt-2 px-4 py-2 text-sm text-slate" data-testid="text-mobile-user-email">
                     {user.email}
                   </div>
-                  {user.roles?.includes('admin') && (
+                  {user.role === 'admin' && (
                     <Button 
                       variant="ghost" 
                       className="gap-2 text-amber hover:text-amber/80"
@@ -245,7 +245,7 @@ export default function Header() {
                       Admin Dashboard
                     </Button>
                   )}
-                  {user.roles?.includes('individual') && (
+                  {user.role === 'individual' && (
                     <Button 
                       variant="ghost" 
                       className="gap-2 text-white-brand"

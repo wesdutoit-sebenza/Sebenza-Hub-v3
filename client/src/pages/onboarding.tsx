@@ -64,11 +64,11 @@ export default function Onboarding() {
     }
 
     if (userData?.user) {
-      const roles = userData.user.roles || [];
-      const onboarding = userData.user.onboardingComplete || {};
+      const role = userData.user.role;
+      const onboarding = userData.user.onboardingComplete || 0;
 
-      // If user has already completed onboarding for their role, go to dashboard
-      if (roles.length > 0 && Object.keys(onboarding).some((key) => onboarding[key])) {
+      // If user has already completed onboarding, go to dashboard
+      if (role && onboarding === 1) {
         setLocation('/');
       }
     }

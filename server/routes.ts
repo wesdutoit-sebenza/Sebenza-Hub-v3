@@ -405,43 +405,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  app.post("/api/me/role", authenticateFirebase, async (req, res) => {
-    try {
-      const user = req.user as any;
-      const userId = user.id;
-
-      const { role } = z.object({
-        role: z.enum(['individual', 'business', 'recruiter']),
-      }).parse(req.body);
-
-      // Get user from database
-      const [fullUser] = await db.select()
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
-
-      if (!fullUser) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
-      const currentRoles = fullUser.roles || [];
-      if (!currentRoles.includes(role)) {
-        currentRoles.push(role);
-      }
-
-      await db.update(users)
-        .set({ roles: currentRoles })
-        .where(eq(users.id, userId));
-
-      res.json({ success: true, message: "Role added successfully" });
-    } catch (error: any) {
-      console.error("Role update error:", error);
-      res.status(400).json({
-        success: false,
-        message: "Failed to update role",
-      });
-    }
-  });
+  // NOTE: /api/me/role endpoint is defined in firebase-routes.ts
 
   app.post("/api/profile/candidate", authenticateFirebase, async (req, res) => {
     try {

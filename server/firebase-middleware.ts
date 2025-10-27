@@ -47,8 +47,8 @@ export const authenticateFirebase: RequestHandler = async (
         .values({
           firebaseUid: decodedToken.uid,
           email: decodedToken.email || null,
-          roles: ["individual"], // Default role
-          onboardingComplete: {}, // Empty object means no roles have completed onboarding
+          role: "individual", // Default role (single role)
+          onboardingComplete: 0, // 0 = not complete, 1 = complete
           firstName: decodedToken.name?.split(" ")[0] || null,
           lastName: decodedToken.name?.split(" ").slice(1).join(" ") || null,
         })
@@ -100,8 +100,8 @@ export function requireRole(...allowedRoles: string[]): RequestHandler {
       return;
     }
 
-    const userRoles = authReq.user.roles || [];
-    const hasRole = allowedRoles.some((role) => userRoles.includes(role));
+    const userRole = authReq.user.role;
+    const hasRole = allowedRoles.includes(userRole);
 
     if (!hasRole) {
       res.status(403).json({ 

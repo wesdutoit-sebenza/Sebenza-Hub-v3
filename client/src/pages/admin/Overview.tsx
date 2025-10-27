@@ -111,11 +111,9 @@ export default function AdminOverview() {
                       </p>
                     </div>
                     <div className="flex gap-1 ml-2">
-                      {user.roles.map((role) => (
-                        <Badge key={role} variant="secondary" className="text-xs">
-                          {role}
-                        </Badge>
-                      ))}
+                      <Badge variant="secondary" className="text-xs">
+                        {user.role}
+                      </Badge>
                     </div>
                   </div>
                 ))}
