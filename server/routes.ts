@@ -376,24 +376,7 @@ Job Title: ${jobTitle}`;
     }
   });
 
-  // Get current authenticated user with Replit Auth
-  app.get("/api/auth/user", authenticateFirebase, async (req, res) => {
-    try {
-      const user = req.user as any;
-      const userId = user.id;
-      
-      const fullUser = await storage.getUser(userId);
-      
-      if (!fullUser) {
-        return res.status(404).json({ error: "User not found" });
-      }
-      
-      res.json(fullUser);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ error: "Failed to fetch user" });
-    }
-  });
+  // NOTE: /api/auth/user endpoint is defined in firebase-routes.ts
 
   app.get("/api/my-membership", authenticateFirebase, async (req, res) => {
     try {
