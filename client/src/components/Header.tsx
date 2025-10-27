@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 import type { User } from "@shared/schema";
 import {
   DropdownMenu,
@@ -34,6 +35,10 @@ export default function Header() {
   const handleLogout = async () => {
     try {
       await signOut();
+      
+      // Clear all query cache to remove user data
+      queryClient.clear();
+      
       toast({
         title: "Logged out",
         description: "You've been successfully logged out.",
