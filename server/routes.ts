@@ -121,7 +121,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         validatedData = insertJobSchema.parse(requestData);
       }
       
-      const job = await storage.createJob(validatedData);
+      // Insert into database
+      const [job] = await db.insert(jobs).values(validatedData).returning();
       
       console.log(`New job created: ${job.title} at ${job.company} (Status: ${jobStatus})`);
       
@@ -144,11 +145,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/jobs", async (_req, res) => {
     try {
-      const jobs = await storage.getAllJobs();
+      const allJobs = await db.select().from(jobs).orderBy(desc(jobs.createdAt));
       res.json({
         success: true,
-        count: jobs.length,
-        jobs,
+        count: allJobs.length,
+        jobs: allJobs,
       });
     } catch (error) {
       console.error("Error fetching jobs:", error);
@@ -166,7 +167,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Accept any updates without full validation for flexibility
       const validatedData = req.body;
       
-      const job = await storage.updateJob(id, validatedData);
+      // Update in database with updatedAt timestamp
+      const [job] = await db.update(jobs)
+        .set({ ...validatedData, updatedAt: new Date() })
+        .where(eq(jobs.id, id))
+        .returning();
       
       if (!job) {
         return res.status(404).json({
@@ -207,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get existing job to merge admin fields properly
-      const existingJob = await storage.getJobById(id);
+      const [existingJob] = await db.select().from(jobs).where(eq(jobs.id, id));
       
       if (!existingJob) {
         return res.status(404).json({
@@ -222,9 +227,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status,
       };
       
-      const job = await storage.updateJob(id, {
-        admin: updatedAdmin
-      });
+      // Update in database
+      const [job] = await db.update(jobs)
+        .set({ admin: updatedAdmin, updatedAt: new Date() })
+        .where(eq(jobs.id, id))
+        .returning();
       
       if (!job) {
         return res.status(404).json({
