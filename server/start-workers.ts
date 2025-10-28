@@ -222,8 +222,9 @@ const fraudWorker = new Worker(
     try {
       const result = await detectFraud(contentType, content, userId);
       
+      // Only auto-approve if fraud detection actually ran successfully
       let status = 'pending';
-      if (shouldAutoApprove(result)) {
+      if (result.reasoning !== 'Auto-approved: AI detection unavailable' && shouldAutoApprove(result)) {
         status = 'auto_approved';
       }
 
@@ -251,18 +252,20 @@ const fraudWorker = new Worker(
             status
           ]
         );
+        
+        console.log(`[FraudWorker] Completed ${contentType} detection: ${result.riskLevel} risk (score: ${result.riskScore}), status: ${status}`);
       } catch (dbError: any) {
         console.error(`[FraudWorker] Database error (non-fatal):`, dbError.message);
-        // Don't fail the job - fraud detection is supplementary
+        console.warn(`[FraudWorker] ALERT: Fraud detection result not saved for ${contentType} ${contentId}`);
+        // Don't fail the job - fraud detection is supplementary, but log for ops
       }
-
-      console.log(`[FraudWorker] Completed ${contentType} detection: ${result.riskLevel} risk (score: ${result.riskScore})`);
       
       return { success: true, result };
     } catch (error: any) {
-      console.error(`[FraudWorker] Error (non-fatal):`, error.message);
-      // Return success anyway - fraud detection failures should not block content creation
-      return { success: true, result: { riskLevel: 'low', riskScore: 0, flags: [], reasoning: 'Auto-approved: detection unavailable' } };
+      console.error(`[FraudWorker] ALERT: Fraud detection failed for ${contentType} ${contentId}:`, error.message);
+      // Return success so job creation doesn't fail, but don't create a fraud detection record
+      // This leaves content without fraud screening until issue is resolved
+      return { success: true, result: null };
     }
   },
   {
