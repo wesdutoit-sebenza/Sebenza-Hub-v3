@@ -1,69 +1,68 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { User, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import type { User } from "@shared/schema";
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  idToken: string | null;
   signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  idToken: null,
   signOut: async () => {},
+  refreshUser: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [idToken, setIdToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Listen for auth state changes
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setUser(user);
-      
-      if (user) {
-        // Get fresh ID token
-        const token = await user.getIdToken();
-        setIdToken(token);
-      } else {
-        setIdToken(null);
-      }
-      
-      setLoading(false);
-    });
+  const fetchUser = async () => {
+    try {
+      const response = await fetch('/api/auth/user', {
+        credentials: 'include', // Important for cookies
+      });
 
-    return unsubscribe;
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUser();
   }, []);
 
-  // Refresh token periodically (every 50 minutes, tokens expire after 1 hour)
-  useEffect(() => {
-    if (!user) return;
-
-    const refreshInterval = setInterval(async () => {
-      try {
-        const token = await user.getIdToken(true); // Force refresh
-        setIdToken(token);
-      } catch (error) {
-        console.error("Failed to refresh token:", error);
-      }
-    }, 50 * 60 * 1000); // 50 minutes
-
-    return () => clearInterval(refreshInterval);
-  }, [user]);
-
   const signOut = async () => {
-    await firebaseSignOut(auth);
-    setUser(null);
-    setIdToken(null);
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      setUser(null);
+      // Redirect to home page after logout
+      window.location.href = '/';
+    } catch (error) {
+      console.error("Failed to sign out:", error);
+    }
+  };
+
+  const refreshUser = async () => {
+    await fetchUser();
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, idToken, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signOut, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

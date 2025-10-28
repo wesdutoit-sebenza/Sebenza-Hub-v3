@@ -14,16 +14,8 @@ type UserRole = 'individual' | 'business' | 'recruiter';
 export default function Onboarding() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { user: firebaseUser, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-
-  // Only fetch user data if Firebase auth is ready and user is logged in
-  const { data: userData, isLoading, error } = useQuery<{ user: User }>({
-    queryKey: ['/api/auth/user'],
-    retry: 1,
-    retryDelay: 100,
-    enabled: !authLoading && !!firebaseUser, // Only run when auth is ready and user exists
-  });
 
   const selectRoleMutation = useMutation({
     mutationFn: async (role: UserRole) => {
@@ -50,43 +42,17 @@ export default function Onboarding() {
   });
 
   useEffect(() => {
-    // Redirect to login if Firebase auth finished and no user found
-    if (!authLoading && !firebaseUser) {
+    // Redirect to login if not authenticated
+    if (!authLoading && !user) {
       setLocation('/login');
       return;
     }
 
-    // Email verification check - bypass in development only
-    // Force reload to get latest verification status from Firebase
-    const checkEmailVerification = async () => {
-      if (!authLoading && firebaseUser && !import.meta.env.DEV) {
-        try {
-          await firebaseUser.reload();
-          if (!firebaseUser.emailVerified) {
-            setLocation('/verify-email');
-          }
-        } catch (error) {
-          console.error("Failed to reload user:", error);
-          setLocation('/verify-email');
-        }
-      }
-    };
-    
-    checkEmailVerification();
+    // If user has already completed onboarding, go to role-specific dashboard
+    if (!authLoading && user) {
+      const role = user.role;
+      const onboarding = user.onboardingComplete || 0;
 
-    // Only redirect to login if we've finished loading AND there's an error
-    if (error && !isLoading && !authLoading) {
-      const timer = setTimeout(() => {
-        setLocation('/login');
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-
-    if (userData?.user) {
-      const role = userData.user.role;
-      const onboarding = userData.user.onboardingComplete || 0;
-
-      // If user has already completed onboarding, go to role-specific dashboard
       if (role && onboarding === 1) {
         if (role === 'individual') {
           setLocation('/dashboard/individual/profile');
@@ -99,14 +65,14 @@ export default function Onboarding() {
         }
       }
     }
-  }, [userData, error, isLoading, authLoading, firebaseUser, setLocation]);
+  }, [user, authLoading, setLocation]);
 
   const handleSelectRole = (role: UserRole) => {
     setSelectedRole(role);
     selectRoleMutation.mutate(role);
   };
 
-  if (authLoading || isLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-charcoal flex items-center justify-center">
         <p className="text-slate">Loading...</p>

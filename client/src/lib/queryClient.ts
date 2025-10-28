@@ -1,5 +1,4 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { auth } from "./firebase";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -9,44 +8,21 @@ async function throwIfResNotOk(res: Response) {
 }
 
 /**
- * Get Firebase ID token for authenticated requests
+ * Make an API request with session-based authentication
+ * Session cookie is automatically sent via credentials: "include"
  */
-async function getAuthHeaders(): Promise<Record<string, string>> {
-  const headers: Record<string, string> = {};
-  
-  // Get current Firebase user
-  const currentUser = auth.currentUser;
-  
-  if (currentUser) {
-    try {
-      const idToken = await currentUser.getIdToken();
-      headers["Authorization"] = `Bearer ${idToken}`;
-      console.log("[Auth] Firebase token added to request");
-    } catch (error) {
-      console.error("[Auth] Failed to get Firebase ID token:", error);
-    }
-  } else {
-    console.log("[Auth] No current Firebase user, skipping token");
-  }
-  
-  return headers;
-}
-
 export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const authHeaders = await getAuthHeaders();
-  
   const res = await fetch(url, {
     method,
     headers: {
       ...(data ? { "Content-Type": "application/json" } : {}),
-      ...authHeaders,
     },
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include", // Still include cookies for compatibility
+    credentials: "include", // Send session cookie with every request
   });
 
   await throwIfResNotOk(res);
@@ -59,11 +35,8 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const authHeaders = await getAuthHeaders();
-    
     const res = await fetch(queryKey.join("/") as string, {
-      credentials: "include",
-      headers: authHeaders,
+      credentials: "include", // Send session cookie with every request
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {

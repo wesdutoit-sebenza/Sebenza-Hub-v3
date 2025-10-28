@@ -16,19 +16,16 @@ export const sessions = pgTable(
 );
 
 // Users table - single source of truth for all accounts
-// Supports multiple authentication methods: Firebase, email/password, Google, GitHub
+// Uses passwordless magic link authentication
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  email: varchar("email").unique(),
-  password: varchar("password"), // Hashed password for email/password auth (legacy - will be removed)
-  firebaseUid: varchar("firebase_uid").unique(), // Firebase Auth UID
+  email: varchar("email").notNull().unique(), // Required for magic link auth
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  googleId: varchar("google_id").unique(), // Google OAuth ID (legacy - will be removed)
-  githubId: varchar("github_id").unique(), // GitHub OAuth ID (legacy - will be removed)
   role: text("role").notNull().default('individual'), // 'individual', 'business', 'recruiter', or 'admin' - each user has ONE role
   onboardingComplete: integer("onboarding_complete").notNull().default(0), // 0 = not complete, 1 = complete
+  lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -50,6 +47,29 @@ export const insertUserSchema = createInsertSchema(users).omit({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// Magic Link Tokens - for passwordless authentication
+export const magicLinkTokens = pgTable("magic_link_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  token: varchar("token").notNull().unique(), // Hashed token value
+  userId: varchar("user_id"), // Null for new users, populated after first login
+  email: varchar("email").notNull(), // Email the token was sent to
+  expiresAt: timestamp("expires_at").notNull(), // Token expiry (15 minutes)
+  consumedAt: timestamp("consumed_at"), // Null if unused, timestamp when used
+  requestIp: varchar("request_ip"), // IP address that requested the token
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_magic_token").on(table.token),
+  index("idx_magic_email").on(table.email),
+]);
+
+export const insertMagicLinkTokenSchema = createInsertSchema(magicLinkTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertMagicLinkToken = z.infer<typeof insertMagicLinkTokenSchema>;
+export type MagicLinkToken = typeof magicLinkTokens.$inferSelect;
 
 // Organizations - for businesses and recruiting agencies
 export const organizations = pgTable("organizations", {

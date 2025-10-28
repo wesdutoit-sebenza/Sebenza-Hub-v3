@@ -32,31 +32,46 @@ Preferred communication style: Simple, everyday language.
 - **Background Job Processing**: BullMQ with Redis for asynchronous tasks.
   - **Screening Worker**: Active - processes candidate screening for roles
   - **Fraud Detection Worker**: Paused - will be enabled later
-- **Authentication & Authorization**: Firebase Authentication for all users (web and mobile).
-  - **Firebase Auth**: Supports email/password authentication and Google OAuth
-    - Client-side: Firebase SDK handles authentication state and token management
-    - Server-side: Firebase Admin SDK verifies ID tokens sent in Authorization header
-    - Tokens automatically refreshed by Firebase SDK
-  - **Email Verification**: Required in production, bypassed in development
-    - Production: Users must verify email before accessing onboarding
-    - Development: "Skip verification" button available (hidden in production via `import.meta.env.DEV` check)
-    - Verification flow: Register → Verify Email → Role Selection → Onboarding → Dashboard
-  - **Middleware**: `authenticateFirebase` middleware verifies Firebase ID tokens and attaches user to `req.user`
-    - All protected routes use Firebase authentication
+- **Authentication & Authorization**: Passwordless magic link authentication using Resend email service (migrated from Firebase October 2025).
+  - **Magic Link Authentication**: Email-only passwordless authentication
+    - User enters email → receives magic link → clicks link → auto-logged in
+    - Magic link tokens: Hashed (SHA-256), single-use, 15-minute expiry
+    - Stored in `magicLinkTokens` table with email, token, expiresAt, consumedAt, userId, requestIp
+  - **Session Management**: Express-session with PostgreSQL session store (connect-pg-simple)
+    - Session cookie: httpOnly, secure (production), sameSite=lax
+    - Session regeneration on login (prevents session fixation)
+    - Session stored server-side in PostgreSQL
+  - **Security Features**:
+    - Rate limiting: 5 requests per email per hour, 10 requests per IP per hour
+    - Duplicate user prevention: checks by email before creating new accounts
+    - Email normalization: all emails converted to lowercase
+    - Session fixation prevention: regenerates session ID on login
+  - **Authentication Endpoints**:
+    - `POST /api/auth/magic-link`: Request magic link (rate limited)
+    - `GET /auth/verify?token=...`: Verify token, create session, redirect to dashboard
+    - `GET /api/auth/user`: Get current logged-in user
+    - `POST /api/auth/logout`: Destroy session and log out
+  - **Middleware**: `authenticateSession` middleware verifies session and attaches user to `req.user`
+    - All protected routes use session-based authentication
     - `requireRole()` middleware enforces role-based access control
+    - `authenticateSessionOptional` for routes that work with or without auth
   - **Admin Setup**: Special `/api/admin/setup` endpoint creates first admin user if none exists
     - Frontend page at `/admin/setup` for initial admin account creation
     - Admin role required for `/api/admin/*` routes
   - **Single-Role System**: Users can only have ONE role at a time (`individual`, `business`, `recruiter`, or `admin`)
-    - Changed from array-based `roles` to single `role` field (October 2025)
+    - Single `role` field (not array) in users table
     - Role switching replaces previous role and resets onboarding status
     - Role-based access control with `requireRole()` middleware
     - POPIA compliance enforced per role
-  - **User Database**: Users linked to Firebase via `firebaseUid` field
-    - Auto-created on first login with default "individual" role
+  - **User Database**: Users identified by auto-incrementing `id` and unique `email`
+    - Auto-created on first magic link verification with default "individual" role
     - Single role and profile data stored in PostgreSQL
     - `onboardingComplete` is binary flag (0 or 1)
+    - `lastLoginAt` timestamp tracks last login
   - **Onboarding Completion**: Both Individual and Recruiter profile creation endpoints set `onboardingComplete = 1` (October 2025)
+  - **Authentication Flow**:
+    - New users: Magic link → Auto-create account → Redirect to /onboarding → Complete profile → Dashboard
+    - Existing users: Magic link → Verify session → Redirect to role-based dashboard
 
 ### Data Storage
 - **Database**: PostgreSQL (Neon) with Drizzle ORM and pgvector extension.

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticateFirebase, requireRole } from "./firebase-middleware";
+import { authenticateSession, requireRole } from "./auth-middleware";
 import { db } from "./db";
 import { users, candidateProfiles, recruiterProfiles, organizations, memberships, candidates, resumes, roles, screenings, fraudDetections } from "@shared/schema";
 import { eq, desc, and, sql, or, like, ilike } from "drizzle-orm";
@@ -7,7 +7,7 @@ import { eq, desc, and, sql, or, like, ilike } from "drizzle-orm";
 const router = Router();
 
 // All admin routes require authentication and admin role
-router.use(authenticateFirebase);
+router.use(authenticateSession);
 router.use(requireRole("admin"));
 
 // ===========================
@@ -92,7 +92,7 @@ router.get("/users", async (req, res) => {
     }
     
     if (role) {
-      query = query.where(sql`${role} = ANY(${users.roles})`) as any;
+      query = query.where(eq(users.role, role as string)) as any;
     }
     
     const allUsers = await query.orderBy(desc(users.createdAt)).limit(1000);
@@ -140,22 +140,21 @@ router.get("/users/:id", async (req, res) => {
 router.patch("/users/:id/roles", async (req, res) => {
   try {
     const { id } = req.params;
-    const { roles } = req.body;
+    const { role } = req.body;
 
-    if (!Array.isArray(roles)) {
-      return res.status(400).json({ error: "Roles must be an array" });
+    if (!role || typeof role !== 'string') {
+      return res.status(400).json({ error: "Role must be a string" });
     }
 
     const validRoles = ['individual', 'business', 'recruiter', 'admin'];
-    const invalidRoles = roles.filter(r => !validRoles.includes(r));
     
-    if (invalidRoles.length > 0) {
-      return res.status(400).json({ error: `Invalid roles: ${invalidRoles.join(', ')}` });
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` });
     }
 
     const [updatedUser] = await db
       .update(users)
-      .set({ roles })
+      .set({ role })
       .where(eq(users.id, id))
       .returning();
 

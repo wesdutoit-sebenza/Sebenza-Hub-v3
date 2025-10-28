@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import pg from "pg";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { authenticateFirebase, type AuthRequest } from "./firebase-middleware";
+import { authenticateSession, type AuthRequest } from "./auth-middleware";
 import {
   teamMemberValidationSchema,
   teamMemberPatchSchema,
@@ -75,7 +75,7 @@ async function requireOrgMembership(req: any, res: Response, next: NextFunction)
 // TEAM MEMBERS
 // ============================================
 
-router.get("/organizations/:orgId/team-members", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.get("/organizations/:orgId/team-members", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM team_members WHERE organization_id = $1 ORDER BY invited_at DESC`,
@@ -84,7 +84,7 @@ router.get("/organizations/:orgId/team-members", authenticateFirebase, requireOr
   res.json(rows);
 });
 
-router.post("/organizations/:orgId/team-members", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.post("/organizations/:orgId/team-members", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   
   // Validate request body
@@ -103,7 +103,7 @@ router.post("/organizations/:orgId/team-members", authenticateFirebase, requireO
   res.json(rows[0]);
 });
 
-router.patch("/organizations/:orgId/team-members/:memberId", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.patch("/organizations/:orgId/team-members/:memberId", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId, memberId } = req.params;
   
   // Validate request body (PATCH-specific schema without defaults)
@@ -158,7 +158,7 @@ router.patch("/organizations/:orgId/team-members/:memberId", authenticateFirebas
   res.json(rows[0]);
 });
 
-router.delete("/organizations/:orgId/team-members/:memberId", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.delete("/organizations/:orgId/team-members/:memberId", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId, memberId } = req.params;
   const { rows } = await pool.query(
     `DELETE FROM team_members WHERE id = $1 AND organization_id = $2 RETURNING id`,
@@ -176,7 +176,7 @@ router.delete("/organizations/:orgId/team-members/:memberId", authenticateFireba
 // PIPELINE STAGES
 // ============================================
 
-router.get("/organizations/:orgId/pipeline-stages", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.get("/organizations/:orgId/pipeline-stages", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM pipeline_stages WHERE organization_id = $1 ORDER BY "order"`,
@@ -185,7 +185,7 @@ router.get("/organizations/:orgId/pipeline-stages", authenticateFirebase, requir
   res.json(rows);
 });
 
-router.post("/organizations/:orgId/pipeline-stages", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.post("/organizations/:orgId/pipeline-stages", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   
   // Validate request body
@@ -204,7 +204,7 @@ router.post("/organizations/:orgId/pipeline-stages", authenticateFirebase, requi
   res.json(rows[0]);
 });
 
-router.patch("/organizations/:orgId/pipeline-stages/:stageId", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.patch("/organizations/:orgId/pipeline-stages/:stageId", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId, stageId } = req.params;
   
   // Validate request body (PATCH-specific schema without defaults)
@@ -251,7 +251,7 @@ router.patch("/organizations/:orgId/pipeline-stages/:stageId", authenticateFireb
   res.json(rows[0]);
 });
 
-router.delete("/organizations/:orgId/pipeline-stages/:stageId", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.delete("/organizations/:orgId/pipeline-stages/:stageId", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId, stageId } = req.params;
   const { rows } = await pool.query(
     `DELETE FROM pipeline_stages WHERE id = $1 AND organization_id = $2 RETURNING id`,
@@ -269,7 +269,7 @@ router.delete("/organizations/:orgId/pipeline-stages/:stageId", authenticateFire
 // INTERVIEW SETTINGS
 // ============================================
 
-router.get("/organizations/:orgId/interview-settings", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.get("/organizations/:orgId/interview-settings", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM interview_settings WHERE organization_id = $1`,
@@ -289,7 +289,7 @@ router.get("/organizations/:orgId/interview-settings", authenticateFirebase, req
   res.json(rows[0]);
 });
 
-router.put("/organizations/:orgId/interview-settings", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.put("/organizations/:orgId/interview-settings", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   
   // Validate request body
@@ -331,7 +331,7 @@ router.put("/organizations/:orgId/interview-settings", authenticateFirebase, req
 // COMPLIANCE SETTINGS
 // ============================================
 
-router.get("/organizations/:orgId/compliance-settings", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.get("/organizations/:orgId/compliance-settings", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM compliance_settings WHERE organization_id = $1`,
@@ -351,7 +351,7 @@ router.get("/organizations/:orgId/compliance-settings", authenticateFirebase, re
   res.json(rows[0]);
 });
 
-router.put("/organizations/:orgId/compliance-settings", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.put("/organizations/:orgId/compliance-settings", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   
   // Validate request body
@@ -394,7 +394,7 @@ router.put("/organizations/:orgId/compliance-settings", authenticateFirebase, re
 // ORGANIZATION INTEGRATIONS
 // ============================================
 
-router.get("/organizations/:orgId/integrations", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.get("/organizations/:orgId/integrations", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM organization_integrations WHERE organization_id = $1`,
@@ -414,7 +414,7 @@ router.get("/organizations/:orgId/integrations", authenticateFirebase, requireOr
   res.json(rows[0]);
 });
 
-router.put("/organizations/:orgId/integrations", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.put("/organizations/:orgId/integrations", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   
   // Validate request body
@@ -457,7 +457,7 @@ router.put("/organizations/:orgId/integrations", authenticateFirebase, requireOr
 // JOB TEMPLATES
 // ============================================
 
-router.get("/organizations/:orgId/job-templates", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.get("/organizations/:orgId/job-templates", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM job_templates WHERE organization_id = $1 ORDER BY created_at DESC`,
@@ -466,7 +466,7 @@ router.get("/organizations/:orgId/job-templates", authenticateFirebase, requireO
   res.json(rows);
 });
 
-router.post("/organizations/:orgId/job-templates", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.post("/organizations/:orgId/job-templates", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   
   // Validate request body
@@ -486,7 +486,7 @@ router.post("/organizations/:orgId/job-templates", authenticateFirebase, require
   res.json(rows[0]);
 });
 
-router.patch("/organizations/:orgId/job-templates/:templateId", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.patch("/organizations/:orgId/job-templates/:templateId", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId, templateId } = req.params;
   
   // Validate request body (PATCH-specific schema without defaults)
@@ -546,7 +546,7 @@ router.patch("/organizations/:orgId/job-templates/:templateId", authenticateFire
   res.json(rows[0]);
 });
 
-router.delete("/organizations/:orgId/job-templates/:templateId", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.delete("/organizations/:orgId/job-templates/:templateId", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId, templateId } = req.params;
   const { rows } = await pool.query(
     `DELETE FROM job_templates WHERE id = $1 AND organization_id = $2 RETURNING id`,
@@ -564,7 +564,7 @@ router.delete("/organizations/:orgId/job-templates/:templateId", authenticateFir
 // SALARY BANDS
 // ============================================
 
-router.get("/organizations/:orgId/salary-bands", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.get("/organizations/:orgId/salary-bands", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM salary_bands WHERE organization_id = $1 ORDER BY created_at DESC`,
@@ -573,7 +573,7 @@ router.get("/organizations/:orgId/salary-bands", authenticateFirebase, requireOr
   res.json(rows);
 });
 
-router.post("/organizations/:orgId/salary-bands", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.post("/organizations/:orgId/salary-bands", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   
   // Validate request body (enforces min <= max constraint)
@@ -592,7 +592,7 @@ router.post("/organizations/:orgId/salary-bands", authenticateFirebase, requireO
   res.json(rows[0]);
 });
 
-router.patch("/organizations/:orgId/salary-bands/:bandId", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.patch("/organizations/:orgId/salary-bands/:bandId", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId, bandId } = req.params;
   
   // Validate request body (PATCH-specific schema without defaults, enforces min <= max if both present)
@@ -643,7 +643,7 @@ router.patch("/organizations/:orgId/salary-bands/:bandId", authenticateFirebase,
   res.json(rows[0]);
 });
 
-router.delete("/organizations/:orgId/salary-bands/:bandId", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.delete("/organizations/:orgId/salary-bands/:bandId", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId, bandId } = req.params;
   const { rows } = await pool.query(
     `DELETE FROM salary_bands WHERE id = $1 AND organization_id = $2 RETURNING id`,
@@ -661,7 +661,7 @@ router.delete("/organizations/:orgId/salary-bands/:bandId", authenticateFirebase
 // APPROVED VENDORS
 // ============================================
 
-router.get("/organizations/:orgId/vendors", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.get("/organizations/:orgId/vendors", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   const { rows } = await pool.query(
     `SELECT * FROM approved_vendors WHERE organization_id = $1 ORDER BY created_at DESC`,
@@ -670,7 +670,7 @@ router.get("/organizations/:orgId/vendors", authenticateFirebase, requireOrgMemb
   res.json(rows);
 });
 
-router.post("/organizations/:orgId/vendors", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.post("/organizations/:orgId/vendors", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId } = req.params;
   
   // Validate request body
@@ -689,7 +689,7 @@ router.post("/organizations/:orgId/vendors", authenticateFirebase, requireOrgMem
   res.json(rows[0]);
 });
 
-router.patch("/organizations/:orgId/vendors/:vendorId", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.patch("/organizations/:orgId/vendors/:vendorId", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId, vendorId } = req.params;
   
   // Validate request body (PATCH-specific schema without defaults)
@@ -744,7 +744,7 @@ router.patch("/organizations/:orgId/vendors/:vendorId", authenticateFirebase, re
   res.json(rows[0]);
 });
 
-router.delete("/organizations/:orgId/vendors/:vendorId", authenticateFirebase, requireOrgMembership, async (req, res) => {
+router.delete("/organizations/:orgId/vendors/:vendorId", authenticateSession, requireOrgMembership, async (req, res) => {
   const { orgId, vendorId } = req.params;
   const { rows } = await pool.query(
     `DELETE FROM approved_vendors WHERE id = $1 AND organization_id = $2 RETURNING id`,

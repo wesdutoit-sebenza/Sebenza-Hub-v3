@@ -1,12 +1,12 @@
 import { Router } from "express";
 import pg from "pg";
-import { authenticateFirebase, type AuthRequest } from "./firebase-middleware";
+import { authenticateSession, type AuthRequest } from "./auth-middleware";
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const router = Router();
 
 // Get ranked shortlist
-router.get("/roles/:roleId/shortlist", authenticateFirebase, async (req, res) => {
+router.get("/roles/:roleId/shortlist", authenticateSession, async (req, res) => {
   const { roleId } = req.params;
   const { limit = 20 } = req.query;
 
@@ -29,7 +29,7 @@ router.get("/roles/:roleId/shortlist", authenticateFirebase, async (req, res) =>
 });
 
 // Candidate detail (with screening rationale)
-router.get("/roles/:roleId/candidates/:candidateId", authenticateFirebase, async (req, res) => {
+router.get("/roles/:roleId/candidates/:candidateId", authenticateSession, async (req, res) => {
   const { roleId, candidateId } = req.params;
 
   try {

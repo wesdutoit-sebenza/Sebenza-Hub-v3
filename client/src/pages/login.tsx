@@ -4,134 +4,59 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { SiGoogle } from "react-icons/si";
-import { Loader2 } from "lucide-react";
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  updateProfile,
-  sendEmailVerification
-} from "firebase/auth";
-import { auth, googleProvider } from "@/lib/firebase";
+import { Mail, Loader2, CheckCircle } from "lucide-react";
 
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { user, loading } = useAuth();
-  const [isSignup, setIsSignup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
-  });
+  const [email, setEmail] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
 
   // Redirect if user is already logged in
   useEffect(() => {
     if (!loading && user) {
-      if (!user.emailVerified) {
-        console.log("[Login] User not verified, redirecting to /verify-email");
-        setLocation("/verify-email");
-      } else {
-        console.log("[Login] User already authenticated, redirecting to /onboarding");
-        setLocation("/onboarding");
-      }
+      setLocation("/onboarding");
     }
   }, [user, loading, setLocation]);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      let userCredential;
-      
-      if (isSignup) {
-        // Create new user with Firebase Auth
-        userCredential = await createUserWithEmailAndPassword(
-          auth,
-          formData.email,
-          formData.password
-        );
-        
-        // Update user profile with name
-        if (formData.firstName || formData.lastName) {
-          await updateProfile(userCredential.user, {
-            displayName: `${formData.firstName} ${formData.lastName}`.trim()
-          });
-        }
+      const response = await fetch('/api/auth/magic-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.toLowerCase() }),
+        credentials: 'include',
+      });
 
-        // Send email verification
-        await sendEmailVerification(userCredential.user, {
-          url: `${window.location.origin}/onboarding`,
-          handleCodeInApp: true
-        });
+      const data = await response.json();
 
+      if (response.ok) {
+        setEmailSent(true);
         toast({
-          title: "Account created!",
-          description: "Please check your email to verify your account.",
+          title: "Magic link sent!",
+          description: "Check your email for a login link.",
         });
       } else {
-        // Sign in existing user
-        userCredential = await signInWithEmailAndPassword(
-          auth,
-          formData.email,
-          formData.password
-        );
-
         toast({
-          title: "Success!",
-          description: "Logged in successfully",
+          title: "Error",
+          description: data.message || "Failed to send magic link. Please try again.",
+          variant: "destructive",
         });
       }
-      
-      // Redirect will happen via useEffect when auth state updates
     } catch (error: any) {
-      console.error("Auth error:", error);
-      
-      // Firebase error messages are more user-friendly
-      let errorMessage = "Something went wrong. Please try again.";
-      if (error.code) {
-        switch (error.code) {
-          case "auth/email-already-in-use":
-            errorMessage = "An account with this email already exists.";
-            break;
-          case "auth/invalid-email":
-            errorMessage = "Invalid email address.";
-            break;
-          case "auth/weak-password":
-            errorMessage = "Password should be at least 6 characters.";
-            break;
-          case "auth/user-not-found":
-            errorMessage = "No account found with this email.";
-            break;
-          case "auth/wrong-password":
-            errorMessage = "Incorrect password.";
-            break;
-          case "auth/invalid-credential":
-            errorMessage = "Invalid email or password.";
-            break;
-          default:
-            errorMessage = error.message;
-        }
-      }
-      
+      console.error("Magic link error:", error);
       toast({
         title: "Error",
-        description: errorMessage,
+        description: "Failed to send magic link. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -139,176 +64,104 @@ export default function Login() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    try {
-      await signInWithPopup(auth, googleProvider);
-      
-      toast({
-        title: "Success!",
-        description: "Logged in with Google successfully",
-      });
-      
-      // Redirect will happen via useEffect when auth state updates
-    } catch (error: any) {
-      console.error("Google login error:", error);
-      
-      let errorMessage = "Failed to sign in with Google.";
-      if (error.code === "auth/popup-closed-by-user") {
-        errorMessage = "Sign in cancelled.";
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleTryAgain = () => {
+    setEmailSent(false);
+    setEmail("");
   };
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-amber/10 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="w-8 h-8 text-amber" />
+            </div>
+            <CardTitle className="text-2xl">Check your email</CardTitle>
+            <CardDescription className="text-base">
+              We've sent a magic link to <strong>{email}</strong>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-muted p-4 rounded-lg space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Click the link in the email to sign in. The link will expire in 15 minutes.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                <strong>Can't find it?</strong> Check your spam folder.
+              </p>
+            </div>
+            <Button 
+              onClick={handleTryAgain} 
+              variant="outline" 
+              className="w-full"
+              data-testid="button-try-again"
+            >
+              Try different email
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center" data-testid="text-auth-title">
-            {isSignup ? "Create an account" : "Welcome back"}
-          </CardTitle>
-          <CardDescription className="text-center" data-testid="text-auth-description">
-            {isSignup
-              ? "Sign up to get started with Sebenza Hub"
-              : "Sign in to your account"}
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Welcome to Sebenza Hub</CardTitle>
+          <CardDescription>
+            Enter your email to receive a magic link
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignup && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    type="text"
-                    placeholder="John"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    data-testid="input-firstname"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    type="text"
-                    placeholder="Doe"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    data-testid="input-lastname"
-                  />
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
+                  required
+                  disabled={isLoading}
+                  data-testid="input-email"
+                />
               </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                data-testid="input-email"
-              />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                data-testid="input-password"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-amber-gradient text-charcoal"
-              disabled={isLoading}
-              data-testid="button-submit"
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isLoading || !email}
+              data-testid="button-send-magic-link"
             >
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isSignup ? "Creating account..." : "Signing in..."}
+                  Sending...
                 </>
               ) : (
-                <>{isSignup ? "Sign up" : "Sign in"}</>
+                <>
+                  <Mail className="mr-2 h-4 w-4" />
+                  Send magic link
+                </>
               )}
             </Button>
+
+            <div className="text-center text-sm text-muted-foreground">
+              <p>
+                We'll send you a secure link to sign in.
+                <br />
+                No password needed.
+              </p>
+            </div>
           </form>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Or continue with
-              </span>
-            </div>
-          </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={handleGoogleLogin}
-            disabled={isLoading}
-            data-testid="button-google-login"
-          >
-            <SiGoogle className="mr-2 h-4 w-4" />
-            Continue with Google
-          </Button>
-
-          <div className="text-center text-sm">
-            {isSignup ? (
-              <p>
-                Already have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => setIsSignup(false)}
-                  className="text-amber hover:underline"
-                  data-testid="button-switch-login"
-                >
-                  Sign in
-                </button>
-              </p>
-            ) : (
-              <p>
-                Don't have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => setIsSignup(true)}
-                  className="text-amber hover:underline"
-                  data-testid="button-switch-signup"
-                >
-                  Sign up
-                </button>
-              </p>
-            )}
-          </div>
         </CardContent>
       </Card>
     </div>
