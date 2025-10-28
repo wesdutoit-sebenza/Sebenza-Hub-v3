@@ -74,11 +74,12 @@ export function RecruitersLayout({ children }: RecruitersLayoutProps) {
   const [location, setLocation] = useLocation();
   const { user, loading } = useAuth();
 
-  useEffect(() => {
-    if (!loading && user && !user.emailVerified) {
-      setLocation("/verify-email");
-    }
-  }, [user, loading, setLocation]);
+  // Development: Email verification check disabled
+  // useEffect(() => {
+  //   if (!loading && user && !user.emailVerified) {
+  //     setLocation("/verify-email");
+  //   }
+  // }, [user, loading, setLocation]);
 
   const style = {
     "--sidebar-width": "18rem",
