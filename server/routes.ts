@@ -950,6 +950,11 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         .values(validatedData)
         .returning();
 
+      // Mark onboarding as complete for Recruiter role
+      await db.update(users)
+        .set({ onboardingComplete: 1 })
+        .where(eq(users.id, req.user.id));
+
       // Queue fraud detection for recruiter profile
       await queueFraudDetection('recruiter_profile', profile.id, profile, profile.userId);
 

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { JOB_TITLES } from "@shared/jobTitles";
 import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@shared/countries";
@@ -117,6 +117,9 @@ export default function OnboardingIndividual() {
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate user cache to refresh role and onboarding status
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      
       toast({
         title: "Profile created!",
         description: "Your job seeker profile is ready.",

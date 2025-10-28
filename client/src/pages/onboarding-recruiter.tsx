@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { COUNTRY_CODES } from "@shared/countryCodes";
@@ -92,6 +92,9 @@ export default function OnboardingRecruiter() {
       return res.json();
     },
     onSuccess: () => {
+      // Invalidate user cache to refresh role and onboarding status
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      
       toast({
         title: "Recruiter profile created!",
         description: "Your profile is pending verification.",
