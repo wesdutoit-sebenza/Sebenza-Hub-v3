@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, timestamp, integer, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, jsonb, index, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
@@ -1223,7 +1223,9 @@ export const fraudDetections = pgTable("fraud_detections", {
   reviewNotes: text("review_notes"),
   actionTaken: text("action_taken"), // 'approved', 'content_removed', 'user_warned', 'user_banned'
   createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+}, (table) => [
+  uniqueIndex("fraud_detections_content_unique").on(table.contentId, table.contentType),
+]);
 
 export const insertFraudDetectionSchema = createInsertSchema(fraudDetections).omit({
   id: true,
