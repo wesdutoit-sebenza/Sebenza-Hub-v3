@@ -16,6 +16,39 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
 
+  // Check for error messages in URL (from magic link verification)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    
+    if (error) {
+      // Clear the error from URL
+      window.history.replaceState({}, '', window.location.pathname);
+      
+      // Show user-friendly error message
+      let title = "Authentication Failed";
+      let description = error;
+      
+      // Check more specific errors first
+      if (error.includes('Invalid or expired magic link')) {
+        title = "Invalid Link";
+        description = "This magic link has already been used or is invalid. Please request a new one.";
+      } else if (error.includes('missing token')) {
+        title = "Invalid Link";
+        description = "The link you clicked is incomplete. Please try requesting a new magic link.";
+      } else if (error.includes('expired')) {
+        title = "Link Expired";
+        description = "Your magic link has expired. Links are valid for 15 minutes. Please request a new one.";
+      }
+      
+      toast({
+        title,
+        description,
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
+
   // Redirect if user is already logged in
   useEffect(() => {
     if (!loading && user) {

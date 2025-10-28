@@ -1,7 +1,7 @@
 import { Express, Request, Response } from "express";
 import { db } from "./db";
 import { users, magicLinkTokens, type User } from "@shared/schema";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, sql } from "drizzle-orm";
 import { authenticateSession, type AuthRequest } from "./auth-middleware";
 import { sendMagicLinkEmail, getUncachableResendClient } from "./resend";
 import crypto from "crypto";
@@ -354,5 +354,96 @@ export function setupAuthRoutes(app: Express) {
         details: 'Failed to connect to Resend or retrieve credentials',
       });
     }
+  });
+
+  /**
+   * GET /api/health/production
+   * Comprehensive health check for production verification
+   * Tests: Database, Resend, Sessions, Environment
+   */
+  app.get("/api/health/production", async (req: Request, res: Response) => {
+    const healthStatus: any = {
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development',
+      isProduction: !!process.env.REPLIT_DEPLOYMENT,
+      checks: {}
+    };
+
+    // 1. Database Check
+    try {
+      const [result] = await db.select({ count: sql<number>`count(*)` }).from(users);
+      healthStatus.checks.database = {
+        status: 'healthy',
+        userCount: result.count,
+        connected: true
+      };
+
+      // Check critical tables exist
+      const tables = await db.execute(sql`
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name IN ('users', 'magic_link_tokens', 'sessions')
+      `);
+      
+      healthStatus.checks.database.tables = tables.rows.map((r: any) => r.table_name);
+      healthStatus.checks.database.allTablesExist = tables.rows.length === 3;
+    } catch (error: any) {
+      healthStatus.checks.database = {
+        status: 'unhealthy',
+        error: error.message,
+        connected: false
+      };
+    }
+
+    // 2. Resend Check
+    try {
+      const { client, fromEmail } = await getUncachableResendClient();
+      healthStatus.checks.resend = {
+        status: 'configured',
+        fromEmail: fromEmail,
+        connectorAvailable: true
+      };
+    } catch (error: any) {
+      healthStatus.checks.resend = {
+        status: 'error',
+        error: error.message,
+        connectorAvailable: false
+      };
+    }
+
+    // 3. Session Check
+    try {
+      healthStatus.checks.session = {
+        status: req.session ? 'available' : 'unavailable',
+        hasSessionSecret: !!process.env.SESSION_SECRET,
+        sessionId: req.session?.id || null
+      };
+    } catch (error: any) {
+      healthStatus.checks.session = {
+        status: 'error',
+        error: error.message
+      };
+    }
+
+    // 4. Environment Variables Check
+    healthStatus.checks.environmentVariables = {
+      DATABASE_URL: !!process.env.DATABASE_URL,
+      SESSION_SECRET: !!process.env.SESSION_SECRET,
+      REPLIT_DEV_DOMAIN: !!process.env.REPLIT_DEV_DOMAIN,
+      REPLIT_DEPLOYMENT: !!process.env.REPLIT_DEPLOYMENT,
+      NODE_ENV: process.env.NODE_ENV
+    };
+
+    // Overall health
+    const allHealthy = 
+      healthStatus.checks.database?.status === 'healthy' &&
+      healthStatus.checks.resend?.status === 'configured' &&
+      healthStatus.checks.session?.status === 'available';
+
+    healthStatus.overall = allHealthy ? 'healthy' : 'degraded';
+    healthStatus.ready = allHealthy;
+
+    res.status(allHealthy ? 200 : 503).json(healthStatus);
   });
 }

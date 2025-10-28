@@ -91,3 +91,123 @@ Preferred communication style: Simple, everyday language.
 - **AI**: OpenAI GPT-4o, OpenAI GPT-4o-mini, OpenAI text-embedding-3-small.
 - **Email**: Resend.
 - **Maps & Geolocation**: Google Maps JavaScript API.
+
+## Production Deployment Guide
+
+### Overview
+- **Production URL**: https://sebenzahub.replit.app
+- **Development URL**: *.replit.dev (workspace preview)
+- **Database Separation**: Production and development use **completely separate databases**
+- **Magic Links**: Environment-specific - dev links don't work in production and vice versa
+
+### Production Verification Checklist
+
+Use the health check endpoint to verify production configuration:
+```
+https://sebenzahub.replit.app/api/health/production
+```
+
+#### 1. Verify Resend Email Configuration
+
+**Check:** Can production send emails?
+- Go to https://sebenzahub.replit.app/api/health/production
+- Look for `checks.resend.status: "configured"`
+- Verify `checks.resend.fromEmail` shows correct email
+
+**If Failed:**
+1. Open **Replit Publishing** tool in workspace
+2. Click **"Edit Commands and Secrets"**
+3. Verify Resend connector is enabled for production
+4. Ensure `RESEND_API_KEY` is set (should start with `re_`)
+5. Verify domain `sebenzahub.co.za` is verified at https://resend.com/domains
+
+#### 2. Verify Production Database
+
+**Check:** Are all required tables present?
+- Health check should show `checks.database.allTablesExist: true`
+- Tables needed: `users`, `magic_link_tokens`, `sessions`
+
+**If Failed:**
+1. Database schema migrations should happen automatically during publish
+2. If tables are missing, check Publishing logs for migration errors
+3. May need to republish with latest schema changes
+
+#### 3. Verify Session Management
+
+**Check:** Are sessions working?
+- Health check should show `checks.session.status: "available"`
+- Verify `checks.session.hasSessionSecret: true`
+
+**If Failed:**
+1. Open **Publishing** tool → **Edit Commands and Secrets**
+2. Ensure `SESSION_SECRET` is set in production
+3. Republish if needed
+
+#### 4. Verify Environment Detection
+
+**Check:** Is production properly detected?
+- Health check should show `isProduction: true`
+- `environment` should be `"production"` or `"production"`
+- `REPLIT_DEPLOYMENT` should be `true`
+
+### Testing Production Magic Link Authentication
+
+**Step-by-Step Test:**
+
+1. **Open Production Site**: https://sebenzahub.replit.app
+
+2. **Request Magic Link**:
+   - Enter a real email address
+   - Click "Send magic link"
+   - Should see success message
+
+3. **Check Email**:
+   - Open email inbox
+   - Look for email from `wes.dutoit@sebenzahub.co.za`
+   - Check spam folder if not in inbox
+
+4. **Click Magic Link**:
+   - Link should be: `https://sebenzahub.replit.app/auth/verify?token=...`
+   - Should redirect to `/onboarding` (new users) or dashboard (existing users)
+   - Should be logged in
+
+5. **Verify Session**:
+   - Visit https://sebenzahub.replit.app/api/auth/user
+   - Should return user data (not "Unauthorized")
+
+### Common Production Issues
+
+#### Issue: "Magic link expired or invalid"
+**Cause**: User clicked an old link or dev link in production
+**Solution**: User must request a new magic link from production site
+
+#### Issue: "Unable to send email"
+**Cause**: Resend not configured for production or domain not verified
+**Solution**: 
+1. Verify Resend connector in Publishing settings
+2. Check domain verification at https://resend.com/domains
+3. Verify API key is correct (starts with `re_`)
+
+#### Issue: "Session not persisting"
+**Cause**: `SESSION_SECRET` not set in production
+**Solution**: Add `SESSION_SECRET` in Publishing → Edit Commands and Secrets
+
+#### Issue: "Database tables not found"
+**Cause**: Schema migration didn't run during publish
+**Solution**: Check Publishing logs, may need to republish
+
+### Environment-Specific Behavior
+
+**Development (.replit.dev)**:
+- Uses development database
+- Magic links generated here only work in dev
+- All debug logging enabled
+- Can access via workspace preview
+
+**Production (.replit.app)**:
+- Uses production database (separate from dev)
+- Magic links generated here only work in prod
+- Production logging (less verbose)
+- Public-facing URL
+
+**Important**: Never share dev magic links with production users - they won't work!
