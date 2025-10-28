@@ -64,7 +64,21 @@ export async function getUncachableResendClient() {
 }
 
 export async function sendMagicLinkEmail(email: string, token: string) {
-  const magicLink = `${process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : 'http://localhost:5000'}/auth/verify?token=${token}`;
+  // Construct the correct base URL based on environment
+  let baseUrl: string;
+  
+  if (process.env.REPLIT_DEPLOYMENT) {
+    // Production deployment - use .replit.app domain
+    baseUrl = `https://${process.env.REPL_SLUG}.replit.app`;
+  } else if (process.env.REPLIT_DEV_DOMAIN) {
+    // Development workspace - use .replit.dev domain
+    baseUrl = `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  } else {
+    // Local development
+    baseUrl = 'http://localhost:5000';
+  }
+  
+  const magicLink = `${baseUrl}/auth/verify?token=${token}`;
 
   // Always log the magic link for debugging
   console.log('\n' + '='.repeat(80));
@@ -72,6 +86,7 @@ export async function sendMagicLinkEmail(email: string, token: string) {
   console.log('='.repeat(80));
   console.log(`📧 To: ${email}`);
   console.log(`🔗 Link: ${magicLink}`);
+  console.log(`🌍 Environment: ${process.env.REPLIT_DEPLOYMENT ? 'Production' : process.env.REPLIT_DEV_DOMAIN ? 'Development' : 'Local'}`);
   console.log('='.repeat(80) + '\n');
 
   // Send actual email via Resend
