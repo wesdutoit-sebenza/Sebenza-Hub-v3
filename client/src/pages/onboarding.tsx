@@ -55,11 +55,23 @@ export default function Onboarding() {
       return;
     }
 
-    // Development: Email verification check disabled
-    // if (!authLoading && firebaseUser && !firebaseUser.emailVerified) {
-    //   setLocation('/verify-email');
-    //   return;
-    // }
+    // Email verification check - bypass in development only
+    // Force reload to get latest verification status from Firebase
+    const checkEmailVerification = async () => {
+      if (!authLoading && firebaseUser && !import.meta.env.DEV) {
+        try {
+          await firebaseUser.reload();
+          if (!firebaseUser.emailVerified) {
+            setLocation('/verify-email');
+          }
+        } catch (error) {
+          console.error("Failed to reload user:", error);
+          setLocation('/verify-email');
+        }
+      }
+    };
+    
+    checkEmailVerification();
 
     // Only redirect to login if we've finished loading AND there's an error
     if (error && !isLoading && !authLoading) {

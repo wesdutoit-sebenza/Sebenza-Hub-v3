@@ -37,6 +37,10 @@ Preferred communication style: Simple, everyday language.
     - Client-side: Firebase SDK handles authentication state and token management
     - Server-side: Firebase Admin SDK verifies ID tokens sent in Authorization header
     - Tokens automatically refreshed by Firebase SDK
+  - **Email Verification**: Required in production, bypassed in development
+    - Production: Users must verify email before accessing onboarding
+    - Development: "Skip verification" button available (hidden in production via `import.meta.env.DEV` check)
+    - Verification flow: Register → Verify Email → Role Selection → Onboarding → Dashboard
   - **Middleware**: `authenticateFirebase` middleware verifies Firebase ID tokens and attaches user to `req.user`
     - All protected routes use Firebase authentication
     - `requireRole()` middleware enforces role-based access control
@@ -52,6 +56,7 @@ Preferred communication style: Simple, everyday language.
     - Auto-created on first login with default "individual" role
     - Single role and profile data stored in PostgreSQL
     - `onboardingComplete` is binary flag (0 or 1)
+  - **Onboarding Completion**: Both Individual and Recruiter profile creation endpoints set `onboardingComplete = 1` (October 2025)
 
 ### Data Storage
 - **Database**: PostgreSQL (Neon) with Drizzle ORM and pgvector extension.

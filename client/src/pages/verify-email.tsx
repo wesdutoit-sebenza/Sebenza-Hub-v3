@@ -82,7 +82,7 @@ export default function VerifyEmail() {
   };
 
   const handleSkipVerification = async () => {
-    // Development bypass - check user role and redirect appropriately
+    // Development bypass - always go to role selection if onboarding not complete
     try {
       const response = await fetch('/api/auth/user', {
         headers: {
@@ -95,22 +95,15 @@ export default function VerifyEmail() {
         const userRole = data.user?.role;
         const onboardingComplete = data.user?.onboardingComplete || 0;
         
-        // If user has a role but hasn't completed onboarding, go to role-specific onboarding
-        if (userRole && onboardingComplete === 0) {
-          toast({
-            title: "Skipping verification",
-            description: `Proceeding to ${userRole} onboarding (dev mode)...`,
-          });
-          setLocation(`/onboarding/${userRole}`);
-        } else if (userRole && onboardingComplete === 1) {
-          // If onboarding complete, go to dashboard
+        // If onboarding complete, go to dashboard
+        if (onboardingComplete === 1 && userRole) {
           toast({
             title: "Skipping verification",
             description: "Redirecting to dashboard...",
           });
           setLocation(`/dashboard/${userRole}`);
         } else {
-          // No role set, go to role selection
+          // If onboarding not complete, always go to role selection
           toast({
             title: "Skipping verification",
             description: "Proceeding to onboarding (dev mode)...",
@@ -187,15 +180,17 @@ export default function VerifyEmail() {
                 )}
               </Button>
 
-              {/* Development bypass */}
-              <Button 
-                onClick={handleSkipVerification}
-                className="w-full"
-                variant="secondary"
-                data-testid="button-skip-verification"
-              >
-                Skip verification (Dev Mode)
-              </Button>
+              {/* Development bypass - only show in development mode */}
+              {import.meta.env.DEV && (
+                <Button 
+                  onClick={handleSkipVerification}
+                  className="w-full"
+                  variant="secondary"
+                  data-testid="button-skip-verification"
+                >
+                  Skip verification (Dev Mode)
+                </Button>
+              )}
             </div>
 
             <p className="text-center text-sm text-muted-foreground">
