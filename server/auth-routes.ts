@@ -3,7 +3,7 @@ import { db } from "./db";
 import { users, magicLinkTokens, type User } from "@shared/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import { authenticateSession, type AuthRequest } from "./auth-middleware";
-import { sendMagicLinkEmail } from "./resend";
+import { sendMagicLinkEmail, getUncachableResendClient } from "./resend";
 import crypto from "crypto";
 import { z } from "zod";
 
@@ -313,6 +313,46 @@ export function setupAuthRoutes(app: Express) {
     } catch (error) {
       console.error("Error selecting role:", error);
       res.status(500).json({ message: "Failed to select role" });
+    }
+  });
+
+  /**
+   * GET /api/auth/test-resend
+   * Test endpoint to check Resend API key status (development only)
+   */
+  app.get("/api/auth/test-resend", async (req: Request, res: Response) => {
+    try {
+      const { client, fromEmail } = await getUncachableResendClient();
+      
+      // Try to send a test email to verify the API key works
+      const { data, error } = await client.emails.send({
+        from: fromEmail,
+        to: 'delivered@resend.dev', // Resend's test email address
+        subject: 'Resend API Key Test',
+        html: '<p>This is a test email to verify the Resend API key is working.</p>',
+      });
+
+      if (error) {
+        return res.status(400).json({
+          success: false,
+          error: error.message,
+          fromEmail: fromEmail,
+          details: 'API key is invalid or missing required permissions',
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Resend API key is working correctly!',
+        fromEmail: fromEmail,
+        testEmailId: data?.id,
+      });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        details: 'Failed to connect to Resend or retrieve credentials',
+      });
     }
   });
 }
