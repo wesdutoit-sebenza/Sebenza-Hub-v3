@@ -177,6 +177,65 @@ https://sebenzahub.replit.app/api/health/production
 
 ### Common Production Issues
 
+#### Issue: "Unable to Wake Up" - Deployment Won't Start
+
+**Symptoms**: Production shows "Unable to Wake Up - internal error" screen
+
+**Cause**: The deployment is failing to boot. This is NOT a magic-link issue - the server isn't starting.
+
+**Solution Steps:**
+
+1. **Check Deployment Logs**:
+   - Open Replit workspace
+   - Go to **Deploy** tab in left sidebar
+   - Click on your deployment
+   - Check **Logs** section for error messages
+   - Look for: module not found, database connection errors, syntax errors, port binding errors
+
+2. **Verify Environment Variables in Production**:
+   - Go to **Deploy** → Click your deployment → **Settings**
+   - Ensure ALL required secrets are added:
+     - `DATABASE_URL` (must be production database URL)
+     - `SESSION_SECRET` (required for sessions)
+     - `RESEND_API_KEY` (for magic link emails)
+     - `JWT_SECRET` (if using JWT)
+     - `JWT_REFRESH_SECRET` (if using JWT refresh)
+   
+   **Important**: Workspace secrets are NOT automatically copied to deployments!
+
+3. **Verify Build & Start Commands**:
+   - Build command should be: `npm run build`
+   - Start command should be: `npm run start`
+   - These are configured in `.replit` file under `[deployment]`
+
+4. **Configure Health Check**:
+   - Go to **Deploy** → Settings → **Health Check**
+   - Set health check path to: `/healthz`
+   - This is a lightweight endpoint that returns 200 OK
+
+5. **Check Database Connection**:
+   - Ensure production `DATABASE_URL` points to production database
+   - Verify database is accessible from deployment
+   - Schema migrations should run automatically during build
+
+6. **Force Redeploy**:
+   - After fixing environment variables, click **Deploy** again
+   - Watch the build logs for any errors
+   - Deployment should show "Live" status when successful
+
+7. **Test After Deployment**:
+   - Visit https://sebenzahub.replit.app/healthz (should return "ok")
+   - Visit https://sebenzahub.replit.app/api/health/production (should return JSON health status)
+   - If both work, try the login flow
+
+**Common Deployment Errors:**
+
+- **"Cannot find module"**: Build step didn't complete - check build logs
+- **"EADDRINUSE"**: Port conflict - should not happen with Autoscale
+- **"connect ECONNREFUSED"**: Database not accessible - check DATABASE_URL
+- **"SESSION_SECRET required"**: Missing env var - add to deployment settings
+- **Silent crash**: Check if worker startup is failing - Redis might be unavailable
+
 #### Issue: "Magic link expired or invalid"
 **Cause**: User clicked an old link or dev link in production
 **Solution**: User must request a new magic link from production site

@@ -43,6 +43,15 @@ setInterval(() => {
 export function setupAuthRoutes(app: Express) {
   
   /**
+   * GET /healthz
+   * Lightweight health check for Replit deployments
+   * Returns 200 OK without checking database or external services
+   */
+  app.get("/healthz", (_req: Request, res: Response) => {
+    res.status(200).send("ok");
+  });
+  
+  /**
    * POST /api/auth/magic-link
    * Request a magic link to be sent to the user's email
    */
