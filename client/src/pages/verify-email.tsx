@@ -81,6 +81,50 @@ export default function VerifyEmail() {
     }
   };
 
+  const handleSkipVerification = async () => {
+    // Development bypass - check user role and redirect appropriately
+    try {
+      const response = await fetch('/api/auth/user', {
+        headers: {
+          'Authorization': `Bearer ${await user?.getIdToken()}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const userRole = data.user?.role;
+        const onboardingComplete = data.user?.onboardingComplete || 0;
+        
+        // If user has a role but hasn't completed onboarding, go to role-specific onboarding
+        if (userRole && onboardingComplete === 0) {
+          toast({
+            title: "Skipping verification",
+            description: `Proceeding to ${userRole} onboarding (dev mode)...`,
+          });
+          setLocation(`/onboarding/${userRole}`);
+        } else if (userRole && onboardingComplete === 1) {
+          // If onboarding complete, go to dashboard
+          toast({
+            title: "Skipping verification",
+            description: "Redirecting to dashboard...",
+          });
+          setLocation(`/dashboard/${userRole}`);
+        } else {
+          // No role set, go to role selection
+          toast({
+            title: "Skipping verification",
+            description: "Proceeding to onboarding (dev mode)...",
+          });
+          setLocation("/onboarding");
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+      // Fallback to onboarding page
+      setLocation("/onboarding");
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -141,6 +185,16 @@ export default function VerifyEmail() {
                 ) : (
                   "Resend verification email"
                 )}
+              </Button>
+
+              {/* Development bypass */}
+              <Button 
+                onClick={handleSkipVerification}
+                className="w-full"
+                variant="secondary"
+                data-testid="button-skip-verification"
+              >
+                Skip verification (Dev Mode)
               </Button>
             </div>
 
