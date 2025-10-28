@@ -164,7 +164,7 @@ export default function JobDetail() {
           <Button
             variant="ghost"
             onClick={() => setLocation("/individuals/job-searches")}
-            className="mb-8"
+            className="mb-8 text-white"
             data-testid="button-back"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -195,7 +195,7 @@ export default function JobDetail() {
         <Button
           variant="ghost"
           onClick={() => setLocation("/individuals/job-searches")}
-          className="mb-8"
+          className="mb-8 text-white"
           data-testid="button-back"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
