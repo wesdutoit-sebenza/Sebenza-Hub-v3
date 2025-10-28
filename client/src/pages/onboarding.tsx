@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Briefcase, Building2, UserCircle } from "lucide-react";
+import type { User } from "@shared/schema";
 
 type UserRole = 'individual' | 'business' | 'recruiter';
 
@@ -17,7 +18,7 @@ export default function Onboarding() {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
 
   // Only fetch user data if Firebase auth is ready and user is logged in
-  const { data: userData, isLoading, error } = useQuery({
+  const { data: userData, isLoading, error } = useQuery<{ user: User }>({
     queryKey: ['/api/auth/user'],
     retry: 1,
     retryDelay: 100,
