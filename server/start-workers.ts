@@ -211,68 +211,68 @@ Evaluate this candidate for the role.`;
   }
 );
 
-// Fraud Detection Worker
-const fraudWorker = new Worker(
-  "fraud-detection",
-  async (job: Job) => {
-    const { contentType, contentId, content, userId } = job.data;
+// Fraud Detection Worker - PAUSED (will be enabled later)
+// const fraudWorker = new Worker(
+//   "fraud-detection",
+//   async (job: Job) => {
+//     const { contentType, contentId, content, userId } = job.data;
 
-    console.log(`[FraudWorker] Processing ${contentType} fraud detection for contentId ${contentId}`);
+//     console.log(`[FraudWorker] Processing ${contentType} fraud detection for contentId ${contentId}`);
 
-    try {
-      const result = await detectFraud(contentType, content, userId);
+//     try {
+//       const result = await detectFraud(contentType, content, userId);
       
-      // Only auto-approve if fraud detection actually ran successfully
-      let status = 'pending';
-      if (result.reasoning !== 'Auto-approved: AI detection unavailable' && shouldAutoApprove(result)) {
-        status = 'auto_approved';
-      }
+//       // Only auto-approve if fraud detection actually ran successfully
+//       let status = 'pending';
+//       if (result.reasoning !== 'Auto-approved: AI detection unavailable' && shouldAutoApprove(result)) {
+//         status = 'auto_approved';
+//       }
 
-      try {
-        await pool.query(
-          `INSERT INTO fraud_detections 
-          (content_type, content_id, user_id, risk_level, risk_score, flags, ai_reasoning, content_snapshot, status)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-          ON CONFLICT (content_id, content_type) 
-          DO UPDATE SET 
-            risk_level = EXCLUDED.risk_level,
-            risk_score = EXCLUDED.risk_score,
-            flags = EXCLUDED.flags,
-            ai_reasoning = EXCLUDED.ai_reasoning,
-            status = EXCLUDED.status`,
-          [
-            contentType,
-            contentId,
-            userId || null,
-            result.riskLevel,
-            result.riskScore,
-            result.flags,
-            result.reasoning,
-            JSON.stringify(content),
-            status
-          ]
-        );
+//       try {
+//         await pool.query(
+//           `INSERT INTO fraud_detections 
+//           (content_type, content_id, user_id, risk_level, risk_score, flags, ai_reasoning, content_snapshot, status)
+//           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+//           ON CONFLICT (content_id, content_type) 
+//           DO UPDATE SET 
+//             risk_level = EXCLUDED.risk_level,
+//             risk_score = EXCLUDED.risk_score,
+//             flags = EXCLUDED.flags,
+//             ai_reasoning = EXCLUDED.ai_reasoning,
+//             status = EXCLUDED.status`,
+//           [
+//             contentType,
+//             contentId,
+//             userId || null,
+//             result.riskLevel,
+//             result.riskScore,
+//             result.flags,
+//             result.reasoning,
+//             JSON.stringify(content),
+//             status
+//           ]
+//         );
         
-        console.log(`[FraudWorker] Completed ${contentType} detection: ${result.riskLevel} risk (score: ${result.riskScore}), status: ${status}`);
-      } catch (dbError: any) {
-        console.error(`[FraudWorker] Database error (non-fatal):`, dbError.message);
-        console.warn(`[FraudWorker] ALERT: Fraud detection result not saved for ${contentType} ${contentId}`);
-        // Don't fail the job - fraud detection is supplementary, but log for ops
-      }
+//         console.log(`[FraudWorker] Completed ${contentType} detection: ${result.riskLevel} risk (score: ${result.riskScore}), status: ${status}`);
+//       } catch (dbError: any) {
+//         console.error(`[FraudWorker] Database error (non-fatal):`, dbError.message);
+//         console.warn(`[FraudWorker] ALERT: Fraud detection result not saved for ${contentType} ${contentId}`);
+//         // Don't fail the job - fraud detection is supplementary, but log for ops
+//       }
       
-      return { success: true, result };
-    } catch (error: any) {
-      console.error(`[FraudWorker] ALERT: Fraud detection failed for ${contentType} ${contentId}:`, error.message);
-      // Return success so job creation doesn't fail, but don't create a fraud detection record
-      // This leaves content without fraud screening until issue is resolved
-      return { success: true, result: null };
-    }
-  },
-  {
-    connection: connection!,
-    concurrency: 3,
-  }
-);
+//       return { success: true, result };
+//     } catch (error: any) {
+//       console.error(`[FraudWorker] ALERT: Fraud detection failed for ${contentType} ${contentId}:`, error.message);
+//       // Return success so job creation doesn't fail, but don't create a fraud detection record
+//       // This leaves content without fraud screening until issue is resolved
+//       return { success: true, result: null };
+//     }
+//   },
+//   {
+//     connection: connection!,
+//     concurrency: 3,
+//   }
+// );
 
 // Event handlers
 screeningWorker.on("completed", (job) => {
@@ -283,28 +283,28 @@ screeningWorker.on("failed", (job, err) => {
   console.error(`[ScreeningWorker] Job ${job?.id} failed:`, err.message);
 });
 
-fraudWorker.on("completed", (job) => {
-  console.log(`[FraudWorker] Job ${job.id} completed`);
-});
+// fraudWorker.on("completed", (job) => {
+//   console.log(`[FraudWorker] Job ${job.id} completed`);
+// });
 
-fraudWorker.on("failed", (job, err) => {
-  console.error(`[FraudWorker] Job ${job?.id} failed:`, err.message);
-});
+// fraudWorker.on("failed", (job, err) => {
+//   console.error(`[FraudWorker] Job ${job?.id} failed:`, err.message);
+// });
 
-console.log("[Workers] Screening and fraud detection workers started successfully");
+console.log("[Workers] Screening worker started successfully (fraud detection paused)");
 
 // Graceful shutdown
 process.on("SIGTERM", async () => {
   console.log("[Workers] SIGTERM received, shutting down...");
   await screeningWorker.close();
-  await fraudWorker.close();
+  // await fraudWorker.close(); // Paused
   await connection?.quit();
 });
 
 process.on("SIGINT", async () => {
   console.log("[Workers] SIGINT received, shutting down...");
   await screeningWorker.close();
-  await fraudWorker.close();
+  // await fraudWorker.close(); // Paused
   await connection?.quit();
 });
 

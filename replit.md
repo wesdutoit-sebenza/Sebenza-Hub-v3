@@ -28,8 +28,10 @@ Preferred communication style: Simple, everyday language.
   - **Job Status Management**: PATCH `/api/jobs/:id/status` updates job status with proper admin field merging to preserve metadata (jobId, pipeline, etc.).
   - **Conditional Job Validation**: POST `/api/jobs` applies strict validation for Live/Paused/Closed/Filled status, lenient validation for Draft status.
 - **AI Integration**: Powers CV screening, resume ingestion, interview coaching, and fraud detection.
-- **Fraud & Spam Detection**: Real-time AI-powered system using OpenAI GPT-4o-mini for scanning submissions, risk scoring, and flagging.
-- **Background Job Processing**: BullMQ with Redis for asynchronous tasks like candidate screening and fraud detection.
+- **Fraud & Spam Detection**: Real-time AI-powered system using OpenAI GPT-4o-mini for scanning submissions, risk scoring, and flagging. **Currently paused** (October 2025).
+- **Background Job Processing**: BullMQ with Redis for asynchronous tasks.
+  - **Screening Worker**: Active - processes candidate screening for roles
+  - **Fraud Detection Worker**: Paused - will be enabled later
 - **Authentication & Authorization**: Firebase Authentication for all users (web and mobile).
   - **Firebase Auth**: Supports email/password authentication and Google OAuth
     - Client-side: Firebase SDK handles authentication state and token management
