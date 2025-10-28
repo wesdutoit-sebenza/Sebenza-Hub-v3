@@ -85,9 +85,17 @@ export default function Onboarding() {
       const role = userData.user.role;
       const onboarding = userData.user.onboardingComplete || 0;
 
-      // If user has already completed onboarding, go to dashboard
+      // If user has already completed onboarding, go to role-specific dashboard
       if (role && onboarding === 1) {
-        setLocation('/');
+        if (role === 'individual') {
+          setLocation('/dashboard/individual/profile');
+        } else if (role === 'recruiter') {
+          setLocation('/dashboard/recruiter/profile');
+        } else if (role === 'business') {
+          setLocation('/');
+        } else if (role === 'admin') {
+          setLocation('/admin/overview');
+        }
       }
     }
   }, [userData, error, isLoading, authLoading, firebaseUser, setLocation]);
