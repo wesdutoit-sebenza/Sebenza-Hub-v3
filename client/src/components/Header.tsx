@@ -121,6 +121,22 @@ export default function Header() {
                         <Shield size={16} />
                         Admin Dashboard
                       </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setLocation('/dashboard/individual/profile')}
+                        className="gap-2 cursor-pointer"
+                        data-testid="link-admin-individual-dashboard"
+                      >
+                        <LayoutDashboard size={16} />
+                        Individual Dashboard
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setLocation('/dashboard/recruiter/profile')}
+                        className="gap-2 cursor-pointer"
+                        data-testid="link-admin-recruiter-dashboard"
+                      >
+                        <Briefcase size={16} />
+                        Recruiter Dashboard
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                     </>
                   )}
@@ -232,18 +248,44 @@ export default function Header() {
                     {user.email}
                   </div>
                   {user.role === 'admin' && (
-                    <Button 
-                      variant="ghost" 
-                      className="gap-2 text-amber hover:text-amber/80"
-                      onClick={() => {
-                        setLocation('/admin/overview');
-                        setMobileMenuOpen(false);
-                      }}
-                      data-testid="link-mobile-admin"
-                    >
-                      <Shield size={16} />
-                      Admin Dashboard
-                    </Button>
+                    <>
+                      <Button 
+                        variant="ghost" 
+                        className="gap-2 text-amber hover:text-amber/80"
+                        onClick={() => {
+                          setLocation('/admin/overview');
+                          setMobileMenuOpen(false);
+                        }}
+                        data-testid="link-mobile-admin"
+                      >
+                        <Shield size={16} />
+                        Admin Dashboard
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="gap-2 text-white-brand"
+                        onClick={() => {
+                          setLocation('/dashboard/individual/profile');
+                          setMobileMenuOpen(false);
+                        }}
+                        data-testid="link-mobile-admin-individual-dashboard"
+                      >
+                        <LayoutDashboard size={16} />
+                        Individual Dashboard
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        className="gap-2 text-white-brand"
+                        onClick={() => {
+                          setLocation('/dashboard/recruiter/profile');
+                          setMobileMenuOpen(false);
+                        }}
+                        data-testid="link-mobile-admin-recruiter-dashboard"
+                      >
+                        <Briefcase size={16} />
+                        Recruiter Dashboard
+                      </Button>
+                    </>
                   )}
                   {user.role === 'individual' && (
                     <Button 
