@@ -122,6 +122,7 @@ export const candidateProfiles = pgTable("candidate_profiles", {
   postalCode: text("postal_code"),
   city: text("city").notNull(),
   country: text("country").notNull().default('South Africa'),
+  physicalAddress: text("physical_address"), // Google Maps autocomplete address
   email: text("email"),
   telephone: text("telephone"),
   jobTitle: text("job_title").notNull(),
