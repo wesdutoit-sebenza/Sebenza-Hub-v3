@@ -739,6 +739,7 @@ export default function RecruiterJobPostings() {
                                 <CommandGroup
                                   key={category.industry}
                                   heading={category.industry}
+                                  className="[&_[cmdk-group-heading]]:text-sm [&_[cmdk-group-heading]]:font-semibold"
                                 >
                                   {category.titles.map((title) => (
                                     <CommandItem
@@ -760,7 +761,7 @@ export default function RecruiterJobPostings() {
                                   ))}
                                 </CommandGroup>
                               ))}
-                              <CommandGroup heading="Other">
+                              <CommandGroup heading="Other" className="[&_[cmdk-group-heading]]:text-sm [&_[cmdk-group-heading]]:font-semibold">
                                 <CommandItem
                                   value="Other"
                                   onSelect={() => {
