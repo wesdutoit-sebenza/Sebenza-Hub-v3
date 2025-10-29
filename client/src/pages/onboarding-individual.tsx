@@ -9,13 +9,17 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { JOB_TITLES } from "@shared/jobTitles";
 import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@shared/countries";
 import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
-import { useEffect } from "react";
+import { CITIES_BY_PROVINCE, getLocationDataForCity } from "@shared/cities";
+import { GoogleAddressSearch } from "@/components/GoogleAddressSearch";
+import { useEffect, useState } from "react";
 import type { User } from "@shared/schema";
 
 const formSchema = z.object({
@@ -25,6 +29,7 @@ const formSchema = z.object({
   postalCode: z.string().optional(),
   city: z.string().min(1, "City is required"),
   country: z.string().min(1, "Please select a country"),
+  physicalAddress: z.string().optional(),
   email: z.string().email("Valid email is required").optional(),
   countryCode: z.string().default(DEFAULT_COUNTRY_CODE),
   telephone: z.string().optional(),
@@ -51,6 +56,8 @@ type FormData = z.infer<typeof formSchema>;
 export default function OnboardingIndividual() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
+  const [citySearchQuery, setCitySearchQuery] = useState("");
 
   const { data: user } = useQuery<User>({
     queryKey: ['/api/auth/user'],
@@ -66,6 +73,7 @@ export default function OnboardingIndividual() {
       postalCode: "",
       city: "",
       country: DEFAULT_COUNTRY,
+      physicalAddress: "",
       email: "",
       countryCode: DEFAULT_COUNTRY_CODE,
       telephone: "",
@@ -88,6 +96,16 @@ export default function OnboardingIndividual() {
   const selectedJobTitle = form.watch("jobTitle");
   const selectedCountry = form.watch("country");
 
+  // Filtered cities based on search query
+  const filteredCities = citySearchQuery
+    ? CITIES_BY_PROVINCE.map((provinceData) => ({
+        province: provinceData.province,
+        cities: provinceData.cities.filter((cityData) =>
+          cityData.city.toLowerCase().includes(citySearchQuery.toLowerCase())
+        ),
+      })).filter((provinceData) => provinceData.cities.length > 0)
+    : CITIES_BY_PROVINCE;
+
   const createProfileMutation = useMutation({
     mutationFn: async (data: FormData) => {
       const fullName = `${data.firstName} ${data.surname}`;
@@ -106,6 +124,7 @@ export default function OnboardingIndividual() {
         postalCode: data.postalCode,
         city: data.city,
         country: data.country,
+        physicalAddress: data.physicalAddress,
         email: data.email,
         telephone: fullTelephone,
         jobTitle: finalJobTitle,
@@ -183,16 +202,72 @@ export default function OnboardingIndividual() {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              {/* Location Fields - matching Job Posting form */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="city"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>City</FormLabel>
-                      <FormControl>
-                        <Input {...field} data-testid="input-city" />
-                      </FormControl>
+                      <FormLabel>City / Town *</FormLabel>
+                      <Popover open={cityDropdownOpen} onOpenChange={setCityDropdownOpen}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              aria-expanded={cityDropdownOpen}
+                              className="w-full justify-between text-left font-normal"
+                              data-testid="select-city"
+                            >
+                              <span className={field.value ? "" : "text-muted-foreground"}>
+                                {field.value || "Select city / town"}
+                              </span>
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-full p-0" align="start">
+                          <Command>
+                            <CommandInput
+                              placeholder="Search cities..."
+                              value={citySearchQuery}
+                              onValueChange={setCitySearchQuery}
+                              data-testid="input-city-search"
+                            />
+                            <CommandList className="max-h-[300px]">
+                              <CommandEmpty>No cities found.</CommandEmpty>
+                              {filteredCities.map((provinceData) => (
+                                <CommandGroup
+                                  key={provinceData.province}
+                                  heading={provinceData.province}
+                                >
+                                  {provinceData.cities.map((cityData) => (
+                                    <CommandItem
+                                      key={`${provinceData.province}-${cityData.city}`}
+                                      value={cityData.city}
+                                      onSelect={() => {
+                                        field.onChange(cityData.city);
+                                        // Auto-fill province and postal code based on selected city
+                                        const locationData = getLocationDataForCity(cityData.city);
+                                        if (locationData) {
+                                          form.setValue("province", locationData.province);
+                                          form.setValue("postalCode", locationData.postalCode);
+                                        }
+                                        setCityDropdownOpen(false);
+                                        setCitySearchQuery("");
+                                      }}
+                                      className="cursor-pointer"
+                                      data-testid={`city-option-${cityData.city}`}
+                                    >
+                                      {cityData.city}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              ))}
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -203,34 +278,22 @@ export default function OnboardingIndividual() {
                   name="province"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Province / State</FormLabel>
-                      {selectedCountry === "South Africa" ? (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-province">
-                              <SelectValue placeholder="Select province" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {provinces.map((province) => (
-                              <SelectItem key={province} value={province}>
-                                {province}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <FormControl>
-                          <Input {...field} placeholder="Enter province or state" data-testid="input-province" />
-                        </FormControl>
-                      )}
+                      <FormLabel>Province *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          disabled
+                          placeholder="Select a city to auto-fill"
+                          data-testid="input-province"
+                          className="bg-muted"
+                        />
+                      </FormControl>
+                      <FormDescription>Auto-filled based on selected city</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="postalCode"
@@ -238,38 +301,61 @@ export default function OnboardingIndividual() {
                     <FormItem>
                       <FormLabel>Postal Code</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="e.g., 2000" data-testid="input-postal-code" />
+                        <Input
+                          {...field}
+                          disabled
+                          placeholder="Select a city to auto-fill"
+                          data-testid="input-postal-code"
+                          className="bg-muted"
+                        />
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="country"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Country</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger data-testid="select-country">
-                            <SelectValue placeholder="Select country" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-[300px]">
-                          {COUNTRIES.map((country) => (
-                            <SelectItem key={country} value={country}>
-                              {country}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormDescription>Auto-filled based on selected city</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="physicalAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Physical Address (Google Search)</FormLabel>
+                    <FormControl>
+                      <GoogleAddressSearch
+                        value={field.value}
+                        onChange={(address, placeDetails) => {
+                          field.onChange(address);
+                          // Optionally auto-fill city, province, postal code from Google Maps
+                          if (placeDetails?.address_components) {
+                            const components = placeDetails.address_components;
+                            const city = components.find(c => c.types.includes('locality'))?.long_name;
+                            const province = components.find(c => c.types.includes('administrative_area_level_1'))?.long_name;
+                            const postalCode = components.find(c => c.types.includes('postal_code'))?.long_name;
+                            
+                            if (city && province && postalCode) {
+                              // Check if this matches our SA cities data
+                              const locationData = getLocationDataForCity(city);
+                              if (locationData) {
+                                form.setValue("city", city);
+                                form.setValue("province", locationData.province);
+                                form.setValue("postalCode", locationData.postalCode);
+                              }
+                            }
+                          }
+                        }}
+                        placeholder="Start typing an address..."
+                        data-testid="input-physical-address"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Start typing to search for an address. This will auto-fill city, province, and postal code.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <div className="grid md:grid-cols-2 gap-4">
                 <FormField
