@@ -41,3 +41,125 @@ Preferred communication style: Simple, everyday language.
 - **AI**: OpenAI GPT-4o, OpenAI GPT-4o-mini, OpenAI text-embedding-3-small.
 - **Email**: Resend.
 - **Maps & Geolocation**: Google Maps JavaScript API.
+
+## Production Deployment Guide
+
+### Required Environment Variables for Production
+
+When deploying to production, you MUST manually add these environment variables to your deployment. Workspace secrets are NOT automatically copied to deployments.
+
+**How to Add Environment Variables to Production**:
+1. Open your Replit workspace
+2. Click **Deploy** tool in left sidebar
+3. Click on your published deployment (sebenzahub)
+4. Go to **Settings** tab
+5. Scroll to **Environment Variables** section
+6. Add each variable below
+
+**Required Variables**:
+
+1. **DATABASE_URL** (Production Database)
+   - Get from: Database pane → Click your database → Settings → Copy connection string
+   - Format: `postgresql://user:pass@host/database?sslmode=require`
+   - **Important**: Use the PRODUCTION database URL, not development
+
+2. **SESSION_SECRET** (Session Encryption)
+   - Generate a secure random key:
+     ```bash
+     openssl rand -base64 32
+     ```
+   - Example output: `jgaIfWvTULs+W/2wUUEUONEwEsI2lChhojiStubNfo4=`
+   - Paste this value into the SESSION_SECRET environment variable
+
+3. **RESEND_API_KEY** (Email Service)
+   - Option A: Enable Resend connector in deployment settings
+   - Option B: Get from https://resend.com/api-keys
+   - Format: `re_xxxxxxxxxx`
+
+**Optional Variables**:
+
+4. **PUBLIC_URL** (Custom Domain Override)
+   - Only needed if using a custom domain
+   - Default: `https://sebenzahub.replit.app`
+   - Example: `https://sebenzahub.co.za`
+
+### Quick Deployment Checklist
+
+Before deploying to production:
+
+- [ ] Add `DATABASE_URL` to deployment environment variables (production database)
+- [ ] Add `SESSION_SECRET` to deployment environment variables (generate with openssl)
+- [ ] Enable Resend connector in deployment OR add `RESEND_API_KEY`
+- [ ] Verify build command: `npm run build`
+- [ ] Verify start command: `npm run start`
+- [ ] Set health check path to `/healthz`
+- [ ] Deploy and check logs for errors
+
+### Testing Production After Deployment
+
+1. **Check Health**: Visit `https://sebenzahub.replit.app/healthz` → should return "ok"
+2. **Check System Status**: Visit `https://sebenzahub.replit.app/api/health/production` → should return JSON with all checks passing
+3. **Test Magic Link**: 
+   - Go to `https://sebenzahub.replit.app`
+   - Request magic link with your email
+   - Check email (including spam folder)
+   - Click magic link (should have `.replit.app` in URL, not `.replit.dev`)
+   - Should redirect and log you in successfully
+
+### Common Production Issues
+
+#### Issue: "Unable to Wake Up" - Deployment Won't Start
+
+See full troubleshooting guide above in "Common Production Issues" section.
+
+#### Issue: Magic Link Has Wrong URL (localhost or workspace.replit.app)
+
+**Symptoms**: Email contains `http://localhost:5000` or `https://workspace.replit.app` instead of `https://sebenzahub.replit.app`
+
+**Cause**: Application is using wrong environment variables to construct URLs
+
+**Solution**: 
+- The code now defaults to `https://sebenzahub.replit.app` for production
+- Optionally set `PUBLIC_URL=https://sebenzahub.replit.app` in deployment environment variables
+
+#### Issue: "Not Found" when clicking magic link
+
+**Symptoms**: Clicking magic link shows plain "Not Found" page
+
+**Cause**: 
+1. Frontend build files not being served correctly
+2. Missing static file serving in production
+3. Build step didn't complete
+
+**Solution**:
+1. Check deployment logs for build errors
+2. Verify `npm run build` completed successfully
+3. Ensure start command is `npm run start` (not `npm run dev`)
+4. Redeploy after fixing any build issues
+
+### Environment-Specific Behavior
+
+**Development (.replit.dev)**:
+- Uses development database
+- Magic links use `.replit.dev` domain
+- All debug logging enabled
+- Can access via workspace preview
+- Environment variable: `REPLIT_DEV_DOMAIN` is set
+
+**Production (.replit.app)**:
+- Uses production database (completely separate from dev)
+- Magic links use `.replit.app` domain (e.g., `https://sebenzahub.replit.app`)
+- Production logging (less verbose)
+- Public-facing URL
+- Environment variables: `REPLIT_DEPLOYMENT=1`
+
+**How Magic Link URLs Work**:
+The system automatically detects the environment and generates the correct magic link URL:
+- **Production**: `https://sebenzahub.replit.app/auth/verify?token=...` (hardcoded, can override with PUBLIC_URL)
+- **Development**: `https://${REPLIT_DEV_DOMAIN}/auth/verify?token=...`
+- **Local**: `http://localhost:5000/auth/verify?token=...`
+
+**Important**: Magic links are environment-specific and won't work cross-environment:
+- Dev links (`.replit.dev`) only work in the development database
+- Production links (`.replit.app`) only work in the production database
+- Never share dev magic links with production users!

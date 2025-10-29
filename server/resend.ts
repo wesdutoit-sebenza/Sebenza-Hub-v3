@@ -68,8 +68,8 @@ export async function sendMagicLinkEmail(email: string, token: string) {
   let baseUrl: string;
   
   if (process.env.REPLIT_DEPLOYMENT) {
-    // Production deployment - use .replit.app domain
-    baseUrl = `https://${process.env.REPL_SLUG}.replit.app`;
+    // Production deployment - use custom PUBLIC_URL if set, otherwise use hardcoded production domain
+    baseUrl = process.env.PUBLIC_URL || `https://sebenzahub.replit.app`;
   } else if (process.env.REPLIT_DEV_DOMAIN) {
     // Development workspace - use .replit.dev domain
     baseUrl = `https://${process.env.REPLIT_DEV_DOMAIN}`;
