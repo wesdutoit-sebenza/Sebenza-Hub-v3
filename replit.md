@@ -27,6 +27,8 @@ Preferred communication style: Simple, everyday language.
     - **Authentication & Authorization**: Passwordless magic link authentication using Resend, Express-session with PostgreSQL store, and robust security features (rate limiting, session fixation prevention). Includes an admin setup endpoint and a single-role system for users (individual, business, recruiter, admin) with role-based access control.
     - **User Management**: Users are identified by auto-incrementing `id` and unique `email`, with onboarding status and last login tracking.
     - **Admin Setup**: Secure admin creation system using `/api/admin/setup` endpoint with `ADMIN_SETUP_SECRET` protection. The endpoint automatically locks after the first admin is created for security. Current admins: wes.dutoit@sebenzahub.co.za, jabulani.mkhwanazi@sebenzahub.co.za.
+        - **Promoting Future Admins**: After the first admin is created, use authenticated admin routes (`/api/admin/users/:id/role`) or update the database directly via SQL: `UPDATE users SET role = 'admin' WHERE email = 'new-admin@example.com';`
+        - **Security Notes**: ADMIN_SETUP_SECRET must be stored in workspace secrets (development) and deployment environment variables (production). Never commit secrets to the repository.
 - **Data Storage**: PostgreSQL (Neon) with Drizzle ORM and pgvector extension, using UUID primary keys.
 
 ### System Design Choices
