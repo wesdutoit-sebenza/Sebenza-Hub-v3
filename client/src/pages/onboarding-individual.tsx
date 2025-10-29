@@ -472,6 +472,7 @@ export default function OnboardingIndividual() {
                               <CommandGroup
                                 key={category.industry}
                                 heading={category.industry}
+                                className="[&_[cmdk-group-heading]]:text-sm [&_[cmdk-group-heading]]:font-semibold"
                               >
                                 {category.titles.map((title) => (
                                   <CommandItem
