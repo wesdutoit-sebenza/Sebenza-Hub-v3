@@ -59,10 +59,12 @@ export default function OnboardingIndividual() {
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState("");
 
-  const { data: user } = useQuery<User>({
+  const { data: userData } = useQuery<{ user: User }>({
     queryKey: ['/api/auth/user'],
     retry: false,
   });
+
+  const user = userData?.user;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -368,8 +370,8 @@ export default function OnboardingIndividual() {
                         <Input 
                           {...field} 
                           type="email" 
-                          disabled 
-                          className="bg-muted"
+                          readOnly 
+                          className="bg-muted cursor-not-allowed"
                           data-testid="input-email" 
                         />
                       </FormControl>
