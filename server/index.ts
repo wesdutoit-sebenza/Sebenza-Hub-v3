@@ -106,7 +106,86 @@ app.use((req, res, next) => {
 });
 
 (async () => {
-  // Setup authentication routes first
+  // Admin Setup Endpoint - MUST be registered before auth middleware
+  // This endpoint ONLY works when no admin users exist
+  const { db } = await import('./db');
+  const { users } = await import('@shared/schema');
+  const { eq } = await import('drizzle-orm');
+  
+  app.post("/api/admin/setup", async (req, res) => {
+    try {
+      const { secret, email } = req.body;
+
+      // Validate secret
+      if (!secret || secret !== process.env.ADMIN_SETUP_SECRET) {
+        return res.status(403).json({
+          success: false,
+          message: "Invalid setup secret",
+        });
+      }
+
+      // Check if any admin users already exist
+      const existingAdmins = await db
+        .select()
+        .from(users)
+        .where(eq(users.role, "admin"));
+
+      if (existingAdmins.length > 0) {
+        return res.status(403).json({
+          success: false,
+          message: "Admin users already exist. This endpoint is locked.",
+        });
+      }
+
+      // Validate email
+      if (!email || typeof email !== 'string' || !email.includes('@')) {
+        return res.status(400).json({
+          success: false,
+          message: "Valid email address required",
+        });
+      }
+
+      // Find user by email
+      const [user] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email));
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: `No user found with email: ${email}`,
+        });
+      }
+
+      // Update user role to admin
+      const [updatedUser] = await db
+        .update(users)
+        .set({ role: "admin" })
+        .where(eq(users.id, user.id))
+        .returning();
+
+      console.log(`[Admin Setup] User ${email} promoted to admin by setup endpoint`);
+
+      res.json({
+        success: true,
+        message: `User ${email} has been promoted to admin`,
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          role: updatedUser.role,
+        },
+      });
+    } catch (error: any) {
+      console.error("[Admin Setup] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to setup admin user",
+      });
+    }
+  });
+  
+  // Setup authentication routes
   const { setupAuthRoutes } = await import('./auth-routes');
   setupAuthRoutes(app);
   
