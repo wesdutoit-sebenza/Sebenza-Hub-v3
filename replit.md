@@ -26,6 +26,7 @@ Preferred communication style: Simple, everyday language.
     - **Background Job Processing**: BullMQ with Redis for asynchronous tasks like candidate screening.
     - **Authentication & Authorization**: Passwordless magic link authentication using Resend, Express-session with PostgreSQL store, and robust security features (rate limiting, session fixation prevention). Includes an admin setup endpoint and a single-role system for users (individual, business, recruiter, admin) with role-based access control.
     - **User Management**: Users are identified by auto-incrementing `id` and unique `email`, with onboarding status and last login tracking.
+    - **Admin Setup**: Secure admin creation system using `/api/admin/setup` endpoint with `ADMIN_SETUP_SECRET` protection. The endpoint automatically locks after the first admin is created for security. Current admins: wes.dutoit@sebenzahub.co.za, jabulani.mkhwanazi@sebenzahub.co.za.
 - **Data Storage**: PostgreSQL (Neon) with Drizzle ORM and pgvector extension, using UUID primary keys.
 
 ### System Design Choices
