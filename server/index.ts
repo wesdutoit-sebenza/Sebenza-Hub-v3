@@ -59,9 +59,9 @@ app.use(
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // "none" for cross-origin in production
-      domain: undefined, // Don't restrict domain in development
+      secure: process.env.NODE_ENV === "production" || !!process.env.REPLIT_DEPLOYMENT,
+      sameSite: "lax", // Use "lax" for same-site cookies (frontend and backend on same domain)
+      domain: undefined, // Auto-detect domain
     },
     proxy: true, // Trust the reverse proxy
   })
