@@ -365,8 +365,17 @@ export default function OnboardingIndividual() {
                     <FormItem>
                       <FormLabel>Email Address</FormLabel>
                       <FormControl>
-                        <Input {...field} type="email" placeholder="e.g., your.email@example.com" data-testid="input-email" />
+                        <Input 
+                          {...field} 
+                          type="email" 
+                          disabled 
+                          className="bg-muted"
+                          data-testid="input-email" 
+                        />
                       </FormControl>
+                      <FormDescription>
+                        Your login email address
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
