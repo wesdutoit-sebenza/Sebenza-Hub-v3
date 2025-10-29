@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem } from "@/components/ui/command";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { JOB_TITLES } from "@shared/jobTitles";
+import { JOB_TITLES_BY_INDUSTRY } from "@shared/jobTitles";
 import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@shared/countries";
 import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
@@ -58,6 +58,8 @@ export default function OnboardingIndividual() {
   const { toast } = useToast();
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState("");
+  const [jobTitleDropdownOpen, setJobTitleDropdownOpen] = useState(false);
+  const [jobTitleSearchQuery, setJobTitleSearchQuery] = useState("");
 
   const { data: userData } = useQuery<{ user: User }>({
     queryKey: ['/api/auth/user'],
@@ -107,6 +109,16 @@ export default function OnboardingIndividual() {
         ),
       })).filter((provinceData) => provinceData.cities.length > 0)
     : CITIES_BY_PROVINCE;
+
+  // Filtered job titles based on search query
+  const filteredJobTitles = jobTitleSearchQuery
+    ? JOB_TITLES_BY_INDUSTRY.map((category) => ({
+        industry: category.industry,
+        titles: category.titles.filter((title) =>
+          title.toLowerCase().includes(jobTitleSearchQuery.toLowerCase())
+        ),
+      })).filter((category) => category.titles.length > 0)
+    : JOB_TITLES_BY_INDUSTRY;
 
   const createProfileMutation = useMutation({
     mutationFn: async (data: FormData) => {
@@ -430,20 +442,58 @@ export default function OnboardingIndividual() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Job Title / Role</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-job-title">
-                          <SelectValue placeholder="Select your job title" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="max-h-[300px]">
-                        {JOB_TITLES.map((title) => (
-                          <SelectItem key={title} value={title}>
-                            {title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={jobTitleDropdownOpen} onOpenChange={setJobTitleDropdownOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={jobTitleDropdownOpen}
+                            className="w-full justify-between text-left font-normal"
+                            data-testid="select-job-title"
+                          >
+                            <span className={field.value ? "" : "text-muted-foreground"}>
+                              {field.value || "Select your job title"}
+                            </span>
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput
+                            placeholder="Search job titles..."
+                            value={jobTitleSearchQuery}
+                            onValueChange={setJobTitleSearchQuery}
+                            data-testid="input-job-title-search"
+                          />
+                          <CommandList className="max-h-[300px]">
+                            <CommandEmpty>No job titles found.</CommandEmpty>
+                            {filteredJobTitles.map((category) => (
+                              <CommandGroup
+                                key={category.industry}
+                                heading={category.industry}
+                              >
+                                {category.titles.map((title) => (
+                                  <CommandItem
+                                    key={title}
+                                    value={title}
+                                    onSelect={() => {
+                                      field.onChange(title);
+                                      setJobTitleDropdownOpen(false);
+                                      setJobTitleSearchQuery("");
+                                    }}
+                                    className="cursor-pointer"
+                                    data-testid={`job-title-option-${title}`}
+                                  >
+                                    {title}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            ))}
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
