@@ -42,7 +42,7 @@ Preferred communication style: Simple, everyday language.
 - **South African Context**: POPIA compliance and WhatsApp-first workflow.
 
 ## External Dependencies
-- **UI & Styling**: Radix UI, shadcn/ui, Lucide React, Tailwind CSS, Google Fonts.
+- **UI & Styling**: Radix UI, shadcn/ui, Lucide React, Tailwind CSS, Google 1s.
 - **Form Handling**: React Hook Form, Zod.
 - **Database**: Drizzle ORM, @neondatabase/serverless.
 - **File Upload**: Multer, pdf-parse (PDF text extraction).
