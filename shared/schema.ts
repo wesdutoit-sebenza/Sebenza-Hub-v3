@@ -538,8 +538,11 @@ export const insertCVSchema = z.object({
   education: z.array(cvEducationSchema),
   references: z.array(cvReferenceSchema).optional(),
   aboutMe: z.string().optional(),
-  photoUrl: z.string().optional(),
-  includePhoto: z.number().optional().default(1),
+  photoUrl: z.string().nullable().optional(),
+  includePhoto: z.union([z.boolean(), z.number()])
+    .transform((val) => typeof val === 'boolean' ? (val ? 1 : 0) : val)
+    .optional()
+    .default(1),
 });
 
 export type InsertCV = z.infer<typeof insertCVSchema>;
