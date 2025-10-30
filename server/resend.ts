@@ -110,8 +110,13 @@ export async function sendMagicLinkEmail(email: string, token: string) {
   });
 
   if (error) {
+    console.error('❌ Resend API Error:', error);
     throw new Error(`Failed to send email: ${error.message}`);
   }
+
+  console.log('✅ Email sent successfully via Resend');
+  console.log('📨 Resend Email ID:', data?.id);
+  console.log('');
 
   return data;
 }
