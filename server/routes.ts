@@ -2581,15 +2581,6 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         });
       }
 
-      // Check if user already has a candidate profile
-      const existingCandidate = await db.select()
-        .from(candidates)
-        .where(eq(candidates.userId, userId))
-        .limit(1);
-
-      // If profile exists, we'll update it instead of creating a new one
-      const hasExistingProfile = existingCandidate.length > 0;
-
       console.log(`[Individuals] Processing uploaded file: ${uploadedFile.originalname} (${uploadedFile.size} bytes)`);
 
       // Extract text from file (PDF, TXT, DOCX)
@@ -2605,119 +2596,102 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
 
       const { candidate: parsedCandidate } = parsedResult;
 
-      // Create candidate and all related records
-      const [newCandidate] = await db.insert(candidates)
+      // Map AI-parsed data to CV schema
+      const personalInfo = {
+        fullName: parsedCandidate.full_name || "",
+        physicalAddress: parsedCandidate.contact?.city || "",
+        contactPhone: parsedCandidate.contact?.phone || "",
+        contactEmail: parsedCandidate.contact?.email || authReq.user!.email,
+        province: "",
+        postalCode: "",
+        city: parsedCandidate.contact?.city || "",
+        country: parsedCandidate.contact?.country || "South Africa",
+      };
+
+      const workExperience = (parsedCandidate.experience || []).map(exp => ({
+        period: `${exp.start_date || ""} - ${exp.end_date || "Present"}`.trim(),
+        company: exp.company || "",
+        position: exp.title || "",
+        type: exp.is_current ? "Full-time" : "Full-time",
+        industry: exp.industry || "",
+        clientele: "",
+        responsibilities: [{
+          title: "",
+          items: exp.bullets || []
+        }],
+        references: []
+      }));
+
+      const allSkills = [
+        ...(parsedCandidate.skills?.technical || []),
+        ...(parsedCandidate.skills?.tools || []),
+        ...(parsedCandidate.skills?.soft || [])
+      ].slice(0, 10); // Max 10 skills
+
+      const education = (parsedCandidate.education || []).map(edu => ({
+        level: edu.qualification || "",
+        institution: edu.institution || "",
+        period: edu.grad_date || "",
+        location: edu.location || "",
+        details: ""
+      }));
+
+      // Create CV record
+      const [newCV] = await db.insert(cvs)
         .values({
-          userId: userId, // Link to authenticated user
-          fullName: parsedCandidate.full_name || null,
-          headline: parsedCandidate.headline || null,
-          email: parsedCandidate.contact?.email || authReq.user!.email || null,
-          phone: parsedCandidate.contact?.phone || null,
-          city: parsedCandidate.contact?.city || null,
-          country: parsedCandidate.contact?.country || null,
-          links: parsedCandidate.links || {},
-          summary: parsedCandidate.summary || null,
-          workAuthorization: parsedCandidate.work_authorization || null,
-          availability: parsedCandidate.availability || null,
-          salaryExpectation: parsedCandidate.salary_expectation || null,
-          notes: parsedCandidate.notes || null,
+          userId: userId,
+          personalInfo,
+          workExperience,
+          skills: allSkills,
+          education,
+          references: [],
+          aboutMe: parsedCandidate.summary || null
         })
         .returning();
 
-      const candidateId = newCandidate.id;
+      console.log(`[Individuals] Successfully created CV: ${parsedCandidate.full_name} (${newCV.id})`);
 
-      // Create resume record
-      await db.insert(resumes).values({
-        candidateId,
-        filename: uploadedFile.originalname,
-        filesizeBytes: uploadedFile.size,
-        parsedOk: parsedResult.source_meta.parsed_ok ? 1 : 0,
-        parseNotes: parsedResult.source_meta.parse_notes,
-        rawText: uploadedFile.mimetype === 'text/plain' ? fileContent : null,
+      // Clean up temp file
+      try {
+        await fs.unlink(uploadedFile.path);
+        console.log(`[Individuals] Cleaned up temporary file: ${uploadedFile.path}`);
+      } catch (err) {
+        console.error(`[Individuals] Failed to delete temp file: ${uploadedFile.path}`, err);
+      }
+
+      return res.json({
+        success: true,
+        message: "CV uploaded and processed successfully",
+        cvId: newCV.id
       });
-
-      // Create experiences
-      if (parsedCandidate.experience && parsedCandidate.experience.length > 0) {
-        for (const exp of parsedCandidate.experience) {
-          await db.insert(experiences).values({
-            candidateId,
-            title: exp.title || null,
-            company: exp.company || null,
-            industry: exp.industry || null,
-            location: exp.location || null,
-            startDate: exp.start_date || null,
-            endDate: exp.end_date || null,
-            isCurrent: exp.is_current ? 1 : 0,
-            bullets: exp.bullets || [],
-          });
+    } catch (error: any) {
+      console.error("[Individuals] Resume upload error:", error);
+      
+      // Clean up temp file on error
+      if (uploadedFile?.path) {
+        try {
+          await fs.unlink(uploadedFile.path);
+          console.log(`[Individuals] Cleaned up temporary file: ${uploadedFile.path}`);
+        } catch (err) {
+          console.error(`[Individuals] Failed to delete temp file on error: ${uploadedFile.path}`);
         }
       }
 
-      // Create education
-      if (parsedCandidate.education && parsedCandidate.education.length > 0) {
-        for (const edu of parsedCandidate.education) {
-          await db.insert(education).values({
-            candidateId,
-            institution: edu.institution || null,
-            qualification: edu.qualification || null,
-            location: edu.location || null,
-            gradDate: edu.grad_date || null,
-          });
-        }
-      }
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to process resume",
+      });
+    }
+  });
 
-      // Create certifications
-      if (parsedCandidate.certifications && parsedCandidate.certifications.length > 0) {
-        for (const cert of parsedCandidate.certifications) {
-          await db.insert(certifications).values({
-            candidateId,
-            name: cert.name || null,
-            issuer: cert.issuer || null,
-            year: cert.year || null,
-          });
-        }
-      }
+  // TODO: Remove old candidate-based code below after migration
+  app.post("/api/OLD_DEPRECATED_individuals_resume_upload", authenticateSession, upload.single('file'), async (req, res) => {
+    // This is the old implementation - keeping temporarily for reference
+    try {
+      const allSkills: Array<{ name: string; kind: string }> = [];
+      const candidateId = "";
 
-      // Create projects
-      if (parsedCandidate.projects && parsedCandidate.projects.length > 0) {
-        for (const proj of parsedCandidate.projects) {
-          await db.insert(projects).values({
-            candidateId,
-            name: proj.name || null,
-            what: proj.what || null,
-            impact: proj.impact || null,
-            link: proj.link || null,
-          });
-        }
-      }
-
-      // Create awards
-      if (parsedCandidate.awards && parsedCandidate.awards.length > 0) {
-        for (const award of parsedCandidate.awards) {
-          await db.insert(awards).values({
-            candidateId,
-            name: award.name || null,
-            byWhom: award.by || null,
-            year: award.year || null,
-            note: award.note || null,
-          });
-        }
-      }
-
-      // Create skills
-      if (parsedCandidate.skills) {
-        const allSkills: Array<{ name: string; kind: string }> = [];
-
-        if (parsedCandidate.skills.technical) {
-          allSkills.push(...parsedCandidate.skills.technical.map(s => ({ name: s, kind: 'technical' })));
-        }
-        if (parsedCandidate.skills.tools) {
-          allSkills.push(...parsedCandidate.skills.tools.map(s => ({ name: s, kind: 'tools' })));
-        }
-        if (parsedCandidate.skills.soft) {
-          allSkills.push(...parsedCandidate.skills.soft.map(s => ({ name: s, kind: 'soft' })));
-        }
-
+      if (false) {
         for (const { name, kind } of allSkills) {
           if (!name?.trim()) continue;
 
@@ -2997,15 +2971,6 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         });
       }
 
-      // Check if user already has a candidate profile
-      const existingCandidate = await db.select()
-        .from(candidates)
-        .where(eq(candidates.userId, userId))
-        .limit(1);
-
-      // If profile exists, we'll update it instead of creating a new one
-      const hasExistingProfile = existingCandidate.length > 0;
-
       const { resumeText } = req.body;
 
       if (!resumeText || !resumeText.trim()) {
@@ -3026,7 +2991,80 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
 
       const { candidate: parsedCandidate } = parsedResult;
 
-      // Create candidate and all related records
+      // Map AI-parsed data to CV schema (same as file upload)
+      const personalInfo = {
+        fullName: parsedCandidate.full_name || "",
+        physicalAddress: parsedCandidate.contact?.city || "",
+        contactPhone: parsedCandidate.contact?.phone || "",
+        contactEmail: parsedCandidate.contact?.email || authReq.user!.email,
+        province: "",
+        postalCode: "",
+        city: parsedCandidate.contact?.city || "",
+        country: parsedCandidate.contact?.country || "South Africa",
+      };
+
+      const workExperience = (parsedCandidate.experience || []).map(exp => ({
+        period: `${exp.start_date || ""} - ${exp.end_date || "Present"}`.trim(),
+        company: exp.company || "",
+        position: exp.title || "",
+        type: exp.is_current ? "Full-time" : "Full-time",
+        industry: exp.industry || "",
+        clientele: "",
+        responsibilities: [{
+          title: "",
+          items: exp.bullets || []
+        }],
+        references: []
+      }));
+
+      const allSkills = [
+        ...(parsedCandidate.skills?.technical || []),
+        ...(parsedCandidate.skills?.tools || []),
+        ...(parsedCandidate.skills?.soft || [])
+      ].slice(0, 10);
+
+      const education = (parsedCandidate.education || []).map(edu => ({
+        level: edu.qualification || "",
+        institution: edu.institution || "",
+        period: edu.grad_date || "",
+        location: edu.location || "",
+        details: ""
+      }));
+
+      // Create CV record
+      const [newCV] = await db.insert(cvs)
+        .values({
+          userId: userId,
+          personalInfo,
+          workExperience,
+          skills: allSkills,
+          education,
+          references: [],
+          aboutMe: parsedCandidate.summary || null
+        })
+        .returning();
+
+      console.log(`[Individuals] Successfully created CV from paste: ${parsedCandidate.full_name} (${newCV.id})`);
+
+      return res.json({
+        success: true,
+        message: "CV parsed and created successfully",
+        cvId: newCV.id
+      });
+    } catch (error: any) {
+      console.error("[Individuals] Resume parse error:", error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Failed to parse resume",
+      });
+    }
+  });
+
+  // TODO: Remove old code below after migration  
+  app.post("/api/OLD_DEPRECATED_individuals_resume_parse", authenticateSession, async (req, res) => {
+    // Old implementation - keeping temporarily for reference
+    try {
+      const candidates = {} as any;
       const [newCandidate] = await db.insert(candidates)
         .values({
           userId: userId, // Link to authenticated user
