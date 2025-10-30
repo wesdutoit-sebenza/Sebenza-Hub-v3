@@ -110,6 +110,44 @@ const photoUpload = multer({
   }
 });
 
+// AI-powered image processing for CV photos
+async function processProfilePhoto(inputPath: string, outputPath: string): Promise<void> {
+  const sharp = (await import('sharp')).default;
+  
+  // Read the image
+  const image = sharp(inputPath);
+  const metadata = await image.metadata();
+  
+  if (!metadata.width || !metadata.height) {
+    throw new Error('Invalid image metadata');
+  }
+
+  // Determine the size for a square crop (use the smaller dimension)
+  const size = Math.min(metadata.width, metadata.height);
+  
+  // Calculate the center point for cropping
+  const left = Math.floor((metadata.width - size) / 2);
+  const top = Math.floor((metadata.height - size) / 2);
+
+  // Create a circular mask
+  const circularMask = Buffer.from(
+    `<svg width="${size}" height="${size}">
+      <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="white"/>
+    </svg>`
+  );
+
+  // Process the image: crop to square, apply circular mask
+  await image
+    .extract({ width: size, height: size, left, top })
+    .resize(400, 400) // Standard profile photo size
+    .composite([{
+      input: circularMask,
+      blend: 'dest-in'
+    }])
+    .png() // Save as PNG to preserve transparency
+    .toFile(outputPath);
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/subscribe", async (req, res) => {
     try {
@@ -759,23 +797,110 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         });
       }
 
-      // File is now saved to uploads/cv-photos directory
-      // Generate a URL path for accessing the photo
-      const photoUrl = `/uploads/cv-photos/${req.file.filename}`;
+      // Process the photo: circular crop, background removal (via circular mask)
+      const processedFilename = `processed-${req.file.filename.replace(/\.[^.]+$/, '.png')}`;
+      const processedPath = path.join(process.cwd(), 'uploads', 'cv-photos', processedFilename);
 
-      console.log(`[CV Photo] Uploaded: ${req.file.filename} for user ${authReq.user!.id}`);
+      console.log(`[CV Photo] Processing: ${req.file.filename} for user ${authReq.user!.id}`);
+
+      try {
+        await processProfilePhoto(req.file.path, processedPath);
+        
+        // Delete the original uploaded file to save space
+        await fs.unlink(req.file.path);
+        
+        console.log(`[CV Photo] Processed and saved: ${processedFilename}`);
+      } catch (processError) {
+        console.error(`[CV Photo] Processing failed:`, processError);
+        
+        // If processing fails, fall back to the original file
+        return res.status(500).json({
+          success: false,
+          message: "Failed to process the photo. Please try a different image.",
+        });
+      }
+
+      // Generate a URL path for accessing the processed photo
+      const photoUrl = `/uploads/cv-photos/${processedFilename}`;
 
       res.json({
         success: true,
-        message: "Photo uploaded successfully!",
+        message: "Photo uploaded and processed successfully!",
         photoUrl,
-        filename: req.file.filename,
+        filename: processedFilename,
       });
     } catch (error: any) {
       console.error("Photo upload error:", error);
       res.status(500).json({
         success: false,
         message: error.message || "Error uploading photo.",
+      });
+    }
+  });
+
+  // Delete CV photo endpoint
+  app.delete("/api/cvs/photo/:cvId", authenticateSession, async (req, res) => {
+    const authReq = req as AuthRequest;
+    const userId = authReq.user!.id;
+
+    try {
+      const { cvId } = req.params;
+      
+      // Verify the CV exists and belongs to the user
+      const [cv] = await db.select()
+        .from(cvs)
+        .where(eq(cvs.id, cvId))
+        .limit(1);
+      
+      if (!cv) {
+        return res.status(404).json({
+          success: false,
+          message: "CV not found.",
+        });
+      }
+
+      // Authorization check
+      if (cv.userId !== userId) {
+        return res.status(403).json({
+          success: false,
+          message: "You do not have permission to delete this photo.",
+        });
+      }
+
+      // Delete the photo file if it exists
+      if (cv.photoUrl) {
+        const filename = path.basename(cv.photoUrl);
+        const filePath = path.join(process.cwd(), 'uploads', 'cv-photos', filename);
+        
+        try {
+          await fs.unlink(filePath);
+          console.log(`[CV Photo] Deleted file: ${filename}`);
+        } catch (fileError) {
+          console.error(`[CV Photo] Failed to delete file:`, fileError);
+          // Continue anyway - the database update is more important
+        }
+      }
+
+      // Update the CV to remove the photo URL
+      const [updatedCV] = await db.update(cvs)
+        .set({ 
+          photoUrl: null,
+          includePhoto: false,
+          updatedAt: new Date(),
+        })
+        .where(eq(cvs.id, cvId))
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Photo deleted successfully!",
+        cv: updatedCV,
+      });
+    } catch (error: any) {
+      console.error("Photo deletion error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error deleting photo.",
       });
     }
   });
@@ -865,6 +990,12 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       }
       if (validatedData.aboutMe !== undefined) {
         updatePayload.aboutMe = validatedData.aboutMe;
+      }
+      if (validatedData.photoUrl !== undefined) {
+        updatePayload.photoUrl = validatedData.photoUrl;
+      }
+      if (validatedData.includePhoto !== undefined) {
+        updatePayload.includePhoto = validatedData.includePhoto;
       }
       
       // Update in database - userId and createdAt are preserved automatically
