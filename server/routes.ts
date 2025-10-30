@@ -771,19 +771,65 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
     }
   });
 
-  app.get("/api/cvs", async (_req, res) => {
+  app.get("/api/cvs", authenticateSession, async (req, res) => {
+    const authReq = req as AuthRequest;
+    const userId = authReq.user!.id;
+
     try {
-      const cvs = await storage.getAllCVs();
+      // Get ALL CVs and filter by userId for security
+      const allCvs = await storage.getAllCVs();
+      const userCvs = allCvs.filter(cv => cv.userId === userId);
+      
       res.json({
         success: true,
-        count: cvs.length,
-        cvs,
+        count: userCvs.length,
+        cvs: userCvs,
       });
     } catch (error) {
       console.error("Error fetching CVs:", error);
       res.status(500).json({
         success: false,
         message: "Error fetching CVs.",
+      });
+    }
+  });
+
+  app.delete("/api/cvs/:id", authenticateSession, async (req, res) => {
+    const authReq = req as AuthRequest;
+    const userId = authReq.user!.id;
+
+    try {
+      const { id } = req.params;
+      
+      // First, verify the CV exists and belongs to the user
+      const cv = await storage.getCV(id);
+      
+      if (!cv) {
+        return res.status(404).json({
+          success: false,
+          message: "CV not found.",
+        });
+      }
+
+      // Authorization check: ensure the CV belongs to the requesting user
+      if (cv.userId !== userId) {
+        return res.status(403).json({
+          success: false,
+          message: "You do not have permission to delete this CV.",
+        });
+      }
+
+      const deleted = await storage.deleteCV(id);
+
+      res.json({
+        success: true,
+        message: "CV deleted successfully.",
+      });
+    } catch (error) {
+      console.error("Error deleting CV:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error deleting CV.",
       });
     }
   });

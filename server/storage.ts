@@ -16,6 +16,7 @@ export interface IStorage {
   createCV(cv: InsertCV): Promise<CV>;
   getCV(id: string): Promise<CV | undefined>;
   updateCV(id: string, cv: Partial<InsertCV>): Promise<CV | undefined>;
+  deleteCV(id: string): Promise<boolean>;
   getAllCVs(): Promise<CV[]>;
   getCVByUserId(userId: string): Promise<CV | undefined>;
   createRefreshToken(token: InsertRefreshToken): Promise<RefreshToken>;
@@ -204,6 +205,10 @@ export class MemStorage implements IStorage {
     return Array.from(this.cvs.values()).find(
       (cv) => cv.userId === userId
     );
+  }
+
+  async deleteCV(id: string): Promise<boolean> {
+    return this.cvs.delete(id);
   }
 
   async createRefreshToken(insertToken: InsertRefreshToken): Promise<RefreshToken> {

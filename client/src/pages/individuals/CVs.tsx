@@ -12,10 +12,11 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { FileText, Plus, Eye, Trash2, Calendar, Upload, FilePen } from "lucide-react";
-import { type CV, type CVPersonalInfo, type CVWorkExperience } from "@shared/schema";
+import { FileText, Plus, Eye, Trash2, Calendar, Upload, FilePen, Mail, Phone, MapPin, Briefcase, GraduationCap, Award } from "lucide-react";
+import { type CV, type CVPersonalInfo, type CVWorkExperience, type CVEducation } from "@shared/schema";
 import CVBuilder from "@/components/CVBuilder";
 import ResumeUpload from "@/components/ResumeUpload";
+import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,6 +33,7 @@ export default function IndividualCVs() {
   const { toast } = useToast();
   const [showCVBuilder, setShowCVBuilder] = useState(false);
   const [showResumeUpload, setShowResumeUpload] = useState(false);
+  const [selectedCV, setSelectedCV] = useState<CV | null>(null);
 
   const { data: cvsData, isLoading } = useQuery<{ success: boolean; count: number; cvs: CV[] }>({
     queryKey: ["/api/cvs"],
@@ -160,12 +162,7 @@ export default function IndividualCVs() {
                     variant="outline"
                     size="sm"
                     className="flex-1"
-                    onClick={() => {
-                      toast({
-                        title: "CV Preview",
-                        description: "CV preview functionality coming soon.",
-                      });
-                    }}
+                    onClick={() => setSelectedCV(cv)}
                     data-testid={`button-view-${cv.id}`}
                   >
                     <Eye className="h-4 w-4 mr-2" />
@@ -240,6 +237,172 @@ export default function IndividualCVs() {
             </DialogDescription>
           </DialogHeader>
           <ResumeUpload onSuccess={handleResumeUploadSuccess} />
+        </DialogContent>
+      </Dialog>
+
+      {/* CV Detail View Dialog */}
+      <Dialog open={!!selectedCV} onOpenChange={() => setSelectedCV(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          {selectedCV && (() => {
+            const personalInfo = selectedCV.personalInfo as unknown as CVPersonalInfo;
+            const workExperience = selectedCV.workExperience as unknown as CVWorkExperience[];
+            const education = selectedCV.education as unknown as CVEducation[];
+            const skills = selectedCV.skills as unknown as string[];
+            
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="text-2xl">{personalInfo?.fullName || "Untitled CV"}</DialogTitle>
+                  <DialogDescription>
+                    Created {new Date(selectedCV.createdAt).toLocaleDateString()}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-6 mt-4">
+                  {/* Personal Information */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                      <MapPin className="h-5 w-5" />
+                      Contact Information
+                    </h3>
+                    <div className="grid gap-3 text-sm">
+                      {personalInfo?.contactEmail && (
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-muted-foreground" />
+                          <span>{personalInfo.contactEmail}</span>
+                        </div>
+                      )}
+                      {personalInfo?.contactPhone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <span>{personalInfo.contactPhone}</span>
+                        </div>
+                      )}
+                      {personalInfo?.city && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground" />
+                          <span>{personalInfo.city}, {personalInfo.country || "South Africa"}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* About Me */}
+                  {selectedCV.aboutMe && (
+                    <>
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3">About Me</h3>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {selectedCV.aboutMe}
+                        </p>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+
+                  {/* Work Experience */}
+                  {workExperience && workExperience.length > 0 && (
+                    <>
+                      <div>
+                        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                          <Briefcase className="h-5 w-5" />
+                          Work Experience
+                        </h3>
+                        <div className="space-y-4">
+                          {workExperience.map((exp, idx) => (
+                            <Card key={idx}>
+                              <CardContent className="pt-4">
+                                <div className="flex justify-between items-start mb-2">
+                                  <div>
+                                    <h4 className="font-semibold">{exp.position}</h4>
+                                    <p className="text-sm text-muted-foreground">{exp.company}</p>
+                                  </div>
+                                  <Badge variant="secondary">{exp.period}</Badge>
+                                </div>
+                                {exp.industry && (
+                                  <p className="text-sm text-muted-foreground mb-2">
+                                    Industry: {exp.industry}
+                                  </p>
+                                )}
+                                {exp.responsibilities && exp.responsibilities.length > 0 && (
+                                  <div className="mt-3">
+                                    {exp.responsibilities.map((resp, ridx) => (
+                                      <div key={ridx}>
+                                        {resp.title && <p className="text-sm font-medium mb-1">{resp.title}</p>}
+                                        <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                                          {resp.items.map((item, iidx) => (
+                                            <li key={iidx}>{item}</li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+
+                  {/* Skills */}
+                  {skills && skills.length > 0 && (
+                    <>
+                      <div>
+                        <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                          <Award className="h-5 w-5" />
+                          Skills
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {skills.map((skill, idx) => (
+                            <Badge key={idx} variant="secondary">
+                              {skill}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+
+                  {/* Education */}
+                  {education && education.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <GraduationCap className="h-5 w-5" />
+                        Education
+                      </h3>
+                      <div className="space-y-3">
+                        {education.map((edu, idx) => (
+                          <Card key={idx}>
+                            <CardContent className="pt-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-semibold">{edu.level}</h4>
+                                  <p className="text-sm text-muted-foreground">{edu.institution}</p>
+                                  {edu.location && (
+                                    <p className="text-sm text-muted-foreground">{edu.location}</p>
+                                  )}
+                                </div>
+                                <Badge variant="secondary">{edu.period}</Badge>
+                              </div>
+                              {edu.details && (
+                                <p className="text-sm text-muted-foreground mt-2">{edu.details}</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            );
+          })()}
         </DialogContent>
       </Dialog>
     </div>
