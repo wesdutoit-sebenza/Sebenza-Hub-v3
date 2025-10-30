@@ -54,23 +54,24 @@ import adminRoutes from "./admin.routes";
 
 // Helper function to extract text from uploaded files
 async function extractTextFromFile(filePath: string, mimetype: string): Promise<string> {
-  const fileBuffer = await fs.readFile(filePath);
-  
   if (mimetype === 'application/pdf') {
     // Use pdf-parse v2 API (exports PDFParse as named export)
     const { PDFParse } = await import('pdf-parse');
-    const parser = new PDFParse({ buffer: fileBuffer });
+    const parser = new PDFParse({ url: filePath });
     const result = await parser.getText();
     return result.text;
   } else if (mimetype === 'text/plain') {
+    const fileBuffer = await fs.readFile(filePath);
     return fileBuffer.toString('utf-8');
   } else if (mimetype === 'application/msword' || 
              mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
     // For DOCX files, fallback to treating as text for now
     // TODO: Add proper DOCX parsing library like mammoth
+    const fileBuffer = await fs.readFile(filePath);
     return fileBuffer.toString('utf-8');
   } else {
     // Fallback: try to extract as text
+    const fileBuffer = await fs.readFile(filePath);
     return fileBuffer.toString('utf-8');
   }
 }
