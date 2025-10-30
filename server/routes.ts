@@ -129,17 +129,20 @@ async function processProfilePhoto(inputPath: string, outputPath: string): Promi
   const left = Math.floor((metadata.width - size) / 2);
   const top = Math.floor((metadata.height - size) / 2);
 
-  // Create a circular mask
+  // Standard profile photo size
+  const finalSize = 400;
+
+  // Create a circular mask at the final size (400x400)
   const circularMask = Buffer.from(
-    `<svg width="${size}" height="${size}">
-      <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="white"/>
+    `<svg width="${finalSize}" height="${finalSize}">
+      <circle cx="${finalSize / 2}" cy="${finalSize / 2}" r="${finalSize / 2}" fill="white"/>
     </svg>`
   );
 
-  // Process the image: crop to square, apply circular mask
+  // Process the image: crop to square, resize, then apply circular mask
   await image
     .extract({ width: size, height: size, left, top })
-    .resize(400, 400) // Standard profile photo size
+    .resize(finalSize, finalSize) // Standard profile photo size
     .composite([{
       input: circularMask,
       blend: 'dest-in'
@@ -898,7 +901,7 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       const [updatedCV] = await db.update(cvs)
         .set({ 
           photoUrl: null,
-          includePhoto: false,
+          includePhoto: 0, // 0 = exclude photo
           updatedAt: new Date(),
         })
         .where(eq(cvs.id, cvId))
