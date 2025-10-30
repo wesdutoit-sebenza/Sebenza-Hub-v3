@@ -1,9 +1,14 @@
+import { useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Download, User } from "lucide-react";
+import { Download, User, Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import type { InsertCV } from "@shared/schema";
 import { isOldSkillsFormat } from "@shared/skillsMigration";
 import { getCategoryForSkill } from "@shared/skills";
+// @ts-ignore
+import html2pdf from 'html2pdf.js';
 
 interface Props {
   data: Partial<InsertCV>;
@@ -13,6 +18,9 @@ interface Props {
 
 export default function CVPreview({ data }: Props) {
   const { personalInfo, workExperience, skills, education, aboutMe, photoUrl, includePhoto } = data;
+  const { toast } = useToast();
+  const cvRef = useRef<HTMLDivElement>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   
   // Debug logging for photo
   console.log('[CVPreview] Photo data:', { photoUrl, includePhoto, type: typeof includePhoto });
@@ -21,17 +29,84 @@ export default function CVPreview({ data }: Props) {
   const isOldFormat = skills && isOldSkillsFormat(skills);
   const skillsArray = Array.isArray(skills) ? skills : [];
 
+  const handleDownloadPDF = async () => {
+    if (!cvRef.current || isGenerating) return;
+    
+    setIsGenerating(true);
+    
+    // Store original styles before any modifications
+    const originalMaxHeight = cvRef.current.style.maxHeight;
+    const originalOverflow = cvRef.current.style.overflow;
+    
+    try {
+      // Temporarily remove height constraint for full CV capture
+      cvRef.current.style.maxHeight = 'none';
+      cvRef.current.style.overflow = 'visible';
+      
+      const fileName = personalInfo?.fullName 
+        ? `${personalInfo.fullName.replace(/\s+/g, '_')}_CV.pdf`
+        : 'CV.pdf';
+      
+      const opt = {
+        margin: 10,
+        filename: fileName,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      };
+      
+      await html2pdf().set(opt).from(cvRef.current).save();
+      
+      toast({
+        title: "PDF Downloaded",
+        description: "Your CV has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast({
+        variant: "destructive",
+        title: "Download Failed",
+        description: "Failed to generate PDF. Please try again.",
+      });
+    } finally {
+      // Always restore original styles
+      if (cvRef.current) {
+        cvRef.current.style.maxHeight = originalMaxHeight;
+        cvRef.current.style.overflow = originalOverflow;
+      }
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold" data-testid="text-step-title">Preview Your CV</h3>
-        <Download className="text-muted-foreground" size={20} />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleDownloadPDF}
+          disabled={isGenerating}
+          data-testid="button-download-pdf"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Generating PDF...
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4 mr-2" />
+              Download as PDF
+            </>
+          )}
+        </Button>
       </div>
       <p className="text-muted-foreground mb-6">
         Review your CV before saving. You can go back to edit any section.
       </p>
 
-      <Card className="p-8 bg-white text-black max-h-[600px] overflow-y-auto" data-testid="card-cv-preview">
+      <Card ref={cvRef} className="p-8 bg-white text-black max-h-[600px] overflow-y-auto" data-testid="card-cv-preview">
         <div className="space-y-8">
           {/* Personal Info */}
           {personalInfo && (
