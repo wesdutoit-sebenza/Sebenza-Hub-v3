@@ -14,6 +14,9 @@ interface Props {
 export default function CVPreview({ data }: Props) {
   const { personalInfo, workExperience, skills, education, aboutMe, photoUrl, includePhoto } = data;
   
+  // Debug logging for photo
+  console.log('[CVPreview] Photo data:', { photoUrl, includePhoto, type: typeof includePhoto });
+  
   // Handle both old and new skills format
   const isOldFormat = skills && isOldSkillsFormat(skills);
   const skillsArray = Array.isArray(skills) ? skills : [];

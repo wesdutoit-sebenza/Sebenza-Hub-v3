@@ -90,6 +90,12 @@ export default function PersonalInfoStep({ data, updateData, onNext, cvId }: Pro
     form.setValue("contactPhone", combinedPhone);
   }, [countryCode, phoneNumber, form]);
 
+  // Auto-save photo data to CVBuilder state whenever it changes
+  useEffect(() => {
+    updateData("photoUrl", photoUrl);
+    updateData("includePhoto", includePhoto ? 1 : 0);
+  }, [photoUrl, includePhoto, updateData]);
+
   const onSubmit = (formData: CVPersonalInfo) => {
     // Update personal info
     updateData("personalInfo", formData);
