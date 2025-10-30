@@ -10,9 +10,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { FileText, Plus, Eye, Trash2, Calendar, Upload, FilePen, Mail, Phone, MapPin, Briefcase, GraduationCap, Award, Edit } from "lucide-react";
+import { FileText, Plus, Eye, Trash2, Calendar, Upload, FilePen, Mail, Phone, MapPin, Briefcase, GraduationCap, Award, Edit, User } from "lucide-react";
 import { type CV, type CVPersonalInfo, type CVWorkExperience, type CVEducation } from "@shared/schema";
 import CVBuilder from "@/components/CVBuilder";
 import ResumeUpload from "@/components/ResumeUpload";
@@ -274,6 +275,18 @@ export default function IndividualCVs() {
             return (
               <>
                 <DialogHeader>
+                  {/* Photo - Only show if includePhoto is enabled and photoUrl exists */}
+                  {selectedCV.includePhoto && selectedCV.photoUrl && (
+                    <div className="flex justify-center mb-4">
+                      <Avatar className="h-24 w-24" data-testid="avatar-cv-detail-photo">
+                        <AvatarImage src={selectedCV.photoUrl} alt={personalInfo?.fullName} />
+                        <AvatarFallback className="bg-muted">
+                          <User className="h-12 w-12 text-muted-foreground" />
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  )}
+                  
                   <DialogTitle className="text-2xl">{personalInfo?.fullName || "Untitled CV"}</DialogTitle>
                   <DialogDescription>
                     Created {new Date(selectedCV.createdAt).toLocaleDateString()}
