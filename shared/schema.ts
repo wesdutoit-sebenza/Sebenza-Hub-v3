@@ -524,6 +524,8 @@ export const cvs = pgTable("cvs", {
   education: jsonb("education").notNull(),
   references: jsonb("references"),
   aboutMe: text("about_me"),
+  photoUrl: text("photo_url"),
+  includePhoto: integer("include_photo").notNull().default(1), // 0 = exclude, 1 = include
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -536,6 +538,8 @@ export const insertCVSchema = z.object({
   education: z.array(cvEducationSchema),
   references: z.array(cvReferenceSchema).optional(),
   aboutMe: z.string().optional(),
+  photoUrl: z.string().optional(),
+  includePhoto: z.number().optional().default(1),
 });
 
 export type InsertCV = z.infer<typeof insertCVSchema>;
