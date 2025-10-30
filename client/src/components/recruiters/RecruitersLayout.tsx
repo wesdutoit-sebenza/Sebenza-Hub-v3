@@ -90,7 +90,7 @@ export function RecruitersLayout({ children }: RecruitersLayoutProps) {
     <SidebarProvider style={style as React.CSSProperties}>
       <div className="flex min-h-screen w-full">
         <Sidebar data-testid="recruiters-sidebar">
-          <SidebarContent>
+          <SidebarContent className="pt-20">
             <SidebarGroup>
               <SidebarGroupLabel className="text-lg font-semibold px-4 mb-4">
                 Recruiter's Dashboard
