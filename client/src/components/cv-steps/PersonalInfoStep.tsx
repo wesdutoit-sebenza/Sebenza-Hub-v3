@@ -50,7 +50,7 @@ export default function PersonalInfoStep({ data, updateData, onNext, cvId }: Pro
   
   // Photo state
   const [photoUrl, setPhotoUrl] = useState<string | null>(data.photoUrl || null);
-  const [includePhoto, setIncludePhoto] = useState(data.includePhoto !== false);
+  const [includePhoto, setIncludePhoto] = useState(data.includePhoto === 1 || data.includePhoto === true); // Convert integer (0/1) or boolean to boolean
 
   const form = useForm<CVPersonalInfo>({
     resolver: zodResolver(cvPersonalInfoSchema),
@@ -94,9 +94,9 @@ export default function PersonalInfoStep({ data, updateData, onNext, cvId }: Pro
     // Update personal info
     updateData("personalInfo", formData);
     
-    // Update photo data separately
+    // Update photo data separately (convert boolean to number for backend)
     updateData("photoUrl", photoUrl);
-    updateData("includePhoto", includePhoto);
+    updateData("includePhoto", includePhoto ? 1 : 0);
     
     onNext();
   };

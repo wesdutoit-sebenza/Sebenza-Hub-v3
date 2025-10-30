@@ -43,7 +43,7 @@ export default function CVBuilder({ onComplete, initialCV, editMode = false }: C
       references: (initialCV.references || []) as CVReference[],
       aboutMe: initialCV.aboutMe || "",
       photoUrl: initialCV.photoUrl || null,
-      includePhoto: initialCV.includePhoto !== false,
+      includePhoto: initialCV.includePhoto ?? 1, // Keep as number (0/1), use nullish coalescing to preserve 0
     } : {
       personalInfo: {} as CVPersonalInfo,
       workExperience: [] as CVWorkExperience[],
@@ -52,7 +52,7 @@ export default function CVBuilder({ onComplete, initialCV, editMode = false }: C
       references: [] as CVReference[],
       aboutMe: "",
       photoUrl: null,
-      includePhoto: true,
+      includePhoto: 1,
     }
   );
 
