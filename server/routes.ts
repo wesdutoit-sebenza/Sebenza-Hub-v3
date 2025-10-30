@@ -77,6 +77,39 @@ async function extractTextFromFile(filePath: string, mimetype: string): Promise<
 }
 import tokenAuthRoutes from "./token-auth.routes";
 
+// Configure multer for CV photo uploads
+const photoStorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'uploads', 'cv-photos');
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    } catch (error) {
+      cb(error as Error, uploadDir);
+    }
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `cv-photo-${uniqueSuffix}${ext}`);
+  }
+});
+
+const photoUpload = multer({
+  storage: photoStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Only allow image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/subscribe", async (req, res) => {
     try {
@@ -710,6 +743,39 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         success: false,
         message: error.errors ? "Invalid CV data." : "Error creating CV.",
         errors: error.errors,
+      });
+    }
+  });
+
+  // Upload CV photo endpoint
+  app.post("/api/cvs/photo/upload", authenticateSession, photoUpload.single('photo'), async (req, res) => {
+    const authReq = req as AuthRequest;
+    
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "No photo file provided.",
+        });
+      }
+
+      // File is now saved to uploads/cv-photos directory
+      // Generate a URL path for accessing the photo
+      const photoUrl = `/uploads/cv-photos/${req.file.filename}`;
+
+      console.log(`[CV Photo] Uploaded: ${req.file.filename} for user ${authReq.user!.id}`);
+
+      res.json({
+        success: true,
+        message: "Photo uploaded successfully!",
+        photoUrl,
+        filename: req.file.filename,
+      });
+    } catch (error: any) {
+      console.error("Photo upload error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Error uploading photo.",
       });
     }
   });
