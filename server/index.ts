@@ -32,16 +32,22 @@ declare module 'http' {
 const PgSession = connectPgSimple(session);
 
 // Pre-create session table to avoid race conditions with createTableIfMissing
-pgPool.query(`
-  CREATE TABLE IF NOT EXISTS session (
-    sid VARCHAR PRIMARY KEY,
-    sess JSON NOT NULL,
-    expire TIMESTAMP NOT NULL
-  );
-  CREATE INDEX IF NOT EXISTS IDX_session_expire ON session (expire);
-`).catch(err => {
-  console.error('Session table creation warning:', err.message);
-});
+// Do this asynchronously to not block server startup
+setTimeout(async () => {
+  try {
+    await pgPool.query(`
+      CREATE TABLE IF NOT EXISTS session (
+        sid VARCHAR PRIMARY KEY,
+        sess JSON NOT NULL,
+        expire TIMESTAMP NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS IDX_session_expire ON session (expire);
+    `);
+    console.log('[Session] Session table ready');
+  } catch (err: any) {
+    console.error('[Session] Table creation warning:', err.message);
+  }
+}, 2000); // Wait 2 seconds after startup to let pool warm up
 
 app.use(
   session({
