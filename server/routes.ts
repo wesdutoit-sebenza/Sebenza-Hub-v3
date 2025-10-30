@@ -717,7 +717,12 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
   app.get("/api/cvs/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const cv = await storage.getCV(id);
+      
+      // Query database directly for the CV
+      const [cv] = await db.select()
+        .from(cvs)
+        .where(eq(cvs.id, id))
+        .limit(1);
       
       if (!cv) {
         res.status(404).json({
@@ -776,9 +781,11 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
     const userId = authReq.user!.id;
 
     try {
-      // Get ALL CVs and filter by userId for security
-      const allCvs = await storage.getAllCVs();
-      const userCvs = allCvs.filter(cv => cv.userId === userId);
+      // Query database directly for user's CVs
+      const userCvs = await db.select()
+        .from(cvs)
+        .where(eq(cvs.userId, userId))
+        .orderBy(desc(cvs.createdAt));
       
       res.json({
         success: true,
@@ -801,8 +808,11 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
     try {
       const { id } = req.params;
       
-      // First, verify the CV exists and belongs to the user
-      const cv = await storage.getCV(id);
+      // First, verify the CV exists and belongs to the user (query database directly)
+      const [cv] = await db.select()
+        .from(cvs)
+        .where(eq(cvs.id, id))
+        .limit(1);
       
       if (!cv) {
         return res.status(404).json({
@@ -819,7 +829,8 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         });
       }
 
-      const deleted = await storage.deleteCV(id);
+      // Delete from database
+      await db.delete(cvs).where(eq(cvs.id, id));
 
       res.json({
         success: true,
