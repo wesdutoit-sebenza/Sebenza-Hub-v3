@@ -57,10 +57,9 @@ async function extractTextFromFile(filePath: string, mimetype: string): Promise<
   const fileBuffer = await fs.readFile(filePath);
   
   if (mimetype === 'application/pdf') {
-    // Use require for CommonJS pdf-parse module
-    const pdfParseModule = await import('pdf-parse');
-    const pdfParse = pdfParseModule.default || pdfParseModule;
-    const pdfData = await pdfParse(fileBuffer);
+    // Use dynamic import for pdf-parse module (exports PDFParse as named export)
+    const { PDFParse } = await import('pdf-parse');
+    const pdfData = await PDFParse(fileBuffer);
     return pdfData.text;
   } else if (mimetype === 'text/plain') {
     return fileBuffer.toString('utf-8');
