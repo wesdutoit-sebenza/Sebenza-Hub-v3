@@ -283,8 +283,8 @@ export default function IndividualCVs() {
 
                 <div className="space-y-6 mt-4">
                   {/* Personal Information with Photo */}
-                  <div className="flex gap-6 items-start">
-                    <div className="flex-1">
+                  <div className="flex flex-col sm:flex-row gap-6 items-start">
+                    <div className="flex-1 order-2 sm:order-1">
                       <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                         <MapPin className="h-5 w-5" />
                         Contact Information
@@ -313,11 +313,11 @@ export default function IndividualCVs() {
                     
                     {/* Photo - Only show if includePhoto is enabled and photoUrl exists */}
                     {selectedCV.includePhoto && selectedCV.photoUrl && (
-                      <div className="flex-shrink-0">
-                        <Avatar className="h-40 w-40" data-testid="avatar-cv-detail-photo">
+                      <div className="flex-shrink-0 order-1 sm:order-2 flex justify-center sm:justify-end w-full sm:w-auto">
+                        <Avatar className="h-32 w-32 sm:h-40 sm:w-40" data-testid="avatar-cv-detail-photo">
                           <AvatarImage src={selectedCV.photoUrl} alt={personalInfo?.fullName} />
                           <AvatarFallback className="bg-muted">
-                            <User className="h-20 w-20 text-muted-foreground" />
+                            <User className="h-16 w-16 sm:h-20 sm:w-20 text-muted-foreground" />
                           </AvatarFallback>
                         </Avatar>
                       </div>
