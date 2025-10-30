@@ -2587,13 +2587,8 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         .where(eq(candidates.userId, userId))
         .limit(1);
 
-      if (existingCandidate.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: "You already have a profile. Please edit your existing profile instead.",
-          candidateId: existingCandidate[0].id,
-        });
-      }
+      // If profile exists, we'll update it instead of creating a new one
+      const hasExistingProfile = existingCandidate.length > 0;
 
       console.log(`[Individuals] Processing uploaded file: ${uploadedFile.originalname} (${uploadedFile.size} bytes)`);
 
@@ -3008,13 +3003,8 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         .where(eq(candidates.userId, userId))
         .limit(1);
 
-      if (existingCandidate.length > 0) {
-        return res.status(400).json({
-          success: false,
-          message: "You already have a profile. Please edit your existing profile instead.",
-          candidateId: existingCandidate[0].id,
-        });
-      }
+      // If profile exists, we'll update it instead of creating a new one
+      const hasExistingProfile = existingCandidate.length > 0;
 
       const { resumeText } = req.body;
 
