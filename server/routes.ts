@@ -810,13 +810,26 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         await fs.unlink(req.file.path);
         
         console.log(`[CV Photo] Processed and saved: ${processedFilename}`);
-      } catch (processError) {
+      } catch (processError: any) {
         console.error(`[CV Photo] Processing failed:`, processError);
+        console.error(`[CV Photo] Error details:`, {
+          message: processError?.message,
+          stack: processError?.stack,
+          inputPath: req.file.path,
+          outputPath: processedPath,
+        });
         
-        // If processing fails, fall back to the original file
+        // Clean up the uploaded file
+        try {
+          await fs.unlink(req.file.path);
+        } catch (unlinkError) {
+          console.error(`[CV Photo] Failed to clean up uploaded file:`, unlinkError);
+        }
+        
+        // Return detailed error for debugging
         return res.status(500).json({
           success: false,
-          message: "Failed to process the photo. Please try a different image.",
+          message: `Photo processing failed: ${processError?.message || 'Unknown error'}. Please try a different image or contact support.`,
         });
       }
 
