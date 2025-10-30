@@ -17,6 +17,7 @@ import { FileText, Plus, Eye, Trash2, Calendar, Upload, FilePen, Mail, Phone, Ma
 import { type CV, type CVPersonalInfo, type CVWorkExperience, type CVEducation } from "@shared/schema";
 import CVBuilder from "@/components/CVBuilder";
 import ResumeUpload from "@/components/ResumeUpload";
+import CVPreview from "@/components/CVPreview";
 import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
@@ -35,6 +36,7 @@ export default function IndividualCVs() {
   const [showCVBuilder, setShowCVBuilder] = useState(false);
   const [showResumeUpload, setShowResumeUpload] = useState(false);
   const [selectedCV, setSelectedCV] = useState<CV | null>(null);
+  const [previewCV, setPreviewCV] = useState<CV | null>(null);
   const [editingCV, setEditingCV] = useState<CV | null>(null);
 
   const { data: cvsData, isLoading } = useQuery<{ success: boolean; count: number; cvs: CV[] }>({
@@ -175,6 +177,16 @@ export default function IndividualCVs() {
                   >
                     <Eye className="h-4 w-4 mr-2" />
                     View
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => setPreviewCV(cv)}
+                    data-testid={`button-pdf-preview-${cv.id}`}
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    PDF Preview
                   </Button>
                   <Button
                     variant="outline"
@@ -440,6 +452,21 @@ export default function IndividualCVs() {
               </>
             );
           })()}
+        </DialogContent>
+      </Dialog>
+
+      {/* PDF Preview Dialog */}
+      <Dialog open={!!previewCV} onOpenChange={() => setPreviewCV(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>CV Preview</DialogTitle>
+            <DialogDescription>
+              Preview your CV as it will appear when exported
+            </DialogDescription>
+          </DialogHeader>
+          {previewCV && (
+            <CVPreview data={previewCV} />
+          )}
         </DialogContent>
       </Dialog>
     </div>
