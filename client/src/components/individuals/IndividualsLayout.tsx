@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import {
   User,
@@ -83,7 +84,7 @@ export function IndividualsLayout({ children }: IndividualsLayoutProps) {
     <SidebarProvider style={style as React.CSSProperties}>
       <div className="flex min-h-screen w-full">
         <Sidebar data-testid="individuals-sidebar">
-          <SidebarContent className="pt-20">
+          <SidebarContent>
             <SidebarGroup>
               <SidebarGroupLabel className="text-lg font-semibold px-4 mb-4">
                 Individual's Dashboard
@@ -106,9 +107,15 @@ export function IndividualsLayout({ children }: IndividualsLayoutProps) {
           </SidebarContent>
         </Sidebar>
         
-        <main className="flex-1 overflow-auto bg-background">
-          {children}
-        </main>
+        <div className="flex flex-col flex-1">
+          <header className="flex items-center h-16 px-4 border-b bg-background sticky top-0 z-10">
+            <SidebarTrigger data-testid="button-sidebar-toggle" />
+            <h1 className="ml-4 text-lg font-semibold">Individual Dashboard</h1>
+          </header>
+          <main className="flex-1 overflow-auto bg-background">
+            {children}
+          </main>
+        </div>
       </div>
     </SidebarProvider>
   );
