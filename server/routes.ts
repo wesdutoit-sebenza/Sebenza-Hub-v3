@@ -745,26 +745,74 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
     }
   });
 
-  app.put("/api/cvs/:id", async (req, res) => {
+  app.put("/api/cvs/:id", authenticateSession, async (req, res) => {
+    const authReq = req as AuthRequest;
+    const userId = authReq.user!.id;
+
     try {
       const { id } = req.params;
-      const validatedData = insertCVSchema.partial().parse(req.body);
-      const cv = await storage.updateCV(id, validatedData);
       
-      if (!cv) {
-        res.status(404).json({
+      // First, verify the CV exists and belongs to the user
+      const [existingCV] = await db.select()
+        .from(cvs)
+        .where(eq(cvs.id, id))
+        .limit(1);
+      
+      if (!existingCV) {
+        return res.status(404).json({
           success: false,
           message: "CV not found.",
         });
-        return;
       }
 
-      console.log(`CV updated: ${cv.id}`);
+      // Authorization check: ensure the CV belongs to the requesting user
+      if (existingCV.userId !== userId) {
+        return res.status(403).json({
+          success: false,
+          message: "You do not have permission to edit this CV.",
+        });
+      }
+
+      // Validate the update data
+      const validatedData = insertCVSchema.partial().parse(req.body);
+      
+      // Prepare update payload - preserve server-managed fields and serialize JSON columns
+      const updatePayload: any = {
+        updatedAt: new Date(),
+      };
+      
+      // Only include validated fields, explicitly stringifying JSON columns
+      if (validatedData.personalInfo !== undefined) {
+        updatePayload.personalInfo = JSON.stringify(validatedData.personalInfo);
+      }
+      if (validatedData.workExperience !== undefined) {
+        updatePayload.workExperience = JSON.stringify(validatedData.workExperience);
+      }
+      if (validatedData.skills !== undefined) {
+        updatePayload.skills = JSON.stringify(validatedData.skills);
+      }
+      if (validatedData.education !== undefined) {
+        updatePayload.education = JSON.stringify(validatedData.education);
+      }
+      if (validatedData.references !== undefined) {
+        updatePayload.references = JSON.stringify(validatedData.references);
+      }
+      if (validatedData.aboutMe !== undefined) {
+        updatePayload.aboutMe = validatedData.aboutMe;
+      }
+      
+      // Update in database - userId and createdAt are preserved automatically
+      const [updatedCV] = await db.update(cvs)
+        .set(updatePayload)
+        .where(eq(cvs.id, id))
+        .returning();
+
+      console.log(`[CV] Updated: ${updatedCV.id}`);
       
       res.json({
         success: true,
         message: "CV updated successfully!",
-        cv,
+        cv: updatedCV,
       });
     } catch (error: any) {
       console.error("CV update error:", error);

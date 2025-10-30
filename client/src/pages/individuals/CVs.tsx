@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { FileText, Plus, Eye, Trash2, Calendar, Upload, FilePen, Mail, Phone, MapPin, Briefcase, GraduationCap, Award } from "lucide-react";
+import { FileText, Plus, Eye, Trash2, Calendar, Upload, FilePen, Mail, Phone, MapPin, Briefcase, GraduationCap, Award, Edit } from "lucide-react";
 import { type CV, type CVPersonalInfo, type CVWorkExperience, type CVEducation } from "@shared/schema";
 import CVBuilder from "@/components/CVBuilder";
 import ResumeUpload from "@/components/ResumeUpload";
@@ -34,6 +34,7 @@ export default function IndividualCVs() {
   const [showCVBuilder, setShowCVBuilder] = useState(false);
   const [showResumeUpload, setShowResumeUpload] = useState(false);
   const [selectedCV, setSelectedCV] = useState<CV | null>(null);
+  const [editingCV, setEditingCV] = useState<CV | null>(null);
 
   const { data: cvsData, isLoading } = useQuery<{ success: boolean; count: number; cvs: CV[] }>({
     queryKey: ["/api/cvs"],
@@ -61,7 +62,13 @@ export default function IndividualCVs() {
 
   const handleCVComplete = () => {
     setShowCVBuilder(false);
+    setEditingCV(null);
     queryClient.invalidateQueries({ queryKey: ["/api/cvs"] });
+  };
+
+  const handleEdit = (cv: CV) => {
+    setEditingCV(cv);
+    setShowCVBuilder(true);
   };
 
   const handleResumeUploadSuccess = () => {
@@ -168,6 +175,14 @@ export default function IndividualCVs() {
                     <Eye className="h-4 w-4 mr-2" />
                     View
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(cv)}
+                    data-testid={`button-edit-${cv.id}`}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button
@@ -215,15 +230,22 @@ export default function IndividualCVs() {
       )}
 
       {/* Manual CV Builder Dialog */}
-      <Dialog open={showCVBuilder} onOpenChange={setShowCVBuilder}>
+      <Dialog open={showCVBuilder} onOpenChange={(open) => {
+        setShowCVBuilder(open);
+        if (!open) setEditingCV(null);
+      }}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Build CV Manually</DialogTitle>
+            <DialogTitle>{editingCV ? "Edit Your CV" : "Build CV Manually"}</DialogTitle>
             <DialogDescription>
-              Build your professional CV step by step
+              {editingCV ? "Update your professional CV" : "Build your professional CV step by step"}
             </DialogDescription>
           </DialogHeader>
-          <CVBuilder onComplete={handleCVComplete} />
+          <CVBuilder 
+            onComplete={handleCVComplete} 
+            initialCV={editingCV || undefined}
+            editMode={!!editingCV}
+          />
         </DialogContent>
       </Dialog>
 

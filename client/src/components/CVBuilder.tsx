@@ -13,7 +13,7 @@ import CVPreview from "./CVPreview";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { InsertCV, CVPersonalInfo, CVWorkExperience, CVSkills, CVEducation, CVReference } from "@shared/schema";
+import type { InsertCV, CV, CVPersonalInfo, CVWorkExperience, CVSkills, CVEducation, CVReference } from "@shared/schema";
 
 const steps = [
   { id: 1, name: "Personal Info", component: PersonalInfoStep },
@@ -25,27 +25,47 @@ const steps = [
   { id: 7, name: "Preview", component: CVPreview },
 ];
 
-export default function CVBuilder({ onComplete }: { onComplete?: () => void }) {
+interface CVBuilderProps {
+  onComplete?: () => void;
+  initialCV?: CV;
+  editMode?: boolean;
+}
+
+export default function CVBuilder({ onComplete, initialCV, editMode = false }: CVBuilderProps) {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
-  const [cvData, setCvData] = useState<Partial<InsertCV>>({
-    personalInfo: {} as CVPersonalInfo,
-    workExperience: [] as CVWorkExperience[],
-    skills: {} as CVSkills,
-    education: [] as CVEducation[],
-    references: [] as CVReference[],
-    aboutMe: "",
-  });
+  const [cvData, setCvData] = useState<Partial<InsertCV>>(
+    initialCV ? {
+      personalInfo: initialCV.personalInfo as CVPersonalInfo,
+      workExperience: initialCV.workExperience as CVWorkExperience[],
+      skills: initialCV.skills as CVSkills,
+      education: initialCV.education as CVEducation[],
+      references: (initialCV.references || []) as CVReference[],
+      aboutMe: initialCV.aboutMe || "",
+    } : {
+      personalInfo: {} as CVPersonalInfo,
+      workExperience: [] as CVWorkExperience[],
+      skills: {} as CVSkills,
+      education: [] as CVEducation[],
+      references: [] as CVReference[],
+      aboutMe: "",
+    }
+  );
 
   const mutation = useMutation({
     mutationFn: async (data: InsertCV) => {
-      const response = await apiRequest("POST", "/api/cvs", data);
-      return response.json();
+      if (editMode && initialCV) {
+        const response = await apiRequest("PUT", `/api/cvs/${initialCV.id}`, data);
+        return response.json();
+      } else {
+        const response = await apiRequest("POST", "/api/cvs", data);
+        return response.json();
+      }
     },
     onSuccess: (data) => {
       toast({
         title: "Success!",
-        description: "Your CV has been created successfully!",
+        description: editMode ? "Your CV has been updated successfully!" : "Your CV has been created successfully!",
       });
       if (onComplete) {
         onComplete();
@@ -54,7 +74,7 @@ export default function CVBuilder({ onComplete }: { onComplete?: () => void }) {
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to save CV. Please try again.",
+        description: editMode ? "Failed to update CV. Please try again." : "Failed to save CV. Please try again.",
         variant: "destructive",
       });
     },
@@ -94,7 +114,7 @@ export default function CVBuilder({ onComplete }: { onComplete?: () => void }) {
             <div className="flex items-center gap-3">
               <FileText className="text-amber" size={28} />
               <h2 className="text-2xl font-serif font-semibold" data-testid="text-cv-builder-title">
-                Create Your CV
+                {editMode ? "Edit Your CV" : "Create Your CV"}
               </h2>
             </div>
             <span className="text-sm text-muted-foreground" data-testid="text-step-indicator">
@@ -152,7 +172,7 @@ export default function CVBuilder({ onComplete }: { onComplete?: () => void }) {
               disabled={mutation.isPending}
               data-testid="button-save-cv"
             >
-              {mutation.isPending ? "Saving..." : "Save CV"}
+              {mutation.isPending ? (editMode ? "Updating..." : "Saving...") : (editMode ? "Update CV" : "Save CV")}
             </Button>
           )}
         </div>
