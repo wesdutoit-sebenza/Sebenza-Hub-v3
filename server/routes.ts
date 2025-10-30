@@ -51,6 +51,29 @@ import path from "path";
 import shortlistRoutes from "./shortlist.routes";
 import organizationSettingsRoutes from "./organization-settings.routes";
 import adminRoutes from "./admin.routes";
+
+// Helper function to extract text from uploaded files
+async function extractTextFromFile(filePath: string, mimetype: string): Promise<string> {
+  const fileBuffer = await fs.readFile(filePath);
+  
+  if (mimetype === 'application/pdf') {
+    // Use require for CommonJS pdf-parse module
+    const pdfParseModule = await import('pdf-parse');
+    const pdfParse = pdfParseModule.default || pdfParseModule;
+    const pdfData = await pdfParse(fileBuffer);
+    return pdfData.text;
+  } else if (mimetype === 'text/plain') {
+    return fileBuffer.toString('utf-8');
+  } else if (mimetype === 'application/msword' || 
+             mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    // For DOCX files, fallback to treating as text for now
+    // TODO: Add proper DOCX parsing library like mammoth
+    return fileBuffer.toString('utf-8');
+  } else {
+    // Fallback: try to extract as text
+    return fileBuffer.toString('utf-8');
+  }
+}
 import tokenAuthRoutes from "./token-auth.routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -2126,18 +2149,9 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
 
       console.log(`[ATS] Processing uploaded file: ${uploadedFile.originalname} (${uploadedFile.size} bytes)`);
 
-      // Read file content
-      let fileContent: string;
-      
-      if (uploadedFile.mimetype === 'text/plain') {
-        // For text files, read directly
-        fileContent = await fs.readFile(uploadedFile.path, 'utf-8');
-      } else {
-        // For PDF/DOCX, we'll send the file to OpenAI's API which can handle binary formats
-        // Read as base64 for now (OpenAI can process this)
-        const fileBuffer = await fs.readFile(uploadedFile.path);
-        fileContent = fileBuffer.toString('base64');
-      }
+      // Extract text from file (PDF, TXT, DOCX)
+      const fileContent = await extractTextFromFile(uploadedFile.path, uploadedFile.mimetype);
+      console.log(`[Recruiters] Extracted text length: ${fileContent.length} characters`);
 
       // Parse CV with AI
       const parsedResult = await parseResumeWithAI(
@@ -2582,15 +2596,9 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
 
       console.log(`[Individuals] Processing uploaded file: ${uploadedFile.originalname} (${uploadedFile.size} bytes)`);
 
-      // Read file content
-      let fileContent: string;
-      
-      if (uploadedFile.mimetype === 'text/plain') {
-        fileContent = await fs.readFile(uploadedFile.path, 'utf-8');
-      } else {
-        const fileBuffer = await fs.readFile(uploadedFile.path);
-        fileContent = fileBuffer.toString('base64');
-      }
+      // Extract text from file (PDF, TXT, DOCX)
+      const fileContent = await extractTextFromFile(uploadedFile.path, uploadedFile.mimetype);
+      console.log(`[Individuals] Extracted text length: ${fileContent.length} characters`);
 
       // Parse CV with AI
       const parsedResult = await parseResumeWithAI(

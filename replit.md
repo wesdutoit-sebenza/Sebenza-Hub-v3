@@ -23,6 +23,7 @@ Preferred communication style: Simple, everyday language.
 - **Backend**: Express.js with TypeScript.
     - **API Endpoints**: Manages subscriptions, job postings, CVs, roles/screening, ATS, organization settings, and interview coach interactions. Includes specific endpoints for job status management and conditional validation.
     - **AI Integration**: Powers CV screening, resume ingestion, interview coaching, and fraud detection (currently paused).
+        - **CV Resume Ingestion**: Uses pdf-parse for PDF text extraction, with token limiting (110k token cap) to prevent OpenAI context length errors. Extracts text from PDFs and truncates if needed before sending to GPT-4o for parsing.
     - **Background Job Processing**: BullMQ with Redis for asynchronous tasks like candidate screening.
     - **Authentication & Authorization**: Passwordless magic link authentication using Resend, Express-session with PostgreSQL store, and robust security features (rate limiting, session fixation prevention). Includes an admin setup endpoint and a single-role system for users (individual, business, recruiter, admin) with role-based access control.
     - **User Management**: Users are identified by auto-incrementing `id` and unique `email`, with onboarding status and last login tracking.
@@ -39,7 +40,7 @@ Preferred communication style: Simple, everyday language.
 - **UI & Styling**: Radix UI, shadcn/ui, Lucide React, Tailwind CSS, Google Fonts.
 - **Form Handling**: React Hook Form, Zod.
 - **Database**: Drizzle ORM, @neondatabase/serverless.
-- **File Upload**: Multer.
+- **File Upload**: Multer, pdf-parse (PDF text extraction).
 - **Background Jobs**: BullMQ, ioredis.
 - **AI**: OpenAI GPT-4o, OpenAI GPT-4o-mini, OpenAI text-embedding-3-small.
 - **Email**: Resend.

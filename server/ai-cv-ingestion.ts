@@ -161,6 +161,28 @@ export interface CVIngestionResult {
   };
 }
 
+// Simple token estimator: ~4 characters per token (conservative estimate)
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
+// Truncate text to fit within token limit
+function truncateToTokenLimit(text: string, maxTokens: number): string {
+  const estimatedTokens = estimateTokens(text);
+  
+  if (estimatedTokens <= maxTokens) {
+    return text;
+  }
+  
+  // Calculate how many characters we can keep
+  const maxChars = maxTokens * 4; // 4 chars per token
+  const truncated = text.substring(0, maxChars);
+  
+  console.log(`[CV Ingestion] Truncated CV from ${text.length} to ${truncated.length} chars (est. ${estimateTokens(truncated)} tokens)`);
+  
+  return truncated + "\n\n[... CV truncated due to length ...]";
+}
+
 export async function parseCVWithAI(
   rawText: string,
   filename: string,
@@ -168,6 +190,14 @@ export async function parseCVWithAI(
 ): Promise<CVIngestionResult> {
   try {
     const client = getOpenAIClient();
+
+    // GPT-4o has 128k token context window
+    // System prompt is ~800 tokens, we need room for response (~8k tokens)
+    // So we limit input to ~110k tokens to be safe
+    const MAX_INPUT_TOKENS = 110000;
+    const truncatedText = truncateToTokenLimit(rawText, MAX_INPUT_TOKENS);
+    
+    console.log(`[CV Ingestion] Processing CV: ${filename} (${filesizeBytes} bytes, ${truncatedText.length} chars, est. ${estimateTokens(truncatedText)} tokens)`);
 
     const completion = await client.chat.completions.create({
       model: "gpt-4o",
@@ -178,7 +208,7 @@ export async function parseCVWithAI(
         },
         {
           role: "user",
-          content: `Parse this CV and return the structured JSON:\n\n${rawText}`,
+          content: `Parse this CV and return the structured JSON:\n\n${truncatedText}`,
         },
       ],
       temperature: 0.1,
