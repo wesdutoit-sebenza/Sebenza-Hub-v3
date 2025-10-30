@@ -275,18 +275,6 @@ export default function IndividualCVs() {
             return (
               <>
                 <DialogHeader>
-                  {/* Photo - Only show if includePhoto is enabled and photoUrl exists */}
-                  {selectedCV.includePhoto && selectedCV.photoUrl && (
-                    <div className="flex justify-center mb-4">
-                      <Avatar className="h-24 w-24" data-testid="avatar-cv-detail-photo">
-                        <AvatarImage src={selectedCV.photoUrl} alt={personalInfo?.fullName} />
-                        <AvatarFallback className="bg-muted">
-                          <User className="h-12 w-12 text-muted-foreground" />
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  )}
-                  
                   <DialogTitle className="text-2xl">{personalInfo?.fullName || "Untitled CV"}</DialogTitle>
                   <DialogDescription>
                     Created {new Date(selectedCV.createdAt).toLocaleDateString()}
@@ -294,32 +282,46 @@ export default function IndividualCVs() {
                 </DialogHeader>
 
                 <div className="space-y-6 mt-4">
-                  {/* Personal Information */}
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                      <MapPin className="h-5 w-5" />
-                      Contact Information
-                    </h3>
-                    <div className="grid gap-3 text-sm">
-                      {personalInfo?.contactEmail && (
-                        <div className="flex items-center gap-2">
-                          <Mail className="h-4 w-4 text-muted-foreground" />
-                          <span>{personalInfo.contactEmail}</span>
-                        </div>
-                      )}
-                      {personalInfo?.contactPhone && (
-                        <div className="flex items-center gap-2">
-                          <Phone className="h-4 w-4 text-muted-foreground" />
-                          <span>{personalInfo.contactPhone}</span>
-                        </div>
-                      )}
-                      {personalInfo?.city && (
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span>{personalInfo.city}, {personalInfo.country || "South Africa"}</span>
-                        </div>
-                      )}
+                  {/* Personal Information with Photo */}
+                  <div className="flex gap-6 items-start">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <MapPin className="h-5 w-5" />
+                        Contact Information
+                      </h3>
+                      <div className="grid gap-3 text-sm">
+                        {personalInfo?.contactEmail && (
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span>{personalInfo.contactEmail}</span>
+                          </div>
+                        )}
+                        {personalInfo?.contactPhone && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <span>{personalInfo.contactPhone}</span>
+                          </div>
+                        )}
+                        {personalInfo?.city && (
+                          <div className="flex items-center gap-2">
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            <span>{personalInfo.city}, {personalInfo.country || "South Africa"}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
+                    
+                    {/* Photo - Only show if includePhoto is enabled and photoUrl exists */}
+                    {selectedCV.includePhoto && selectedCV.photoUrl && (
+                      <div className="flex-shrink-0">
+                        <Avatar className="h-40 w-40" data-testid="avatar-cv-detail-photo">
+                          <AvatarImage src={selectedCV.photoUrl} alt={personalInfo?.fullName} />
+                          <AvatarFallback className="bg-muted">
+                            <User className="h-20 w-20 text-muted-foreground" />
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                    )}
                   </div>
 
                   <Separator />
