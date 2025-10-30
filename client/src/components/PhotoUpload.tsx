@@ -56,12 +56,15 @@ export default function PhotoUpload({ photoUrl, onPhotoChange, cvId }: PhotoUplo
 
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      if (!cvId) {
-        throw new Error('No CV ID provided');
+      // If cvId exists, delete from server (DB + filesystem)
+      if (cvId) {
+        const response = await apiRequest("DELETE", `/api/cvs/photo/${cvId}`, {});
+        return response.json();
       }
-
-      const response = await apiRequest("DELETE", `/api/cvs/photo/${cvId}`, {});
-      return response.json();
+      
+      // If no cvId (new CV), just return success - we'll clear state locally
+      // The orphaned file will be cleaned up by the server eventually
+      return { success: true };
     },
     onSuccess: () => {
       if (onPhotoChange) {
@@ -69,7 +72,7 @@ export default function PhotoUpload({ photoUrl, onPhotoChange, cvId }: PhotoUplo
       }
       toast({
         title: "Success!",
-        description: "Photo deleted successfully!",
+        description: "Photo removed successfully!",
       });
     },
     onError: (error: Error) => {

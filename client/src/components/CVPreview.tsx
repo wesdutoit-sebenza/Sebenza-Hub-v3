@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
-import { Download } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Download, User } from "lucide-react";
 import type { InsertCV } from "@shared/schema";
 import { isOldSkillsFormat } from "@shared/skillsMigration";
 import { getCategoryForSkill } from "@shared/skills";
@@ -11,7 +12,7 @@ interface Props {
 }
 
 export default function CVPreview({ data }: Props) {
-  const { personalInfo, workExperience, skills, education, aboutMe } = data;
+  const { personalInfo, workExperience, skills, education, aboutMe, photoUrl, includePhoto } = data;
   
   // Handle both old and new skills format
   const isOldFormat = skills && isOldSkillsFormat(skills);
@@ -32,6 +33,18 @@ export default function CVPreview({ data }: Props) {
           {/* Personal Info */}
           {personalInfo && (
             <div className="text-center border-b pb-6">
+              {/* Photo - Only show if includePhoto is true and photoUrl exists */}
+              {includePhoto && photoUrl && (
+                <div className="flex justify-center mb-6">
+                  <Avatar className="h-32 w-32" data-testid="avatar-cv-preview-photo">
+                    <AvatarImage src={photoUrl} alt={personalInfo.fullName} />
+                    <AvatarFallback className="bg-muted">
+                      <User className="h-16 w-16 text-muted-foreground" />
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+              )}
+              
               <h1 className="text-3xl font-bold mb-4" data-testid="text-preview-name">
                 {personalInfo.fullName}
               </h1>
