@@ -50,6 +50,53 @@ Preferred communication style: Simple, everyday language.
 
 ## Production Deployment Guide
 
+### CRITICAL: Fix .replit File for Autoscale Deployment
+
+**Issue**: Autoscale deployments only support ONE external port, but the `.replit` file currently has 15 different ports configured.
+
+**Required Fix** (MUST be done manually before deploying):
+
+1. Open the `.replit` file in your Replit workspace
+2. Find the `[[ports]]` section (around line 14)
+3. Delete ALL port configurations EXCEPT the first one
+4. Keep only this single port configuration:
+   ```
+   [[ports]]
+   localPort = 5000
+   externalPort = 80
+   ```
+5. Delete all other `[[ports]]` blocks (there are currently 14 extra ones)
+6. Save the file
+
+**What to Delete**: Remove all these port configurations:
+- `localPort = 33501` → `externalPort = 8080`
+- `localPort = 35775` → `externalPort = 3001`
+- `localPort = 36143` → `externalPort = 8081`
+- `localPort = 36877` → `externalPort = 5173`
+- `localPort = 37355` → `externalPort = 6000`
+- `localPort = 37657` → `externalPort = 8008`
+- `localPort = 38553` → `externalPort = 4200`
+- `localPort = 40355` → `externalPort = 3002`
+- `localPort = 40487` → `externalPort = 8099`
+- `localPort = 40539` → `externalPort = 3003`
+- `localPort = 41075` → `externalPort = 5000`
+- `localPort = 43685` → `externalPort = 9000`
+- `localPort = 43871` → `externalPort = 6800`
+- `localPort = 45079` → `externalPort = 3000`
+- `localPort = 45425` → `externalPort = 8000`
+
+**After the fix**, your `[[ports]]` section should look like this:
+```
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[env]
+PORT = "5000"
+```
+
+**Why This Matters**: Autoscale (Cloud Run) deployments fail if multiple external ports are configured. The deployment error will say: "requires exactly one external port exposed, but .replit has 15 different ports configured with externalPort values"
+
 ### Required Environment Variables for Production
 
 When deploying to production, you MUST manually add these environment variables to your deployment. Workspace secrets are NOT automatically copied to deployments.
@@ -77,24 +124,37 @@ When deploying to production, you MUST manually add these environment variables 
    - Example output: `jgaIfWvTULs+W/2wUUEUONEwEsI2lChhojiStubNfo4=`
    - Paste this value into the SESSION_SECRET environment variable
 
-3. **RESEND_API_KEY** (Email Service)
+3. **REDIS_URL** (Background Jobs)
+   - Required for BullMQ background job processing (CV screening, etc.)
+   - Get from your Redis provider (Upstash, Redis Cloud, etc.)
+   - Format: `redis://username:password@host:port`
+   - **Note**: Application will start without Redis, but background jobs won't process
+
+4. **RESEND_API_KEY** (Email Service)
    - Option A: Enable Resend connector in deployment settings
    - Option B: Get from https://resend.com/api-keys
    - Format: `re_xxxxxxxxxx`
 
 **Optional Variables**:
 
-4. **PUBLIC_URL** (Custom Domain Override)
+5. **PUBLIC_URL** (Custom Domain Override)
    - Only needed if using a custom domain
    - Default: `https://sebenzahub.replit.app`
    - Example: `https://sebenzahub.co.za`
+
+6. **ADMIN_SETUP_SECRET** (Admin User Creation)
+   - Only needed if you want to use the `/api/admin/setup` endpoint in production
+   - Generate a secure random key (same method as SESSION_SECRET)
+   - **Security**: Remove after first admin is created to prevent unauthorized admin creation
 
 ### Quick Deployment Checklist
 
 Before deploying to production:
 
+- [ ] **CRITICAL**: Fix `.replit` file - remove all port configurations except `localPort 5000 → externalPort 80`
 - [ ] Add `DATABASE_URL` to deployment environment variables (production database)
 - [ ] Add `SESSION_SECRET` to deployment environment variables (generate with openssl)
+- [ ] Add `REDIS_URL` to deployment environment variables (for background jobs)
 - [ ] Enable Resend connector in deployment OR add `RESEND_API_KEY`
 - [ ] Verify build command: `npm run build`
 - [ ] Verify start command: `npm run start`
