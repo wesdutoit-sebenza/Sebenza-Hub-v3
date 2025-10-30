@@ -15,15 +15,17 @@ Preferred communication style: Simple, everyday language.
 ### Technical Implementations
 - **Frontend**: React with TypeScript (Vite), Wouter for routing, and TanStack React Query for state management.
     - **Recruiters Portal**: Job posting forms with WhatsApp integration, AI Job Description Generator, and a status-based workflow (Draft, Live, Paused, Closed, Filled) with conditional validation.
-    - **Individuals Portal**: CV upload, profile management, and an AI Interview Coach ("Jabu") offering configurable interviews and real-time feedback.
+    - **Individuals Portal**: Multiple CV management, profile management, and an AI Interview Coach ("Jabu") offering configurable interviews and real-time feedback.
+        - **CV Management**: Users can upload multiple CVs via file upload or manual creation. Each CV is stored with AI-extracted information (personal info, work experience, skills, education) and can be viewed in detail. CVs are stored separately from job seeker profiles.
     - **ATS**: Candidate management with AI-powered resume ingestion and semantic search.
     - **Integrated Roles & Screening**: Management of hiring roles with configurable scoring and AI-evaluated candidate screening.
     - **Organization Settings**: Multi-tenant configuration for teams, pipelines, and compliance.
     - **Location & Job Data**: Comprehensive South African city/town and job title systems with auto-fill.
 - **Backend**: Express.js with TypeScript.
     - **API Endpoints**: Manages subscriptions, job postings, CVs, roles/screening, ATS, organization settings, and interview coach interactions. Includes specific endpoints for job status management and conditional validation.
+        - **CV Endpoints**: `GET /api/cvs` (list user's CVs), `GET /api/cvs/:id` (get specific CV), `DELETE /api/cvs/:id` (delete CV), `POST /api/individuals/resume/upload` (upload PDF/file), `POST /api/individuals/resume/parse` (paste text). All CV endpoints include authorization checks to ensure users can only access their own CVs.
     - **AI Integration**: Powers CV screening, resume ingestion, interview coaching, and fraud detection (currently paused).
-        - **CV Resume Ingestion**: Uses pdf-parse for PDF text extraction, with token limiting (110k token cap) to prevent OpenAI context length errors. Extracts text from PDFs and truncates if needed before sending to GPT-4o for parsing.
+        - **CV Resume Ingestion**: Uses pdf-parse for PDF text extraction, with token limiting (110k token cap) to prevent OpenAI context length errors. Extracts text from PDFs and truncates if needed before sending to GPT-4o for parsing. Parsed data is saved to the `cvs` table with structured fields for personal info, work experience, skills, and education.
     - **Background Job Processing**: BullMQ with Redis for asynchronous tasks like candidate screening.
     - **Authentication & Authorization**: Passwordless magic link authentication using Resend, Express-session with PostgreSQL store, and robust security features (rate limiting, session fixation prevention). Includes an admin setup endpoint and a single-role system for users (individual, business, recruiter, admin) with role-based access control.
     - **User Management**: Users are identified by auto-incrementing `id` and unique `email`, with onboarding status and last login tracking.
