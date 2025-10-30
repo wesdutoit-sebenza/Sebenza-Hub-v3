@@ -1,8 +1,6 @@
 import { Router } from "express";
-import pg from "pg";
 import { authenticateSession, type AuthRequest } from "./auth-middleware";
-
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+import { pool } from "./db-pool";
 const router = Router();
 
 // Get ranked shortlist

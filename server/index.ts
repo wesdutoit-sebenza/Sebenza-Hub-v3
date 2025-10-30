@@ -4,8 +4,8 @@ import { setupVite, serveStatic, log } from "./vite";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
-import pg from "pg";
 import cors from "cors";
+import { pool as pgPool } from "./db-pool";
 
 const app = express();
 
@@ -30,9 +30,6 @@ declare module 'http' {
 
 // Session configuration
 const PgSession = connectPgSimple(session);
-const pgPool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-});
 
 // Pre-create session table to avoid race conditions with createTableIfMissing
 pgPool.query(`

@@ -1,5 +1,4 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import pg from "pg";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { authenticateSession, type AuthRequest } from "./auth-middleware";
@@ -18,8 +17,7 @@ import {
   approvedVendorValidationSchema,
   approvedVendorPatchSchema,
 } from "../shared/schema";
-
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+import { pool } from "./db-pool";
 const router = Router();
 
 // Helper function to validate request body with Zod schema

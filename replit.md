@@ -9,7 +9,7 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### UI/UX Decisions
-- **Design System**: Charcoal/Amber color palette, Inter and Newsreader typography, custom theming, and mobile-first responsive design using shadcn/ui (Radix UI) and Tailwind CSS.
+- **Design System**: Charcoal/Amber color palette, Montserrat typography (Google Fonts), custom theming, and mobile-first responsive design using shadcn/ui (Radix UI) and Tailwind CSS.
 - **Accessibility & Performance**: Emphasis on ARIA labels, semantic HTML, keyboard navigation, code splitting, and lazy loading.
 - **Mobile Dashboard Navigation**: All three dashboard layouts (Individual, Recruiter, Admin) include sticky headers with SidebarTrigger (hamburger menu button) enabling mobile sidebar toggle. On mobile viewports (<768px), sidebar opens as modal overlay; clicking toggle closes it to reveal main content. Desktop viewports (>=768px) display sidebar alongside content with optional collapse/expand functionality.
 

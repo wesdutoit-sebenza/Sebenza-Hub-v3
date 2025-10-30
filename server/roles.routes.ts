@@ -1,8 +1,6 @@
 import { Router } from "express";
 import { screeningQueue } from "./queue.js";
-import pg from "pg";
-
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+import { pool } from "./db-pool";
 const router = Router();
 
 router.post("/roles", async (req, res) => {
@@ -26,7 +24,9 @@ router.post("/roles", async (req, res) => {
 
   // Prefilter candidates (semantic or latest 500) -> enqueue
   // (see E) Prefilter) — here we just enqueue a "warmup" job
-  await screeningQueue.add("seed-role-screenings", { roleId });
+  if (screeningQueue) {
+    await screeningQueue.add("seed-role-screenings", { roleId });
+  }
 
   res.json({ ok: true, role_id: roleId });
 });

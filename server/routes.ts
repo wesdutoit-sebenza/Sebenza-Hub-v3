@@ -7,12 +7,9 @@ import { users, candidateProfiles, organizations, recruiterProfiles, memberships
 import { eq, and, desc, sql } from "drizzle-orm";
 import { authenticateSession, requireRole, type AuthRequest } from "./auth-middleware";
 import { screeningQueue, isQueueAvailable } from "./queue";
-import pg from "pg";
 import { z } from "zod";
 import { queueFraudDetection } from "./fraud-queue-helper";
-
-// Create pg pool for raw SQL queries (used by queue system)
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+import { pool } from "./db-pool";
 
 // Helper function to enqueue screening jobs for all active roles
 async function enqueueScreeningsForCandidate(candidateId: string) {

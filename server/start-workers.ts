@@ -1,16 +1,14 @@
 import { Worker, Job } from "bullmq";
 import { connection, isQueueAvailable } from "./queue";
-import pg from "pg";
 import OpenAI from "openai";
 import { detectFraud, shouldAutoApprove } from "./fraud-detection";
+import { pool } from "./db-pool";
 
 // Only start workers if Redis is available
 if (!isQueueAvailable() || !connection) {
   console.log("[Workers] Redis not configured, background workers disabled");
   throw new Error("Redis not configured");
 }
-
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 // This is using Replit's AI Integrations service, which provides OpenAI-compatible API access without requiring your own OpenAI API key.
 const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
