@@ -2848,6 +2848,7 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
           province: updateData.province || profile.province,
           postalCode: updateData.postalCode || profile.postalCode,
           country: updateData.country || profile.country,
+          physicalAddress: updateData.physicalAddress || profile.physicalAddress,
           jobTitle: updateData.jobTitle || profile.jobTitle,
           experienceLevel: updateData.experienceLevel || profile.experienceLevel,
           skills: updateData.skills || profile.skills,
