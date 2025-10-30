@@ -42,6 +42,8 @@ export default function CVBuilder({ onComplete, initialCV, editMode = false }: C
       education: initialCV.education as CVEducation[],
       references: (initialCV.references || []) as CVReference[],
       aboutMe: initialCV.aboutMe || "",
+      photoUrl: initialCV.photoUrl || null,
+      includePhoto: initialCV.includePhoto !== false,
     } : {
       personalInfo: {} as CVPersonalInfo,
       workExperience: [] as CVWorkExperience[],
@@ -49,6 +51,8 @@ export default function CVBuilder({ onComplete, initialCV, editMode = false }: C
       education: [] as CVEducation[],
       references: [] as CVReference[],
       aboutMe: "",
+      photoUrl: null,
+      includePhoto: true,
     }
   );
 
@@ -147,6 +151,7 @@ export default function CVBuilder({ onComplete, initialCV, editMode = false }: C
             data={cvData}
             updateData={updateCVData}
             onNext={nextStep}
+            cvId={initialCV?.id}
           />
         </div>
 

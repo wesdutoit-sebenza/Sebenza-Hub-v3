@@ -11,21 +11,24 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { cvPersonalInfoSchema, type CVPersonalInfo, type User } from "@shared/schema";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@shared/countries";
 import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
+import PhotoUpload from "@/components/PhotoUpload";
 
 interface Props {
   data: any;
   updateData: (section: string, data: any) => void;
   onNext: () => void;
+  cvId?: string;
 }
 
 const provinces = ["Eastern Cape", "Free State", "Gauteng", "KwaZulu-Natal", "Limpopo", "Mpumalanga", "Northern Cape", "North West", "Western Cape"];
 
-export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
+export default function PersonalInfoStep({ data, updateData, onNext, cvId }: Props) {
   const { data: user } = useQuery<User>({
     queryKey: ['/api/auth/user'],
     retry: false,
@@ -44,6 +47,10 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
   const initialPhone = parsePhoneNumber(data.personalInfo?.contactPhone || "");
   const [countryCode, setCountryCode] = useState(initialPhone.code);
   const [phoneNumber, setPhoneNumber] = useState(initialPhone.number);
+  
+  // Photo state
+  const [photoUrl, setPhotoUrl] = useState<string | null>(data.photoUrl || null);
+  const [includePhoto, setIncludePhoto] = useState(data.includePhoto !== false);
 
   const form = useForm<CVPersonalInfo>({
     resolver: zodResolver(cvPersonalInfoSchema),
@@ -84,8 +91,18 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
   }, [countryCode, phoneNumber, form]);
 
   const onSubmit = (formData: CVPersonalInfo) => {
+    // Update personal info
     updateData("personalInfo", formData);
+    
+    // Update photo data separately
+    updateData("photoUrl", photoUrl);
+    updateData("includePhoto", includePhoto);
+    
     onNext();
+  };
+
+  const handlePhotoChange = (newPhotoUrl: string | null) => {
+    setPhotoUrl(newPhotoUrl);
   };
 
   return (
@@ -94,6 +111,28 @@ export default function PersonalInfoStep({ data, updateData, onNext }: Props) {
       <p className="text-muted-foreground mb-6">
         Let's start with your basic contact information
       </p>
+
+      {/* Photo Upload Section */}
+      <div className="mb-6">
+        <PhotoUpload 
+          photoUrl={photoUrl} 
+          onPhotoChange={handlePhotoChange}
+          cvId={cvId}
+        />
+        
+        {photoUrl && (
+          <div className="flex items-center gap-2 mt-4 p-4 bg-muted rounded-lg">
+            <Switch
+              checked={includePhoto}
+              onCheckedChange={setIncludePhoto}
+              data-testid="switch-include-photo"
+            />
+            <label htmlFor="include-photo" className="text-sm cursor-pointer">
+              Include photo in CV
+            </label>
+          </div>
+        )}
+      </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
