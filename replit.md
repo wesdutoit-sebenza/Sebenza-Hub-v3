@@ -17,6 +17,8 @@ Preferred communication style: Simple, everyday language.
     - **Recruiters Portal**: Job posting forms with WhatsApp integration, AI Job Description Generator, and a status-based workflow (Draft, Live, Paused, Closed, Filled) with conditional validation.
     - **Individuals Portal**: Multiple CV management, profile management, and an AI Interview Coach ("Jabu") offering configurable interviews and real-time feedback.
         - **CV Management**: Users can upload multiple CVs via file upload or manual creation. Each CV is stored with AI-extracted information (personal info, work experience, skills, education) and can be viewed in detail. CVs are stored separately from job seeker profiles.
+            - **CV Photo Upload**: Professional photo upload with AI-powered circular cropping using Sharp library. Photos are processed to 400x400px circular format with transparent backgrounds. Users can toggle photo inclusion via switch control. Photos display in CV preview, PDF preview, and detail view with responsive sizing (h-32 w-32 mobile, h-40 w-40 desktop, positioned right-aligned next to contact information).
+            - **PDF Preview**: Users can preview their CV in the final formatted layout (matching the creation preview) directly from the CV list via "PDF Preview" button. Preview shows complete CV structure including photo (if enabled), personal info, work experience, education, and skills in the export-ready format.
     - **ATS**: Candidate management with AI-powered resume ingestion and semantic search.
     - **Integrated Roles & Screening**: Management of hiring roles with configurable scoring and AI-evaluated candidate screening.
     - **Organization Settings**: Multi-tenant configuration for teams, pipelines, and compliance.
