@@ -114,7 +114,7 @@ export function RecruitersLayout({ children }: RecruitersLayoutProps) {
         </Sidebar>
         
         <div className="flex flex-col flex-1">
-          <header className="flex items-center h-16 px-4 border-b bg-background sticky top-0 z-10">
+          <header className="flex items-center h-16 px-4 border-b bg-background sticky top-0 z-50">
             <SidebarTrigger data-testid="button-sidebar-toggle" />
             <h1 className="ml-4 text-lg font-semibold">Recruiter Dashboard</h1>
           </header>
