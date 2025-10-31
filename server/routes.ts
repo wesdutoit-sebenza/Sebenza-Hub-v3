@@ -147,10 +147,11 @@ async function extractTextFromFile(filePath: string, mimetype: string): Promise<
     return fileBuffer.toString('utf-8');
   } else if (mimetype === 'application/msword' || 
              mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-    // For DOCX files, fallback to treating as text for now
-    // TODO: Add proper DOCX parsing library like mammoth
-    const fileBuffer = await fs.readFile(filePath);
-    return fileBuffer.toString('utf-8');
+    // Use mammoth to extract text from DOCX files
+    const mammoth = await import('mammoth');
+    const result = await mammoth.extractRawText({ path: filePath });
+    console.log(`[DOCX Parse] Extracted ${result.value.length} characters from DOCX`);
+    return result.value;
   } else {
     // Fallback: try to extract as text
     const fileBuffer = await fs.readFile(filePath);
