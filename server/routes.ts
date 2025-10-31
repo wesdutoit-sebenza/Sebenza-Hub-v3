@@ -145,8 +145,15 @@ async function extractTextFromFile(filePath: string, mimetype: string): Promise<
   } else if (mimetype === 'text/plain') {
     const fileBuffer = await fs.readFile(filePath);
     return fileBuffer.toString('utf-8');
-  } else if (mimetype === 'application/msword' || 
-             mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+  } else if (mimetype === 'application/msword') {
+    // Use word-extractor for legacy .DOC files
+    const WordExtractor = (await import('word-extractor')).default;
+    const extractor = new WordExtractor();
+    const extracted = await extractor.extract(filePath);
+    const text = extracted.getBody();
+    console.log(`[DOC Parse] Extracted ${text.length} characters from DOC`);
+    return text;
+  } else if (mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
     // Use mammoth to extract text from DOCX files
     const mammoth = await import('mammoth');
     const result = await mammoth.extractRawText({ path: filePath });
