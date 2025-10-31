@@ -53,9 +53,10 @@ import adminRoutes from "./admin.routes";
 // Helper function to extract text from uploaded files
 async function extractTextFromFile(filePath: string, mimetype: string): Promise<string> {
   if (mimetype === 'application/pdf') {
-    // Use pdf-parse v2 API (exports PDFParse as named export)
+    // Use pdf-parse v2 - requires PDFParse class with data buffer
     const { PDFParse } = await import('pdf-parse');
-    const parser = new PDFParse({ url: filePath });
+    const dataBuffer = await fs.readFile(filePath);
+    const parser = new PDFParse({ data: dataBuffer });
     const result = await parser.getText();
     return result.text;
   } else if (mimetype === 'text/plain') {

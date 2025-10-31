@@ -23,7 +23,7 @@ Preferred communication style: Simple, everyday language.
     - **Location & Job Data**: Comprehensive South African city/town and job title systems with auto-fill.
 - **Backend**: Express.js with TypeScript.
     - **API Endpoints**: Manages subscriptions, job postings, CVs, roles/screening, ATS, organization settings, and interview coach interactions, including specific endpoints for job status management and conditional validation. CV endpoints include authorization checks.
-    - **AI Integration**: Powers CV screening, resume ingestion (using `pdf-parse` with token limiting), interview coaching, and fraud detection.
+    - **AI Integration**: Powers CV screening, resume ingestion (using `pdf-parse` v2.x with proper buffer handling), interview coaching, and fraud detection. PDF text extraction fixed (October 2025) to use `{ data: buffer }` instead of `{ url: filePath }` for reliable text extraction from uploaded PDFs.
     - **Background Job Processing**: BullMQ with Redis for asynchronous tasks like candidate screening.
     - **Authentication & Authorization**: Passwordless magic link authentication using Resend, Express-session with PostgreSQL store, and robust security features. Supports a single-role system (individual, business, recruiter, admin) with role-based access control.
     - **User Management**: Users identified by auto-incrementing `id` and unique `email`, with onboarding status and last login tracking.
