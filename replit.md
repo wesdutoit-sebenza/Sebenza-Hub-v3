@@ -67,3 +67,102 @@ Preferred communication style: Simple, everyday language.
 - **AI**: OpenAI GPT-4o, OpenAI GPT-4o-mini, OpenAI text-embedding-3-small.
 - **Email**: Resend.
 - **Maps & Geolocation**: Google Maps JavaScript API.
+
+## Database Configuration & Deployment
+
+### Development vs Production Databases
+Sebenza Hub uses **separate Neon PostgreSQL databases** for development and production:
+
+**Development Database:**
+- Used when running `npm run dev` in the Replit workspace
+- Configured via `DATABASE_URL` in Secrets (🔒 icon)
+- Connection string format: `postgresql://neondb_owner:...@ep-icy-band-...`
+
+**Production Database:**
+- Used by the published app at `.replit.app`
+- Configured in deployment environment variables
+- Connection string format: `postgresql://neondb_owner:...@ep-floral-bird-...`
+
+### Setting Up Database Connections
+
+**For Development:**
+1. Click **🔒 Secrets** in the left sidebar
+2. Find or add `DATABASE_URL`
+3. Paste your development Neon connection string (without `psql` prefix)
+4. Server auto-restarts with new connection
+
+**For Production:**
+1. Go to **Deployments** tab in Replit
+2. Click on your deployment
+3. Add environment variable: `DATABASE_URL`
+4. Paste your production Neon connection string
+
+### Running Database Migrations
+
+**Development Migrations:**
+```bash
+# In the Shell tab at bottom of workspace
+npm run db:push --force
+```
+
+This syncs your `shared/schema.ts` to the development database.
+
+**Production Migrations:**
+
+**Option 1: Manual Migration (One-Time Setup)**
+1. Backup current `DATABASE_URL` secret
+2. Temporarily change `DATABASE_URL` to production connection string
+3. Run: `npm run db:push --force`
+4. Restore `DATABASE_URL` to development connection string
+
+**Option 2: Automated Deployment (Recommended)**
+Use the `deploy.sh` script for deployments:
+```bash
+# This runs migrations + build in one command
+./deploy.sh
+```
+
+**To enable automatic migrations on deployment:**
+1. In Replit, go to your deployment settings
+2. Under "Build command", change from `npm run build` to `sh deploy.sh`
+3. This ensures migrations run automatically before each deployment
+
+The `deploy.sh` script:
+- Runs `npm run db:push --force` (syncs production schema)
+- Runs `npm run build` (builds frontend & backend)
+- Provides clear status updates during deployment
+
+### Database Schema Management
+
+**Important Rules:**
+- ✅ Always update `shared/schema.ts` for schema changes
+- ✅ Use `npm run db:push --force` to sync changes to database
+- ✅ Run migrations on BOTH development and production after schema changes
+- ❌ Never manually write SQL migrations
+- ❌ Never change primary key ID column types (breaks existing data)
+
+**Common Commands:**
+```bash
+# Sync schema to current database
+npm run db:push --force
+
+# Check TypeScript types
+npm run check
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+### Deployment Checklist
+Before publishing updates:
+- [ ] Test changes in development
+- [ ] Update `shared/schema.ts` if database schema changed
+- [ ] Run `npm run db:push --force` on development database
+- [ ] Verify app works in development
+- [ ] Update production `DATABASE_URL` in deployment settings (if not already set)
+- [ ] Run migrations on production (Option 1 or 2 above)
+- [ ] Publish deployment
+- [ ] Test published app at `.replit.app`
