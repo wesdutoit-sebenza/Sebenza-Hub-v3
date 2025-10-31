@@ -52,9 +52,9 @@ import adminRoutes from "./admin.routes";
 
 // Shared OpenAI client for OCR (reused across requests)
 let ocrOpenAI: any = null;
-function getOCRClient() {
+async function getOCRClient() {
   if (!ocrOpenAI) {
-    const OpenAI = require('openai').default;
+    const { default: OpenAI } = await import('openai');
     ocrOpenAI = new OpenAI({
       baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
       apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
@@ -86,7 +86,7 @@ async function extractTextFromFile(filePath: string, mimetype: string): Promise<
       
       // Convert PDF pages to images and use OpenAI Vision for OCR
       const { pdf } = await import('pdf-to-img');
-      const openai = getOCRClient();
+      const openai = await getOCRClient();
       
       const document = await pdf(filePath, { scale: 2 });
       const pageTexts: string[] = [];
