@@ -220,6 +220,9 @@ export async function parseCVWithAI(
       throw new Error("No response from AI");
     }
 
+    // Log first 500 chars of AI response for debugging
+    console.log(`[CV Ingestion] AI Response (first 500 chars): ${responseText.substring(0, 500)}`);
+
     const parsed = JSON.parse(responseText) as CVIngestionResult;
 
     // Log what the AI extracted for debugging
