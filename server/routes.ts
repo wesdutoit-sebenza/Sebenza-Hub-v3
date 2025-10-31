@@ -2577,6 +2577,170 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
     },
   });
 
+  // ============================================================================
+  // Job Import - Parse and Extract
+  // ============================================================================
+
+  // Job Import - Parse Document/Text
+  app.post("/api/jobs/import-parse", authenticateSession, upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "No file uploaded",
+        });
+      }
+
+      const { path: filePath, mimetype } = req.file;
+
+      // Extract text from the uploaded file
+      const extractedText = await extractTextFromFile(filePath, mimetype);
+
+      // Clean up uploaded file
+      try {
+        await fs.unlink(filePath);
+      } catch (cleanupError) {
+        console.warn('[Import] Failed to delete temporary file:', cleanupError);
+      }
+
+      if (!extractedText || extractedText.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Could not extract text from the document",
+        });
+      }
+
+      res.json({
+        success: true,
+        text: extractedText,
+      });
+    } catch (error: any) {
+      console.error("Job import parse error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to parse document",
+      });
+    }
+  });
+
+  // Job Import - Extract Structured Data with AI
+  app.post("/api/jobs/import-extract", authenticateSession, async (req, res) => {
+    try {
+      const { text } = req.body;
+
+      if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "No text provided for extraction",
+        });
+      }
+
+      // Check if AI is configured
+      if (!isAIConfigured()) {
+        return res.status(503).json({
+          success: false,
+          message: "AI service is not configured.",
+        });
+      }
+
+      // Initialize OpenAI client
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+      });
+
+      // Build system prompt for job posting extraction
+      const systemPrompt = `You are an expert AI assistant that extracts structured job posting data from unstructured text.
+
+Your task: Analyze the provided job posting text and extract all relevant information into a structured JSON format that matches the Sebenza Hub job posting schema.
+
+Guidelines:
+- Extract as much information as possible from the text
+- Use South African context (currency = ZAR, country = South Africa)
+- For salary ranges, extract both minimum and maximum values
+- For location, extract city and province if mentioned
+- For employment type, use one of: "Permanent", "Contract", "Temporary", "Internship", "Freelance"
+- For seniority, use one of: "Entry Level", "Junior", "Mid-Level", "Senior", "Lead", "Manager", "Director", "Executive"
+- Extract responsibilities, qualifications, and benefits as arrays of strings
+- If information is not present, use null or empty arrays
+- Return ONLY valid JSON, no markdown or explanations
+
+Return format:
+{
+  "title": "string",
+  "company": "string",
+  "location": "string (city, province)",
+  "employmentType": "string",
+  "industry": "string or null",
+  "salaryMin": number or null,
+  "salaryMax": number or null,
+  "description": "string",
+  "core": {
+    "seniority": "string or null",
+    "department": "string or null",
+    "workArrangement": "string (Remote / Hybrid / On-site)",
+    "summary": "string",
+    "responsibilities": ["string"],
+    "requiredSkills": ["string"],
+    "preferredSkills": ["string"]
+  },
+  "compensation": {
+    "payType": "string (Annual / Monthly / Weekly / Hourly)",
+    "currency": "ZAR",
+    "min": number or null,
+    "max": number or null,
+    "displayRange": true
+  },
+  "roleDetails": {
+    "qualifications": ["string"],
+    "experience": "string or null"
+  },
+  "benefits": {
+    "benefits": ["string"]
+  }
+}`;
+
+      const userPrompt = `Extract structured job posting data from this text:\n\n${text}`;
+
+      // Call OpenAI API
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.3,
+        max_tokens: 2000,
+        response_format: { type: "json_object" },
+      });
+
+      const responseContent = completion.choices[0]?.message?.content?.trim();
+
+      if (!responseContent) {
+        throw new Error("No response from AI");
+      }
+
+      // Parse the extracted job data
+      const jobData = JSON.parse(responseContent);
+
+      res.json({
+        success: true,
+        jobData,
+      });
+    } catch (error: any) {
+      console.error("Job import extract error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to extract job details",
+      });
+    }
+  });
+
+  // ============================================================================
+  // ATS - Resume Upload and AI Parsing
+  // ============================================================================
+
   // Enhanced endpoint: Upload actual file (PDF/DOCX/TXT)
   app.post("/api/ats/resumes/upload", authenticateSession, upload.single('file'), async (req, res) => {
     const uploadedFile = req.file;

@@ -40,9 +40,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles, AlertCircle, Play, Pause, Eye, EyeOff, Trash2, Edit, CheckCircle2 } from "lucide-react";
+import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles, AlertCircle, Play, Pause, Eye, EyeOff, Trash2, Edit, CheckCircle2, Upload, FileText as FileTextIcon } from "lucide-react";
 import { type Job, type RecruiterProfile, insertJobSchema } from "@shared/schema";
 import { JobDescriptionAIDialog } from "@/components/JobDescriptionAIDialog";
+import { ImportJobDialog } from "@/components/ImportJobDialog";
 import {
   SA_PROVINCES,
   EMPLOYMENT_TYPES,
@@ -169,6 +170,7 @@ export default function RecruiterJobPostings() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
   const [citySearchQuery, setCitySearchQuery] = useState("");
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const [jobTitleSearchQuery, setJobTitleSearchQuery] = useState("");
@@ -1642,10 +1644,16 @@ export default function RecruiterJobPostings() {
           <h2 className="text-3xl font-bold tracking-tight">Job Postings</h2>
           <p className="text-muted-foreground">Manage and create job listings</p>
         </div>
-        <Button onClick={() => setShowForm(true)} data-testid="button-create-job">
-          <Plus className="mr-2 h-4 w-4" />
-          Create Job
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowForm(true)} variant="outline" data-testid="button-create-job-manual">
+            <Plus className="mr-2 h-4 w-4" />
+            Create Job Manually
+          </Button>
+          <Button onClick={() => setShowImportDialog(true)} data-testid="button-import-job">
+            <Upload className="mr-2 h-4 w-4" />
+            Import Job Posting
+          </Button>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
@@ -1832,6 +1840,16 @@ export default function RecruiterJobPostings() {
           ))}
         </div>
       )}
+
+      <ImportJobDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        onJobImported={(jobData) => {
+          // Populate form with imported data and show form
+          form.reset(jobData);
+          setShowForm(true);
+        }}
+      />
     </div>
   );
 }
