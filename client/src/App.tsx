@@ -146,17 +146,41 @@ function Router() {
       <Route path="/individuals/job-searches" component={IndividualDashboardJobs} />
       <Route path="/individuals" component={Individuals} />
       <Route path="/screening" component={Screening} />
-      <Route path="/candidates" component={Candidates} />
       <Route path="/candidates/new" component={CandidateAdd} />
       <Route path="/candidates/:id" component={CandidateProfile} />
-      <Route path="/roles" component={Roles} />
+      <Route path="/candidates" component={Candidates} />
       <Route path="/roles/:roleId/screen" component={RoleScreening} />
+      <Route path="/roles" component={Roles} />
       <Route path="/settings/recruiter" component={RecruiterSettings} />
       <Route path="/settings/business" component={BusinessSettings} />
       <Route path="/test-coach" component={TestCoach} />
-      <Route path="/dashboard/individual/:rest*" component={IndividualsRouter} />
-      <Route path="/dashboard/recruiter/:rest*" component={RecruitersRouter} />
-      <Route path="/admin/:rest*" component={AdminRouter} />
+      <Route path="/admin/overview" component={() => <AdminRouter />} />
+      <Route path="/admin/recruiters" component={() => <AdminRouter />} />
+      <Route path="/admin/businesses" component={() => <AdminRouter />} />
+      <Route path="/admin/individuals" component={() => <AdminRouter />} />
+      <Route path="/admin/candidates" component={() => <AdminRouter />} />
+      <Route path="/admin/roles" component={() => <AdminRouter />} />
+      <Route path="/admin/cvs" component={() => <AdminRouter />} />
+      <Route path="/admin/fraud" component={() => <AdminRouter />} />
+      <Route path="/admin" component={() => <AdminRouter />} />
+      <Route path="/dashboard/individual/profile" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual/cvs" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual/jobs" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual/applications" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual/coaching" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual/billing" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual/settings" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/recruiter/tests/:id" component={() => <RecruitersRouter />} />
+      <Route path="/dashboard/recruiter/profile" component={() => <RecruitersRouter />} />
+      <Route path="/dashboard/recruiter/jobs" component={() => <RecruitersRouter />} />
+      <Route path="/dashboard/recruiter/roles" component={() => <RecruitersRouter />} />
+      <Route path="/dashboard/recruiter/candidates" component={() => <RecruitersRouter />} />
+      <Route path="/dashboard/recruiter/tests" component={() => <RecruitersRouter />} />
+      <Route path="/dashboard/recruiter/scheduling" component={() => <RecruitersRouter />} />
+      <Route path="/dashboard/recruiter/billing" component={() => <RecruitersRouter />} />
+      <Route path="/dashboard/recruiter/settings" component={() => <RecruitersRouter />} />
+      <Route path="/dashboard/recruiter" component={() => <RecruitersRouter />} />
       <Route component={NotFound} />
     </Switch>
   );
