@@ -4,9 +4,11 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, Clock, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
+import { AlertCircle, Clock, ChevronLeft, ChevronRight, AlertTriangle, MoveUp, MoveDown } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -75,7 +77,16 @@ export default function TestTake() {
       if (data.responses) {
         const existingAnswers: Record<string, any> = {};
         data.responses.forEach((r: any) => {
-          existingAnswers[r.itemId] = r.response;
+          // Parse response if it's a JSON string, otherwise use as-is
+          let response = r.response;
+          if (typeof response === 'string') {
+            try {
+              response = JSON.parse(response);
+            } catch {
+              // If parsing fails, it's a plain string answer
+            }
+          }
+          existingAnswers[r.itemId] = response;
         });
         setAnswers(existingAnswers);
       }
@@ -238,7 +249,7 @@ export default function TestTake() {
     .slice(0, currentSectionIndex)
     .reduce((acc, section) => acc + section.items.length, 0) + currentQuestionIndex + 1;
 
-  const handleAnswerChange = (value: string) => {
+  const handleAnswerChange = (value: any) => {
     if (!currentQuestion) return;
 
     const newAnswers = { ...answers, [currentQuestion.id]: value };
@@ -389,6 +400,183 @@ export default function TestTake() {
                   ))}
                 </div>
               </RadioGroup>
+            )}
+
+            {/* True/False Options */}
+            {currentQuestion.format === "true_false" && (
+              <RadioGroup
+                value={answers[currentQuestion.id] || ""}
+                onValueChange={handleAnswerChange}
+              >
+                <div className="space-y-3">
+                  {["True", "False"].map((choice, index) => (
+                    <div 
+                      key={choice} 
+                      className="flex items-start space-x-3 p-4 rounded-lg border hover-elevate cursor-pointer"
+                    >
+                      <RadioGroupItem
+                        value={choice}
+                        id={`q-${currentQuestion.id}-${choice}`}
+                        data-testid={`radio-answer-${index}`}
+                      />
+                      <Label
+                        htmlFor={`q-${currentQuestion.id}-${choice}`}
+                        className="flex-1 cursor-pointer leading-relaxed"
+                      >
+                        {choice}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </RadioGroup>
+            )}
+
+            {/* Likert Scale (1-5) */}
+            {currentQuestion.format === "likert" && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center text-sm text-muted-foreground px-2">
+                  <span>Strongly Disagree</span>
+                  <span>Strongly Agree</span>
+                </div>
+                <div className="flex justify-center gap-2">
+                  {[1, 2, 3, 4, 5].map((value) => (
+                    <Button
+                      key={value}
+                      type="button"
+                      variant={answers[currentQuestion.id] === value ? "default" : "outline"}
+                      size="lg"
+                      className="w-16 h-16 text-lg"
+                      onClick={() => handleAnswerChange(value)}
+                      data-testid={`button-likert-${value}`}
+                    >
+                      {value}
+                    </Button>
+                  ))}
+                </div>
+                <div className="flex justify-between text-xs text-muted-foreground px-2">
+                  <span>1</span>
+                  <span>2</span>
+                  <span>3</span>
+                  <span>4</span>
+                  <span>5</span>
+                </div>
+              </div>
+            )}
+
+            {/* Multi-Select Options */}
+            {currentQuestion.format === "multi_select" && Array.isArray(currentQuestion.options) && (
+              <div className="space-y-3">
+                {currentQuestion.options.map((choice: string, index: number) => {
+                  const rawAnswer = answers[currentQuestion.id];
+                  const selectedChoices = Array.isArray(rawAnswer) ? rawAnswer : [];
+                  const isChecked = selectedChoices.includes(choice);
+                  
+                  const toggleChoice = () => {
+                    const current = Array.isArray(rawAnswer) ? rawAnswer : [];
+                    const updated = isChecked 
+                      ? current.filter((c: string) => c !== choice)
+                      : [...current, choice];
+                    handleAnswerChange(updated);
+                  };
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      className="flex items-start space-x-3 p-4 rounded-lg border hover-elevate cursor-pointer"
+                      onClick={toggleChoice}
+                    >
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={toggleChoice}
+                        id={`q-${currentQuestion.id}-${index}`}
+                        data-testid={`checkbox-answer-${index}`}
+                      />
+                      <Label
+                        htmlFor={`q-${currentQuestion.id}-${index}`}
+                        className="flex-1 cursor-pointer leading-relaxed"
+                      >
+                        {choice}
+                      </Label>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Short Answer */}
+            {currentQuestion.format === "short_answer" && (
+              <Textarea
+                value={answers[currentQuestion.id] || ""}
+                onChange={(e) => handleAnswerChange(e.target.value)}
+                placeholder="Enter your answer here..."
+                className="min-h-32"
+                data-testid="textarea-short-answer"
+              />
+            )}
+
+            {/* SJT Ranking */}
+            {currentQuestion.format === "sjt_rank" && Array.isArray(currentQuestion.options) && (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Rank these options from most effective (1) to least effective ({currentQuestion.options.length}):
+                </p>
+                {(() => {
+                  const rawAnswer = answers[currentQuestion.id];
+                  const rankedOptions = Array.isArray(rawAnswer) && rawAnswer.length === currentQuestion.options.length 
+                    ? rawAnswer 
+                    : currentQuestion.options;
+                  
+                  if (!Array.isArray(rankedOptions)) {
+                    return <p className="text-muted-foreground">Loading...</p>;
+                  }
+                  
+                  return rankedOptions.map((choice: string, index: number) => (
+                    <div 
+                      key={`${choice}-${index}`}
+                      className="flex items-center gap-3 p-4 rounded-lg border bg-muted/30"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          disabled={index === 0}
+                          onClick={() => {
+                            const newRanking = [...rankedOptions];
+                            [newRanking[index], newRanking[index - 1]] = [newRanking[index - 1], newRanking[index]];
+                            handleAnswerChange(newRanking);
+                          }}
+                          data-testid={`button-rank-up-${index}`}
+                        >
+                          <MoveUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          disabled={index === rankedOptions.length - 1}
+                          onClick={() => {
+                            const newRanking = [...rankedOptions];
+                            [newRanking[index], newRanking[index + 1]] = [newRanking[index + 1], newRanking[index]];
+                            handleAnswerChange(newRanking);
+                          }}
+                          data-testid={`button-rank-down-${index}`}
+                        >
+                          <MoveDown className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground font-semibold text-sm">
+                          {index + 1}
+                        </div>
+                        <p className="leading-relaxed">{choice}</p>
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
             )}
 
             {/* Navigation Buttons */}
