@@ -68,15 +68,15 @@ function AdminRouter() {
   return (
     <AdminLayout>
       <Switch>
-        <Route path="~/overview" component={AdminOverview} />
-        <Route path="~/recruiters" component={AdminRecruiters} />
-        <Route path="~/businesses" component={AdminBusinesses} />
-        <Route path="~/individuals" component={AdminIndividuals} />
-        <Route path="~/candidates" component={AdminCandidates} />
-        <Route path="~/roles" component={AdminRoles} />
-        <Route path="~/cvs" component={AdminCVs} />
-        <Route path="~/fraud" component={AdminFraudDetection} />
-        <Route path="~/" component={() => {
+        <Route path="/admin/overview" component={AdminOverview} />
+        <Route path="/admin/recruiters" component={AdminRecruiters} />
+        <Route path="/admin/businesses" component={AdminBusinesses} />
+        <Route path="/admin/individuals" component={AdminIndividuals} />
+        <Route path="/admin/candidates" component={AdminCandidates} />
+        <Route path="/admin/roles" component={AdminRoles} />
+        <Route path="/admin/cvs" component={AdminCVs} />
+        <Route path="/admin/fraud" component={AdminFraudDetection} />
+        <Route path="/admin" component={() => {
           const [, navigate] = useLocation();
           navigate("/admin/overview");
           return null;
@@ -90,14 +90,14 @@ function IndividualsRouter() {
   return (
     <IndividualsLayout>
       <Switch>
-        <Route path="~/profile" component={IndividualDashboardProfile} />
-        <Route path="~/cvs" component={IndividualDashboardCVs} />
-        <Route path="~/jobs" component={IndividualDashboardJobs} />
-        <Route path="~/applications" component={IndividualDashboardApplications} />
-        <Route path="~/coaching" component={IndividualDashboardCoaching} />
-        <Route path="~/billing" component={IndividualDashboardBilling} />
-        <Route path="~/settings" component={IndividualDashboardSettings} />
-        <Route path="~/" component={() => {
+        <Route path="/dashboard/individual/profile" component={IndividualDashboardProfile} />
+        <Route path="/dashboard/individual/cvs" component={IndividualDashboardCVs} />
+        <Route path="/dashboard/individual/jobs" component={IndividualDashboardJobs} />
+        <Route path="/dashboard/individual/applications" component={IndividualDashboardApplications} />
+        <Route path="/dashboard/individual/coaching" component={IndividualDashboardCoaching} />
+        <Route path="/dashboard/individual/billing" component={IndividualDashboardBilling} />
+        <Route path="/dashboard/individual/settings" component={IndividualDashboardSettings} />
+        <Route path="/dashboard/individual" component={() => {
           const [, navigate] = useLocation();
           navigate("/dashboard/individual/profile");
           return null;
@@ -111,16 +111,16 @@ function RecruitersRouter() {
   return (
     <RecruitersLayout>
       <Switch>
-        <Route path="~/profile" component={RecruiterDashboardProfile} />
-        <Route path="~/jobs" component={RecruiterDashboardJobs} />
-        <Route path="~/roles" component={RecruiterDashboardRoles} />
-        <Route path="~/candidates" component={RecruiterDashboardCandidates} />
-        <Route path="~/tests/:id" component={RecruiterDashboardTestDetails} />
-        <Route path="~/tests" component={RecruiterDashboardTests} />
-        <Route path="~/scheduling" component={RecruiterDashboardScheduling} />
-        <Route path="~/billing" component={RecruiterDashboardBilling} />
-        <Route path="~/settings" component={RecruiterDashboardSettings} />
-        <Route path="~/" component={() => {
+        <Route path="/dashboard/recruiter/tests/:id" component={RecruiterDashboardTestDetails} />
+        <Route path="/dashboard/recruiter/profile" component={RecruiterDashboardProfile} />
+        <Route path="/dashboard/recruiter/jobs" component={RecruiterDashboardJobs} />
+        <Route path="/dashboard/recruiter/roles" component={RecruiterDashboardRoles} />
+        <Route path="/dashboard/recruiter/candidates" component={RecruiterDashboardCandidates} />
+        <Route path="/dashboard/recruiter/tests" component={RecruiterDashboardTests} />
+        <Route path="/dashboard/recruiter/scheduling" component={RecruiterDashboardScheduling} />
+        <Route path="/dashboard/recruiter/billing" component={RecruiterDashboardBilling} />
+        <Route path="/dashboard/recruiter/settings" component={RecruiterDashboardSettings} />
+        <Route path="/dashboard/recruiter" component={() => {
           const [, navigate] = useLocation();
           navigate("/dashboard/recruiter/profile");
           return null;
