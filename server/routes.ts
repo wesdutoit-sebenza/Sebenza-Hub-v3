@@ -3,14 +3,15 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, insertIndividualPreferencesSchema, insertIndividualNotificationSettingsSchema, type User } from "@shared/schema";
 import { db } from "./db";
-import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs } from "@shared/schema";
+import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { authenticateSession, requireRole, type AuthRequest } from "./auth-middleware";
 import { screeningQueue, isQueueAvailable } from "./queue";
 import { z } from "zod";
 import { queueFraudDetection } from "./fraud-queue-helper";
 import { pool } from "./db-pool";
-import { generateUniqueCVReference, generateUniqueJobReference } from "./reference-generator";
+import { generateUniqueCVReference, generateUniqueJobReference, generateUniqueTestReference } from "./reference-generator";
+import { generateTestBlueprint, validateBlueprint, type GenerateTestInput } from "./ai-test-generation";
 
 // Helper function to enqueue screening jobs for all active roles
 async function enqueueScreeningsForCandidate(candidateId: string) {
@@ -4390,6 +4391,308 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       res.status(500).json({
         success: false,
         message: "Failed to reject content",
+      });
+    }
+  });
+
+  // ========================================
+  // COMPETENCY TESTING ROUTES
+  // ========================================
+
+  // Generate AI test blueprint from job description
+  app.post("/api/competency-tests/generate", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      const input = req.body as GenerateTestInput;
+
+      if (!input.jobTitle) {
+        return res.status(400).json({
+          success: false,
+          message: "Job title is required"
+        });
+      }
+
+      if (!isAIConfigured()) {
+        return res.status(503).json({
+          success: false,
+          message: "AI integration not configured"
+        });
+      }
+
+      console.log(`[Test Generation] Generating blueprint for: ${input.jobTitle}`);
+      const blueprint = await generateTestBlueprint(input);
+
+      // Validate the blueprint
+      const validation = validateBlueprint(blueprint);
+      if (!validation.valid) {
+        console.error(`[Test Generation] Invalid blueprint:`, validation.errors);
+        return res.status(500).json({
+          success: false,
+          message: "Generated invalid blueprint",
+          errors: validation.errors
+        });
+      }
+
+      res.json({
+        success: true,
+        blueprint
+      });
+    } catch (error: any) {
+      console.error("[Test Generation] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to generate test blueprint"
+      });
+    }
+  });
+
+  // Create a new competency test from blueprint
+  app.post("/api/competency-tests", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      // Get user's organization (if they have one - for businesses/agencies)
+      // Otherwise use a default organization ID based on their user ID
+      const membership = await db
+        .select()
+        .from(memberships)
+        .where(eq(memberships.userId, userId))
+        .limit(1);
+
+      const organizationId = membership.length > 0 
+        ? membership[0].organizationId 
+        : `user-org-${userId}`; // Fallback for individual recruiters
+
+      // Parse and validate input
+      const {
+        title,
+        jobTitle,
+        jobFamily,
+        industry,
+        seniority,
+        durationMinutes,
+        languages,
+        status,
+        weights,
+        cutScores,
+        antiCheatConfig,
+        candidateNotice,
+        dataRetentionDays,
+        creationMethod,
+        sourceJobId,
+        sourceTemplateId,
+        aiGenerationPrompt,
+        sections
+      } = req.body;
+
+      // Generate unique reference number
+      const referenceNumber = await generateUniqueTestReference();
+
+      // Create the test
+      const [test] = await db
+        .insert(competencyTests)
+        .values({
+          referenceNumber,
+          organizationId,
+          createdByUserId: userId,
+          title,
+          jobTitle,
+          jobFamily,
+          industry,
+          seniority,
+          durationMinutes: durationMinutes || 45,
+          languages: languages || ['en-ZA'],
+          status: status || 'draft',
+          weights: weights || { skills: 0.5, aptitude: 0.3, workStyle: 0.2 },
+          cutScores: cutScores || { overall: 65, sections: { skills: 60 } },
+          antiCheatConfig: antiCheatConfig || { shuffle: true, fullscreenMonitor: true, webcam: 'consent_optional', ipLogging: true },
+          candidateNotice: candidateNotice || null,
+          dataRetentionDays: dataRetentionDays || 365,
+          creationMethod,
+          sourceJobId: sourceJobId || null,
+          sourceTemplateId: sourceTemplateId || null,
+          aiGenerationPrompt: aiGenerationPrompt || null
+        })
+        .returning();
+
+      // Create sections and items if provided
+      if (sections && Array.isArray(sections)) {
+        for (const sectionData of sections) {
+          const [section] = await db
+            .insert(testSections)
+            .values({
+              testId: test.id,
+              type: sectionData.type,
+              title: sectionData.title,
+              description: sectionData.description || null,
+              timeMinutes: sectionData.time_minutes || sectionData.timeMinutes,
+              weight: sectionData.weight,
+              orderIndex: sectionData.order_index || sectionData.orderIndex
+            })
+            .returning();
+
+          // Create items for this section
+          if (sectionData.items && Array.isArray(sectionData.items)) {
+            for (const itemData of sectionData.items) {
+              await db.insert(testItems).values({
+                sectionId: section.id,
+                format: itemData.format,
+                stem: itemData.stem,
+                options: itemData.options || null,
+                correctAnswer: itemData.correct_answer || itemData.correctAnswer,
+                rubric: itemData.rubric || null,
+                maxPoints: itemData.max_points || itemData.maxPoints || 1,
+                competencies: itemData.competencies || [],
+                difficulty: itemData.difficulty || 'M',
+                timeSeconds: itemData.time_seconds || itemData.timeSeconds || null,
+                orderIndex: itemData.order_index || itemData.orderIndex
+              });
+            }
+          }
+        }
+      }
+
+      console.log(`[Test Created] ${referenceNumber} - ${title}`);
+
+      res.json({
+        success: true,
+        test
+      });
+    } catch (error: any) {
+      console.error("[Create Test] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to create test"
+      });
+    }
+  });
+
+  // Get all tests for organization
+  app.get("/api/competency-tests", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      // Get user's organization (if they have one)
+      const membership = await db
+        .select()
+        .from(memberships)
+        .where(eq(memberships.userId, userId))
+        .limit(1);
+
+      // If user has organization, get tests for that org
+      // Otherwise get tests created by this user
+      let tests;
+      if (membership.length > 0) {
+        const organizationId = membership[0].organizationId;
+        tests = await db
+          .select()
+          .from(competencyTests)
+          .where(eq(competencyTests.organizationId, organizationId))
+          .orderBy(desc(competencyTests.createdAt));
+      } else {
+        tests = await db
+          .select()
+          .from(competencyTests)
+          .where(eq(competencyTests.createdByUserId, userId))
+          .orderBy(desc(competencyTests.createdAt));
+      }
+
+      res.json({
+        success: true,
+        tests
+      });
+    } catch (error: any) {
+      console.error("[Get Tests] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get tests"
+      });
+    }
+  });
+
+  // Get single test with sections and items
+  app.get("/api/competency-tests/:id", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      const testId = req.params.id;
+
+      // Get the test
+      const [test] = await db
+        .select()
+        .from(competencyTests)
+        .where(eq(competencyTests.id, testId))
+        .limit(1);
+
+      if (!test) {
+        return res.status(404).json({ success: false, message: "Test not found" });
+      }
+
+      // Verify user has access - either created it or has access via organization
+      const membership = await db
+        .select()
+        .from(memberships)
+        .where(and(
+          eq(memberships.userId, userId),
+          eq(memberships.organizationId, test.organizationId)
+        ))
+        .limit(1);
+
+      const hasOrgAccess = membership.length > 0;
+      const isCreator = test.createdByUserId === userId;
+
+      if (!hasOrgAccess && !isCreator) {
+        return res.status(403).json({ success: false, message: "Access denied" });
+      }
+
+      // Get sections
+      const sections = await db
+        .select()
+        .from(testSections)
+        .where(eq(testSections.testId, testId))
+        .orderBy(testSections.orderIndex);
+
+      // Get items for each section
+      const sectionsWithItems = await Promise.all(
+        sections.map(async (section) => {
+          const items = await db
+            .select()
+            .from(testItems)
+            .where(eq(testItems.sectionId, section.id))
+            .orderBy(testItems.orderIndex);
+
+          return {
+            ...section,
+            items
+          };
+        })
+      );
+
+      res.json({
+        success: true,
+        test: {
+          ...test,
+          sections: sectionsWithItems
+        }
+      });
+    } catch (error: any) {
+      console.error("[Get Test] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get test"
       });
     }
   });

@@ -1296,3 +1296,227 @@ export const insertRefreshTokenSchema = createInsertSchema(refreshTokens).omit({
 
 export type InsertRefreshToken = z.infer<typeof insertRefreshTokenSchema>;
 export type RefreshToken = typeof refreshTokens.$inferSelect;
+
+// ========================================
+// COMPETENCY TESTING SYSTEM
+// ========================================
+
+// Competency Tests - Main test definition
+export const competencyTests = pgTable("competency_tests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  referenceNumber: varchar("reference_number").unique().notNull(), // TEST-XXXXXX
+  organizationId: varchar("organization_id").notNull(), // Who created it
+  createdByUserId: varchar("created_by_user_id").notNull(),
+  
+  // Basic metadata
+  title: text("title").notNull(), // e.g., "Warehouse Supervisor Assessment"
+  jobTitle: text("job_title").notNull(), // e.g., "Warehouse Supervisor"
+  jobFamily: text("job_family"), // e.g., "Logistics", "Customer Service"
+  industry: text("industry"), // e.g., "FMCG", "Retail"
+  seniority: text("seniority"), // 'entry', 'mid', 'senior', 'executive'
+  
+  // Test configuration
+  durationMinutes: integer("duration_minutes").notNull().default(45),
+  languages: text("languages").array().notNull().default(sql`'{"en-ZA"}'::text[]`),
+  status: text("status").notNull().default('draft'), // 'draft', 'active', 'archived'
+  
+  // Scoring configuration
+  weights: jsonb("weights").notNull(), // { skills: 0.5, aptitude: 0.3, workStyle: 0.2 }
+  cutScores: jsonb("cut_scores").notNull(), // { overall: 65, sections: { skills: 60 } }
+  
+  // Anti-cheating settings
+  antiCheatConfig: jsonb("anti_cheat_config").notNull(), // { shuffle, fullscreenMonitor, webcam, ipLogging }
+  
+  // POPIA & compliance
+  candidateNotice: jsonb("candidate_notice"), // { privacy, accommodations, purpose }
+  dataRetentionDays: integer("data_retention_days").notNull().default(365),
+  
+  // Test source metadata
+  creationMethod: text("creation_method").notNull(), // 'ai_generated', 'manual', 'template_clone'
+  sourceJobId: varchar("source_job_id"), // If created from job posting
+  sourceTemplateId: varchar("source_template_id"), // If cloned from template
+  aiGenerationPrompt: text("ai_generation_prompt"), // Original prompt if AI-generated
+  
+  // Analytics
+  totalAttempts: integer("total_attempts").notNull().default(0),
+  averageScore: integer("average_score"), // 0-100
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_competency_test_org").on(table.organizationId),
+  index("idx_competency_test_status").on(table.status),
+]);
+
+export const insertCompetencyTestSchema = createInsertSchema(competencyTests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  totalAttempts: true,
+  averageScore: true,
+});
+
+export type InsertCompetencyTest = z.infer<typeof insertCompetencyTestSchema>;
+export type CompetencyTest = typeof competencyTests.$inferSelect;
+
+// Test Sections - Skills, Aptitude, Work-Style divisions
+export const testSections = pgTable("test_sections", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  testId: varchar("test_id").notNull(),
+  
+  type: text("type").notNull(), // 'skills', 'aptitude', 'work_style'
+  title: text("title").notNull(), // e.g., "Operational & Compliance Skills"
+  description: text("description"),
+  
+  timeMinutes: integer("time_minutes").notNull(),
+  weight: integer("weight").notNull(), // Percentage weight (0-100)
+  orderIndex: integer("order_index").notNull(), // Display order
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_test_section_test").on(table.testId),
+]);
+
+export const insertTestSectionSchema = createInsertSchema(testSections).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertTestSection = z.infer<typeof insertTestSectionSchema>;
+export type TestSection = typeof testSections.$inferSelect;
+
+// Test Items - Individual questions
+export const testItems = pgTable("test_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  sectionId: varchar("section_id").notNull(),
+  
+  // Question format
+  format: text("format").notNull(), // 'mcq', 'multi_select', 'sjt_rank', 'sjt_best_worst', 'likert', 'true_false', 'short_answer', 'essay', 'file_upload', 'video', 'code', 'data_task'
+  
+  // Content
+  stem: text("stem").notNull(), // The question text
+  options: jsonb("options"), // Array of answer options for MCQ/multi-select
+  correctAnswer: jsonb("correct_answer"), // The key/correct response
+  
+  // For open-ended questions
+  rubric: jsonb("rubric"), // Scoring rubric for manual/AI grading
+  maxPoints: integer("max_points").notNull().default(1),
+  
+  // Metadata
+  competencies: text("competencies").array().notNull().default(sql`'{}'::text[]`), // e.g., ["Customer Empathy", "POPIA Literacy"]
+  difficulty: text("difficulty").notNull().default('M'), // 'E' (easy), 'M' (medium), 'H' (hard)
+  timeSeconds: integer("time_seconds"), // Per-item time limit (optional)
+  
+  // Item statistics (updated as candidates take test)
+  timesAnswered: integer("times_answered").notNull().default(0),
+  percentCorrect: integer("percent_correct"), // 0-100
+  
+  orderIndex: integer("order_index").notNull(), // Display order within section
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_test_item_section").on(table.sectionId),
+]);
+
+export const insertTestItemSchema = createInsertSchema(testItems).omit({
+  id: true,
+  createdAt: true,
+  timesAnswered: true,
+  percentCorrect: true,
+});
+
+export type InsertTestItem = z.infer<typeof insertTestItemSchema>;
+export type TestItem = typeof testItems.$inferSelect;
+
+// Test Attempts - When a candidate takes a test
+export const testAttempts = pgTable("test_attempts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  testId: varchar("test_id").notNull(),
+  candidateId: varchar("candidate_id").notNull(), // User ID of candidate
+  
+  // ATS integration
+  applicationId: varchar("application_id"), // If sent via ATS pipeline
+  jobId: varchar("job_id"), // Associated job posting
+  
+  // Session metadata
+  startedAt: timestamp("started_at").notNull().defaultNow(),
+  submittedAt: timestamp("submitted_at"),
+  timeSpentSeconds: integer("time_spent_seconds"),
+  
+  // Device & environment
+  deviceMeta: jsonb("device_meta"), // User agent, screen size, etc.
+  ipAddress: varchar("ip_address"),
+  
+  // Consent & compliance
+  popiaConsentGiven: integer("popia_consent_given").notNull().default(0),
+  popiaConsentTimestamp: timestamp("popia_consent_timestamp"),
+  
+  // Anti-cheating events
+  proctoringEvents: jsonb("proctoring_events").notNull().default('[]'), // Array of flagged events
+  fullscreenExits: integer("fullscreen_exits").notNull().default(0),
+  tabSwitches: integer("tab_switches").notNull().default(0),
+  copyPasteAttempts: integer("copy_paste_attempts").notNull().default(0),
+  
+  // Overall results
+  status: text("status").notNull().default('in_progress'), // 'in_progress', 'submitted', 'scored', 'flagged'
+  overallScore: integer("overall_score"), // 0-100
+  passed: integer("passed"), // 0 = failed, 1 = passed
+  
+  // Section scores
+  sectionScores: jsonb("section_scores"), // { skills: 75, aptitude: 82, workStyle: 68 }
+  
+  // Flagging
+  fraudScore: integer("fraud_score"), // 0-100, higher = more suspicious
+  reviewRequired: integer("review_required").notNull().default(0),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: varchar("reviewed_by"),
+  reviewNotes: text("review_notes"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_test_attempt_test").on(table.testId),
+  index("idx_test_attempt_candidate").on(table.candidateId),
+  index("idx_test_attempt_application").on(table.applicationId),
+]);
+
+export const insertTestAttemptSchema = createInsertSchema(testAttempts).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertTestAttempt = z.infer<typeof insertTestAttemptSchema>;
+export type TestAttempt = typeof testAttempts.$inferSelect;
+
+// Test Responses - Individual answers to questions
+export const testResponses = pgTable("test_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  attemptId: varchar("attempt_id").notNull(),
+  itemId: varchar("item_id").notNull(),
+  
+  // Response data
+  response: jsonb("response").notNull(), // Candidate's answer (format varies by item type)
+  isCorrect: integer("is_correct"), // 1 = correct, 0 = incorrect, null = pending grading
+  pointsAwarded: integer("points_awarded"),
+  
+  // Timing
+  timeSpentSeconds: integer("time_spent_seconds"),
+  answeredAt: timestamp("answered_at").notNull().defaultNow(),
+  
+  // Manual grading (for open-ended)
+  gradedBy: varchar("graded_by"), // User ID of grader
+  gradedAt: timestamp("graded_at"),
+  graderNotes: text("grader_notes"),
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_test_response_attempt").on(table.attemptId),
+  uniqueIndex("idx_test_response_unique").on(table.attemptId, table.itemId),
+]);
+
+export const insertTestResponseSchema = createInsertSchema(testResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertTestResponse = z.infer<typeof insertTestResponseSchema>;
+export type TestResponse = typeof testResponses.$inferSelect;

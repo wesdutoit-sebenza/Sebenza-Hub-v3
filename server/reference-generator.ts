@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { cvs, jobs } from "@shared/schema";
+import { cvs, jobs, competencyTests } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 /**
@@ -76,4 +76,35 @@ export async function generateUniqueJobReference(): Promise<string> {
   // Fallback with timestamp if we couldn't generate unique in 10 tries
   const timestamp = Date.now().toString(36).toUpperCase();
   return `JOB-${timestamp}`;
+}
+
+/**
+ * Generates a unique Test reference number in format: TEST-XXXXXX
+ * Checks database to ensure uniqueness
+ */
+export async function generateUniqueTestReference(): Promise<string> {
+  let attempts = 0;
+  const maxAttempts = 10;
+
+  while (attempts < maxAttempts) {
+    const code = generateAlphanumeric(6);
+    const referenceNumber = `TEST-${code}`;
+
+    // Check if this reference already exists
+    const existing = await db
+      .select()
+      .from(competencyTests)
+      .where(eq(competencyTests.referenceNumber, referenceNumber))
+      .limit(1);
+
+    if (existing.length === 0) {
+      return referenceNumber;
+    }
+
+    attempts++;
+  }
+
+  // Fallback with timestamp if we couldn't generate unique in 10 tries
+  const timestamp = Date.now().toString(36).toUpperCase();
+  return `TEST-${timestamp}`;
 }
