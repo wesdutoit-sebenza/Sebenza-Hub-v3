@@ -217,10 +217,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         validatedData = insertJobSchema.parse(requestData);
       }
       
-      // Insert into database
-      const [job] = await db.insert(jobs).values(validatedData).returning();
+      // Generate unique reference number
+      const referenceNumber = await generateUniqueJobReference();
       
-      console.log(`New job created: ${job.title} at ${job.company} (Status: ${jobStatus})`);
+      // Insert into database
+      const [job] = await db.insert(jobs).values({
+        ...validatedData,
+        referenceNumber
+      }).returning();
+      
+      console.log(`New job created: ${job.title} at ${job.company} (Status: ${jobStatus}) - Ref: ${referenceNumber}`);
       
       // Queue fraud detection for job posting
       await queueFraudDetection('job_post', job.id, job, job.postedByUserId || undefined);
