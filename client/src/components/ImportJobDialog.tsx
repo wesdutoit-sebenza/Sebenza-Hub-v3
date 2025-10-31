@@ -62,7 +62,18 @@ export function ImportJobDialog({ open, onOpenChange, onJobImported }: ImportJob
         const formData = new FormData();
         formData.append("file", selectedFile);
 
-        const response = await apiRequest("POST", "/api/jobs/import-parse", formData);
+        // Use fetch directly for file upload (FormData needs special handling)
+        const response = await fetch("/api/jobs/import-parse", {
+          method: "POST",
+          body: formData,
+          credentials: "include", // Send session cookie
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: "Failed to parse document" }));
+          throw new Error(errorData.message || "Failed to parse document");
+        }
+
         const parseResponse = await response.json();
 
         if (!parseResponse.success) {
