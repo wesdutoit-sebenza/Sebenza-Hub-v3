@@ -32,11 +32,21 @@ const SECTORS = [
 
 const formSchema = z.object({
   agencyName: z.string().min(2, "Agency name must be at least 2 characters"),
-  website: z.string().url("Invalid URL").or(z.literal("")),
-  email: z.string().email("Invalid email address"),
-  telephoneCountryCode: z.string().min(1, "Country code required"),
-  telephoneNumber: z.string().min(7, "Invalid phone number"),
-  sectors: z.array(z.string()).min(1, "Please select at least one industry sector"),
+  website: z.string()
+    .transform((val) => {
+      if (!val) return val;
+      const trimmed = val.trim();
+      if (!trimmed) return "";
+      if (trimmed.startsWith("www.") || trimmed.startsWith("www")) {
+        return `https://${trimmed}`;
+      }
+      return trimmed;
+    })
+    .pipe(z.string().url("Invalid URL").or(z.literal(""))),
+  email: z.string().email("Invalid email address").or(z.literal("")),
+  telephoneCountryCode: z.string().optional(),
+  telephoneNumber: z.string().optional(),
+  sectors: z.array(z.string()),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -58,7 +68,7 @@ export default function RecruiterProfile() {
       agencyName: "",
       website: "",
       email: "",
-      telephoneCountryCode: "+27",
+      telephoneCountryCode: "",
       telephoneNumber: "",
       sectors: [],
     },
@@ -90,15 +100,19 @@ export default function RecruiterProfile() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const phoneNumber = data.telephoneNumber.replace(/^0+/, '');
-      const fullTelephone = `${data.telephoneCountryCode} ${phoneNumber}`;
+      // Only combine telephone if both fields are provided
+      let fullTelephone: string | undefined = undefined;
+      if (data.telephoneCountryCode && data.telephoneNumber) {
+        const phoneNumber = data.telephoneNumber.replace(/^0+/, '');
+        fullTelephone = `${data.telephoneCountryCode} ${phoneNumber}`;
+      }
 
       const payload = {
         agencyName: data.agencyName,
         website: data.website || undefined,
-        email: data.email,
+        email: data.email || undefined,
         telephone: fullTelephone,
-        sectors: data.sectors,
+        sectors: data.sectors.length > 0 ? data.sectors : undefined,
       };
 
       const res = await apiRequest('PUT', '/api/profile/recruiter', payload);
@@ -174,10 +188,10 @@ export default function RecruiterProfile() {
                 name="website"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Website</FormLabel>
+                    <FormLabel>Website (Optional)</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="https://youragency.co.za"
+                        placeholder="www.youragency.co.za"
                         {...field}
                         data-testid="input-website"
                       />
@@ -192,14 +206,13 @@ export default function RecruiterProfile() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email Address *</FormLabel>
+                    <FormLabel>Email Address (Optional)</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="contact@youragency.co.za"
                         type="email"
                         {...field}
                         data-testid="input-email"
-                        disabled
                       />
                     </FormControl>
                     <FormDescription>
@@ -216,7 +229,7 @@ export default function RecruiterProfile() {
                   name="telephoneCountryCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Country Code *</FormLabel>
+                      <FormLabel>Country Code (Optional)</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-country-code">
@@ -242,7 +255,7 @@ export default function RecruiterProfile() {
                     name="telephoneNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Telephone Number *</FormLabel>
+                        <FormLabel>Telephone Number (Optional)</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="82 123 4567"
@@ -262,7 +275,7 @@ export default function RecruiterProfile() {
                 name="sectors"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Industry Sectors *</FormLabel>
+                    <FormLabel>Industry Sectors (Optional)</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
