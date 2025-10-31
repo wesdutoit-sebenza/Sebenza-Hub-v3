@@ -22,7 +22,8 @@ Preferred communication style: Simple, everyday language.
     - **Competency Test Agent** (November 2025): AI-powered assessment platform with unique `TEST-XXXXXX` reference numbers, supporting three creation methods (AI-generated from job description, manual authoring, pre-built template library). 
         - **AI Test Generation** (Completed): GPT-4o-powered blueprint generation from job descriptions with South African compliance (POPIA, Employment Equity, HPCSA). Generates structured tests with sections, items, weights, cut scores, and anti-cheat configurations. Tested successfully with "Warehouse Supervisor" role.
         - **User Authorization**: Supports both organization-based users (businesses/agencies) and individual recruiters. Tests scoped to organization if membership exists, otherwise scoped to creating user via `createdByUserId`.
-        - **Pending Features**: Standalone candidate portal, multi-format questions (MCQ, SJT, Likert, work samples), scoring engine, ATS integration where test scores automatically update candidate pipeline status, manual authoring UI, pre-built template library.
+        - **Test-Taking API** (In Progress - October 2025): Complete candidate test-taking backend with endpoints for public test access, attempt creation, answer submission, scoring, and results retrieval.
+        - **Pending Features**: Candidate test portal UI with timer and progress tracking, multi-format questions (MCQ, SJT, Likert, work samples), advanced anti-cheat features, ATS integration where test scores automatically update candidate pipeline status, manual authoring UI, pre-built template library.
     - **Organization Settings**: Multi-tenant configuration for teams, pipelines, and compliance.
     - **Location & Job Data**: Comprehensive South African city/town and job title systems with auto-fill.
 - **Backend**: Express.js with TypeScript.

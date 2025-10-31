@@ -4812,6 +4812,43 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
     }
   });
 
+  // Get attempt details (for timer calculation)
+  app.get("/api/test-attempts/:attemptId", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      const { attemptId } = req.params;
+
+      // Verify attempt belongs to user
+      const [attempt] = await db
+        .select()
+        .from(testAttempts)
+        .where(and(
+          eq(testAttempts.id, attemptId),
+          eq(testAttempts.candidateId, userId)
+        ))
+        .limit(1);
+
+      if (!attempt) {
+        return res.status(404).json({ success: false, message: "Test attempt not found" });
+      }
+
+      res.json({
+        success: true,
+        attempt
+      });
+    } catch (error: any) {
+      console.error("[Get Attempt] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get attempt"
+      });
+    }
+  });
+
   // Get test questions for an attempt
   app.get("/api/test-attempts/:attemptId/questions", authenticateSession, async (req: AuthRequest, res) => {
     try {
@@ -4885,6 +4922,66 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       res.status(500).json({
         success: false,
         message: error.message || "Failed to get test questions"
+      });
+    }
+  });
+
+  // Record anti-cheat event
+  app.post("/api/test-attempts/:attemptId/anti-cheat", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      const { attemptId } = req.params;
+      const { eventType, timestamp } = req.body;
+
+      // Verify attempt belongs to user
+      const [attempt] = await db
+        .select()
+        .from(testAttempts)
+        .where(and(
+          eq(testAttempts.id, attemptId),
+          eq(testAttempts.candidateId, userId)
+        ))
+        .limit(1);
+
+      if (!attempt) {
+        return res.status(404).json({ success: false, message: "Test attempt not found" });
+      }
+
+      // Update anti-cheat counters and events
+      const proctoringEvents = attempt.proctoringEvents as any[] || [];
+      proctoringEvents.push({
+        type: eventType,
+        timestamp: timestamp || new Date().toISOString(),
+      });
+
+      const updates: any = {
+        proctoringEvents,
+      };
+
+      if (eventType === 'fullscreen_exit') {
+        updates.fullscreenExits = (attempt.fullscreenExits || 0) + 1;
+      } else if (eventType === 'tab_switch') {
+        updates.tabSwitches = (attempt.tabSwitches || 0) + 1;
+      }
+
+      await db
+        .update(testAttempts)
+        .set(updates)
+        .where(eq(testAttempts.id, attemptId));
+
+      res.json({
+        success: true,
+        message: "Anti-cheat event recorded"
+      });
+    } catch (error: any) {
+      console.error("[Record Anti-Cheat Event] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to record anti-cheat event"
       });
     }
   });
@@ -4982,7 +5079,7 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       }
 
       const { attemptId } = req.params;
-      const { timeSpentSeconds } = req.body;
+      const { timeSpentSeconds, fullscreenExits, tabSwitches } = req.body;
 
       // Verify attempt belongs to user
       const [attempt] = await db
@@ -5000,6 +5097,21 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
 
       if (attempt.status !== 'in_progress') {
         return res.status(403).json({ success: false, message: "Test already submitted" });
+      }
+
+      // Verify time limit hasn't been exceeded
+      const [testDetails] = await db.select().from(competencyTests).where(eq(competencyTests.id, attempt.testId)).limit(1);
+      if (testDetails?.durationMinutes) {
+        const startTime = new Date(attempt.startedAt);
+        const maxDurationMs = testDetails.durationMinutes * 60 * 1000;
+        const elapsedMs = Date.now() - startTime.getTime();
+        
+        if (elapsedMs > maxDurationMs + 5000) { // 5 second grace period
+          return res.status(403).json({ 
+            success: false, 
+            message: "Test time limit exceeded" 
+          });
+        }
       }
 
       // Calculate scores
@@ -5054,7 +5166,7 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       // Determine if passed (simplified - just check overall score >= 50%)
       const passed = overallScore >= 50 ? 1 : 0;
 
-      // Update attempt
+      // Update attempt with final anti-cheat counts
       const [updatedAttempt] = await db
         .update(testAttempts)
         .set({
@@ -5064,6 +5176,8 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
           overallScore,
           passed,
           sectionScores,
+          fullscreenExits: fullscreenExits || attempt.fullscreenExits || 0,
+          tabSwitches: tabSwitches || attempt.tabSwitches || 0,
         })
         .where(eq(testAttempts.id, attemptId))
         .returning();

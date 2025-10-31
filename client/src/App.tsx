@@ -29,6 +29,9 @@ import IndividualSettings from "@/pages/IndividualSettings";
 import IndividualProfile from "@/pages/IndividualProfile";
 import IndividualProfileEdit from "@/pages/IndividualProfileEdit";
 import TestCoach from "@/pages/TestCoach";
+import TestAccess from "@/pages/TestAccess";
+import TestTake from "@/pages/TestTake";
+import TestResults from "@/pages/TestResults";
 import NotFound from "@/pages/not-found";
 
 // Admin pages
@@ -154,6 +157,9 @@ function Router() {
       <Route path="/settings/recruiter" component={RecruiterSettings} />
       <Route path="/settings/business" component={BusinessSettings} />
       <Route path="/test-coach" component={TestCoach} />
+      <Route path="/test/:referenceNumber/results/:attemptId" component={TestResults} />
+      <Route path="/test/:referenceNumber/take/:attemptId" component={TestTake} />
+      <Route path="/test/:referenceNumber" component={TestAccess} />
       <Route path="/admin/overview" component={() => <AdminRouter />} />
       <Route path="/admin/recruiters" component={() => <AdminRouter />} />
       <Route path="/admin/businesses" component={() => <AdminRouter />} />
