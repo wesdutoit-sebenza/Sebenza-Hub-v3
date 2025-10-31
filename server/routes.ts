@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, insertIndividualPreferencesSchema, insertIndividualNotificationSettingsSchema, type User } from "@shared/schema";
 import { db } from "./db";
-import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema } from "@shared/schema";
+import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, testAttempts, testResponses, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema } from "@shared/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { authenticateSession, requireRole, type AuthRequest } from "./auth-middleware";
 import { screeningQueue, isQueueAvailable } from "./queue";
@@ -4693,6 +4693,460 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       res.status(500).json({
         success: false,
         message: error.message || "Failed to get test"
+      });
+    }
+  });
+
+  // ===========================
+  // Candidate Test-Taking Routes
+  // ===========================
+
+  // Get test details for taking (public access via reference number)
+  app.get("/api/tests/take/:referenceNumber", async (req, res) => {
+    try {
+      const { referenceNumber } = req.params;
+
+      // Get the test
+      const [test] = await db
+        .select()
+        .from(competencyTests)
+        .where(eq(competencyTests.referenceNumber, referenceNumber))
+        .limit(1);
+
+      if (!test) {
+        return res.status(404).json({ success: false, message: "Test not found" });
+      }
+
+      // Only allow active tests to be taken
+      if (test.status !== 'active') {
+        return res.status(403).json({ 
+          success: false, 
+          message: "This test is not currently available for taking" 
+        });
+      }
+
+      // Get sections (without items for now - items are loaded during test)
+      const sections = await db
+        .select({
+          id: testSections.id,
+          title: testSections.title,
+          description: testSections.description,
+        })
+        .from(testSections)
+        .where(eq(testSections.testId, test.id))
+        .orderBy(testSections.orderIndex);
+
+      res.json({
+        success: true,
+        test: {
+          id: test.id,
+          referenceNumber: test.referenceNumber,
+          title: test.title,
+          jobTitle: test.jobTitle,
+          durationMinutes: test.durationMinutes,
+          candidateNotice: test.candidateNotice,
+          antiCheatConfig: test.antiCheatConfig,
+          sections,
+        }
+      });
+    } catch (error: any) {
+      console.error("[Get Test for Taking] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get test"
+      });
+    }
+  });
+
+  // Start a test attempt
+  app.post("/api/test-attempts", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      const { testId, deviceMeta } = req.body;
+
+      if (!testId) {
+        return res.status(400).json({ success: false, message: "Test ID is required" });
+      }
+
+      // Verify test exists and is active
+      const [test] = await db
+        .select()
+        .from(competencyTests)
+        .where(eq(competencyTests.id, testId))
+        .limit(1);
+
+      if (!test) {
+        return res.status(404).json({ success: false, message: "Test not found" });
+      }
+
+      if (test.status !== 'active') {
+        return res.status(403).json({ success: false, message: "Test is not active" });
+      }
+
+      // Create attempt
+      const [attempt] = await db
+        .insert(testAttempts)
+        .values({
+          testId,
+          candidateId: userId,
+          deviceMeta: deviceMeta || null,
+          ipAddress: req.ip || null,
+          status: 'in_progress',
+        })
+        .returning();
+
+      res.json({
+        success: true,
+        attempt
+      });
+    } catch (error: any) {
+      console.error("[Start Test Attempt] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to start test attempt"
+      });
+    }
+  });
+
+  // Get test questions for an attempt
+  app.get("/api/test-attempts/:attemptId/questions", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      const { attemptId } = req.params;
+
+      // Verify attempt belongs to user
+      const [attempt] = await db
+        .select()
+        .from(testAttempts)
+        .where(and(
+          eq(testAttempts.id, attemptId),
+          eq(testAttempts.candidateId, userId)
+        ))
+        .limit(1);
+
+      if (!attempt) {
+        return res.status(404).json({ success: false, message: "Test attempt not found" });
+      }
+
+      if (attempt.status !== 'in_progress') {
+        return res.status(403).json({ success: false, message: "Test is no longer in progress" });
+      }
+
+      // Get sections with items
+      const sections = await db
+        .select()
+        .from(testSections)
+        .where(eq(testSections.testId, attempt.testId))
+        .orderBy(testSections.orderIndex);
+
+      const sectionsWithItems = await Promise.all(
+        sections.map(async (section) => {
+          const items = await db
+            .select({
+              id: testItems.id,
+              format: testItems.format,
+              stem: testItems.stem,
+              options: testItems.options,
+              maxPoints: testItems.maxPoints,
+              orderIndex: testItems.orderIndex,
+            })
+            .from(testItems)
+            .where(eq(testItems.sectionId, section.id))
+            .orderBy(testItems.orderIndex);
+
+          return {
+            ...section,
+            items
+          };
+        })
+      );
+
+      // Get existing responses
+      const responses = await db
+        .select()
+        .from(testResponses)
+        .where(eq(testResponses.attemptId, attemptId));
+
+      res.json({
+        success: true,
+        sections: sectionsWithItems,
+        responses
+      });
+    } catch (error: any) {
+      console.error("[Get Test Questions] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get test questions"
+      });
+    }
+  });
+
+  // Submit an answer
+  app.post("/api/test-attempts/:attemptId/responses", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      const { attemptId } = req.params;
+      const { itemId, response, timeSpentSeconds } = req.body;
+
+      // Verify attempt belongs to user
+      const [attempt] = await db
+        .select()
+        .from(testAttempts)
+        .where(and(
+          eq(testAttempts.id, attemptId),
+          eq(testAttempts.candidateId, userId)
+        ))
+        .limit(1);
+
+      if (!attempt) {
+        return res.status(404).json({ success: false, message: "Test attempt not found" });
+      }
+
+      if (attempt.status !== 'in_progress') {
+        return res.status(403).json({ success: false, message: "Test is no longer in progress" });
+      }
+
+      // Get the item to check correct answer
+      const [item] = await db
+        .select()
+        .from(testItems)
+        .where(eq(testItems.id, itemId))
+        .limit(1);
+
+      if (!item) {
+        return res.status(404).json({ success: false, message: "Question not found" });
+      }
+
+      // Check if answer is correct (for auto-gradable questions)
+      let isCorrect: number | null = null;
+      let pointsAwarded: number | null = null;
+
+      if (item.format === 'mcq' && item.correctAnswer) {
+        isCorrect = response === item.correctAnswer ? 1 : 0;
+        pointsAwarded = isCorrect === 1 ? item.maxPoints : 0;
+      }
+
+      // Upsert response
+      const [savedResponse] = await db
+        .insert(testResponses)
+        .values({
+          attemptId,
+          itemId,
+          response,
+          isCorrect,
+          pointsAwarded,
+          timeSpentSeconds: timeSpentSeconds || null,
+        })
+        .onConflictDoUpdate({
+          target: [testResponses.attemptId, testResponses.itemId],
+          set: {
+            response,
+            isCorrect,
+            pointsAwarded,
+            timeSpentSeconds: timeSpentSeconds || null,
+          }
+        })
+        .returning();
+
+      res.json({
+        success: true,
+        response: savedResponse
+      });
+    } catch (error: any) {
+      console.error("[Submit Answer] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to submit answer"
+      });
+    }
+  });
+
+  // Submit test (complete)
+  app.post("/api/test-attempts/:attemptId/submit", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      const { attemptId } = req.params;
+      const { timeSpentSeconds } = req.body;
+
+      // Verify attempt belongs to user
+      const [attempt] = await db
+        .select()
+        .from(testAttempts)
+        .where(and(
+          eq(testAttempts.id, attemptId),
+          eq(testAttempts.candidateId, userId)
+        ))
+        .limit(1);
+
+      if (!attempt) {
+        return res.status(404).json({ success: false, message: "Test attempt not found" });
+      }
+
+      if (attempt.status !== 'in_progress') {
+        return res.status(403).json({ success: false, message: "Test already submitted" });
+      }
+
+      // Calculate scores
+      const responses = await db
+        .select()
+        .from(testResponses)
+        .where(eq(testResponses.attemptId, attemptId));
+
+      const sections = await db
+        .select()
+        .from(testSections)
+        .where(eq(testSections.testId, attempt.testId))
+        .orderBy(testSections.orderIndex);
+
+      const sectionScores: Record<string, number> = {};
+      let totalPoints = 0;
+      let earnedPoints = 0;
+
+      for (const section of sections) {
+        const sectionItems = await db
+          .select()
+          .from(testItems)
+          .where(eq(testItems.sectionId, section.id));
+
+        let sectionTotal = 0;
+        let sectionEarned = 0;
+
+        for (const item of sectionItems) {
+          sectionTotal += item.maxPoints;
+          const response = responses.find(r => r.itemId === item.id);
+          if (response && response.pointsAwarded !== null) {
+            sectionEarned += response.pointsAwarded;
+          }
+        }
+
+        const sectionScore = sectionTotal > 0 ? Math.round((sectionEarned / sectionTotal) * 100) : 0;
+        sectionScores[section.id] = sectionScore;
+
+        totalPoints += sectionTotal;
+        earnedPoints += sectionEarned;
+      }
+
+      const overallScore = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+
+      // Get test to check cut scores
+      const [test] = await db
+        .select()
+        .from(competencyTests)
+        .where(eq(competencyTests.id, attempt.testId))
+        .limit(1);
+
+      // Determine if passed (simplified - just check overall score >= 50%)
+      const passed = overallScore >= 50 ? 1 : 0;
+
+      // Update attempt
+      const [updatedAttempt] = await db
+        .update(testAttempts)
+        .set({
+          status: 'submitted',
+          submittedAt: new Date(),
+          timeSpentSeconds: timeSpentSeconds || null,
+          overallScore,
+          passed,
+          sectionScores,
+        })
+        .where(eq(testAttempts.id, attemptId))
+        .returning();
+
+      res.json({
+        success: true,
+        attempt: updatedAttempt,
+        score: {
+          overall: overallScore,
+          sections: sectionScores,
+          passed: passed === 1,
+        }
+      });
+    } catch (error: any) {
+      console.error("[Submit Test] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to submit test"
+      });
+    }
+  });
+
+  // Get test results
+  app.get("/api/test-attempts/:attemptId/results", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      const { attemptId } = req.params;
+
+      // Verify attempt belongs to user
+      const [attempt] = await db
+        .select()
+        .from(testAttempts)
+        .where(and(
+          eq(testAttempts.id, attemptId),
+          eq(testAttempts.candidateId, userId)
+        ))
+        .limit(1);
+
+      if (!attempt) {
+        return res.status(404).json({ success: false, message: "Test attempt not found" });
+      }
+
+      if (attempt.status === 'in_progress') {
+        return res.status(403).json({ success: false, message: "Test not yet submitted" });
+      }
+
+      // Get test details
+      const [test] = await db
+        .select()
+        .from(competencyTests)
+        .where(eq(competencyTests.id, attempt.testId))
+        .limit(1);
+
+      // Get sections
+      const sections = await db
+        .select()
+        .from(testSections)
+        .where(eq(testSections.testId, attempt.testId))
+        .orderBy(testSections.orderIndex);
+
+      res.json({
+        success: true,
+        attempt,
+        test: {
+          referenceNumber: test.referenceNumber,
+          title: test.title,
+          jobTitle: test.jobTitle,
+        },
+        sections: sections.map(s => ({
+          id: s.id,
+          title: s.title,
+          score: (attempt.sectionScores as Record<string, number>)?.[s.id] || 0,
+        })),
+      });
+    } catch (error: any) {
+      console.error("[Get Test Results] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get test results"
       });
     }
   });
