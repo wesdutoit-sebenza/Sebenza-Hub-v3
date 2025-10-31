@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -40,6 +41,7 @@ interface CompetencyTest {
 }
 
 export default function RecruiterTests() {
+  const [, setLocation] = useLocation();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [creationMethod, setCreationMethod] = useState<'ai' | 'manual' | 'template'>('ai');
   const [generatingTest, setGeneratingTest] = useState(false);
@@ -381,7 +383,12 @@ export default function RecruiterTests() {
                       {test.jobTitle}
                     </CardDescription>
                   </div>
-                  <Button variant="outline" size="sm" data-testid={`button-view-test-${test.id}`}>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setLocation(`/dashboard/recruiter/tests/${test.id}`)}
+                    data-testid={`button-view-test-${test.id}`}
+                  >
                     View Details
                   </Button>
                 </div>

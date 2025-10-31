@@ -59,6 +59,7 @@ import RecruiterDashboardJobs from "@/pages/dashboard/recruiter/JobPostings";
 import RecruiterDashboardRoles from "@/pages/dashboard/recruiter/Roles";
 import RecruiterDashboardCandidates from "@/pages/dashboard/recruiter/Candidates";
 import RecruiterDashboardTests from "@/pages/dashboard/recruiter/Tests";
+import RecruiterDashboardTestDetails from "@/pages/dashboard/recruiter/TestDetails";
 import RecruiterDashboardScheduling from "@/pages/dashboard/recruiter/Scheduling";
 import RecruiterDashboardBilling from "@/pages/dashboard/recruiter/Billing";
 import RecruiterDashboardSettings from "@/pages/dashboard/recruiter/Settings";
@@ -114,6 +115,7 @@ function RecruitersRouter() {
         <Route path="/dashboard/recruiter/jobs" component={RecruiterDashboardJobs} />
         <Route path="/dashboard/recruiter/roles" component={RecruiterDashboardRoles} />
         <Route path="/dashboard/recruiter/candidates" component={RecruiterDashboardCandidates} />
+        <Route path="/dashboard/recruiter/tests/:id" component={RecruiterDashboardTestDetails} />
         <Route path="/dashboard/recruiter/tests" component={RecruiterDashboardTests} />
         <Route path="/dashboard/recruiter/scheduling" component={RecruiterDashboardScheduling} />
         <Route path="/dashboard/recruiter/billing" component={RecruiterDashboardBilling} />
