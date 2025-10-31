@@ -283,9 +283,11 @@ export default function TestDetails() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="secondary" className="text-xs">
-                              {item.type.toUpperCase()}
-                            </Badge>
+                            {item.type && (
+                              <Badge variant="secondary" className="text-xs">
+                                {item.type.toUpperCase()}
+                              </Badge>
+                            )}
                             <span className="text-xs text-muted-foreground">
                               {item.points} points
                             </span>
