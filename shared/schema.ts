@@ -188,6 +188,7 @@ export const jobs = pgTable("jobs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   organizationId: varchar("organization_id"),
   postedByUserId: varchar("posted_by_user_id"),
+  referenceNumber: varchar("reference_number").unique(), // Unique reference e.g. JOB-X7Y8Z9
   
   // Legacy fields (kept for backward compatibility - nullable for new comprehensive jobs)
   title: text("title").notNull(),
@@ -518,6 +519,7 @@ export const cvEducationSchema = z.object({
 export const cvs = pgTable("cvs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id"),
+  referenceNumber: varchar("reference_number").unique(), // Unique reference e.g. CV-A1B2C3
   personalInfo: jsonb("personal_info").notNull(),
   workExperience: jsonb("work_experience").notNull(),
   skills: jsonb("skills").notNull(),
