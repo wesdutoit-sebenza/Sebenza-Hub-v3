@@ -136,8 +136,18 @@ export default function TestAccess() {
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Important Information</AlertTitle>
-              <AlertDescription className="whitespace-pre-wrap">
-                {test.candidateNotice}
+              <AlertDescription className="space-y-3">
+                {test.candidateNotice.purpose && (
+                  <p className="text-sm">{test.candidateNotice.purpose}</p>
+                )}
+                {test.candidateNotice.privacy && (
+                  <p className="text-sm">{test.candidateNotice.privacy}</p>
+                )}
+                {test.candidateNotice.accommodations && (
+                  <p className="text-sm">
+                    If you require any special accommodations for this assessment, please contact the recruiter before starting.
+                  </p>
+                )}
               </AlertDescription>
             </Alert>
           )}
