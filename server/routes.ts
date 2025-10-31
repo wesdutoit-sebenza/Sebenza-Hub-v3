@@ -1391,8 +1391,14 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
   app.post("/api/profile/recruiter", authenticateSession, async (req, res) => {
     try {
       const authReq = req as AuthRequest;
+      
+      // Clean undefined values from request body
+      const cleanedBody = Object.fromEntries(
+        Object.entries(req.body).filter(([_, v]) => v !== undefined)
+      );
+      
       const validatedData = insertRecruiterProfileSchema.parse({
-        ...req.body,
+        ...cleanedBody,
         userId: authReq.user!.id,
       });
 
@@ -1426,6 +1432,16 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       });
     } catch (error: any) {
       console.error("Recruiter profile error:", error);
+      console.error("Request body:", req.body);
+      
+      // Return more detailed error for Zod validation errors
+      if (error.name === 'ZodError') {
+        return res.status(400).json({
+          success: false,
+          message: "Validation error: " + error.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+        });
+      }
+      
       res.status(400).json({
         success: false,
         message: "Failed to create recruiter profile",
