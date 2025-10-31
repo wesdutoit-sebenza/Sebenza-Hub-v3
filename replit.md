@@ -23,7 +23,17 @@ Preferred communication style: Simple, everyday language.
     - **Location & Job Data**: Comprehensive South African city/town and job title systems with auto-fill.
 - **Backend**: Express.js with TypeScript.
     - **API Endpoints**: Manages subscriptions, job postings, CVs, roles/screening, ATS, organization settings, and interview coach interactions, including specific endpoints for job status management and conditional validation. CV endpoints include authorization checks.
-    - **AI Integration**: Powers CV screening, resume ingestion (using `pdf-parse` v2.x with proper buffer handling), interview coaching, and fraud detection. PDF text extraction fixed (October 2025) to use `{ data: buffer }` instead of `{ url: filePath }` for reliable text extraction from uploaded PDFs.
+    - **AI Integration**: Powers CV screening, resume ingestion, interview coaching, and fraud detection.
+        - **Hybrid PDF Text Extraction** (October 2025): Intelligent two-stage approach for reliable text extraction from all PDF types:
+            1. **Text-based PDFs**: Fast extraction via `pdf-parse` v2.x with proper buffer handling (`{ data: buffer }`)
+            2. **Image-based/Scanned PDFs**: Automatic OCR fallback using `pdf-to-img` + OpenAI Vision API (GPT-4o)
+                - Detects image-based PDFs when text extraction yields <100 characters
+                - Converts each page to PNG (scale=2 for clarity)
+                - GPT-4o Vision extracts text from images
+                - Pages combined with `\n\n` separator
+                - Shared OpenAI client with cleanup guarantees via try/finally
+                - Processing time: ~10-30 seconds per page
+            - Successfully tested with Wesly du Toit CV (image-based PDF, 2 pages, extracted to CV-Y1ZR4M)
     - **Background Job Processing**: BullMQ with Redis for asynchronous tasks like candidate screening.
     - **Authentication & Authorization**: Passwordless magic link authentication using Resend, Express-session with PostgreSQL store, and robust security features. Supports a single-role system (individual, business, recruiter, admin) with role-based access control.
     - **User Management**: Users identified by auto-incrementing `id` and unique `email`, with onboarding status and last login tracking.
@@ -38,7 +48,7 @@ Preferred communication style: Simple, everyday language.
 - **UI & Styling**: Radix UI, shadcn/ui, Lucide React, Tailwind CSS, Google Fonts.
 - **Form Handling**: React Hook Form, Zod.
 - **Database**: Drizzle ORM, @neondatabase/serverless.
-- **File Upload**: Multer, pdf-parse.
+- **File Upload**: Multer, pdf-parse, pdf-to-img.
 - **Background Jobs**: BullMQ, ioredis.
 - **AI**: OpenAI GPT-4o, OpenAI GPT-4o-mini, OpenAI text-embedding-3-small.
 - **Email**: Resend.

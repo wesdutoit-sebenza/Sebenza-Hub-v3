@@ -50,6 +50,19 @@ import shortlistRoutes from "./shortlist.routes";
 import organizationSettingsRoutes from "./organization-settings.routes";
 import adminRoutes from "./admin.routes";
 
+// Shared OpenAI client for OCR (reused across requests)
+let ocrOpenAI: any = null;
+function getOCRClient() {
+  if (!ocrOpenAI) {
+    const OpenAI = require('openai').default;
+    ocrOpenAI = new OpenAI({
+      baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+      apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+    });
+  }
+  return ocrOpenAI;
+}
+
 // Helper function to extract text from uploaded files
 async function extractTextFromFile(filePath: string, mimetype: string): Promise<string> {
   if (mimetype === 'application/pdf') {
@@ -57,10 +70,10 @@ async function extractTextFromFile(filePath: string, mimetype: string): Promise<
     const { PDFParse } = await import('pdf-parse');
     const dataBuffer = await fs.readFile(filePath);
     
+    let parser: any = null;
     try {
-      const parser = new PDFParse({ data: dataBuffer });
+      parser = new PDFParse({ data: dataBuffer });
       const result = await parser.getText();
-      await parser.destroy();
       
       // Check if we got meaningful text (>100 chars indicates text-based PDF)
       if (result.text.trim().length > 100) {
@@ -73,11 +86,7 @@ async function extractTextFromFile(filePath: string, mimetype: string): Promise<
       
       // Convert PDF pages to images and use OpenAI Vision for OCR
       const { pdf } = await import('pdf-to-img');
-      const { default: OpenAI } = await import('openai');
-      const openai = new OpenAI({
-        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
-        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
-      });
+      const openai = getOCRClient();
       
       const document = await pdf(filePath, { scale: 2 });
       const pageTexts: string[] = [];
@@ -123,6 +132,15 @@ async function extractTextFromFile(filePath: string, mimetype: string): Promise<
     } catch (error) {
       console.error(`[PDF Parse/OCR] Error extracting text:`, error);
       throw new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      // Ensure parser cleanup even if OCR fails
+      if (parser) {
+        try {
+          await parser.destroy();
+        } catch (cleanupError) {
+          console.warn('[PDF Parse] Cleanup error:', cleanupError);
+        }
+      }
     }
   } else if (mimetype === 'text/plain') {
     const fileBuffer = await fs.readFile(filePath);
