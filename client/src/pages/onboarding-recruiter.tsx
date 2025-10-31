@@ -18,12 +18,32 @@ import { COUNTRY_CODES } from "@shared/countryCodes";
 
 const formSchema = z.object({
   agencyName: z.string().min(2, "Agency name must be at least 2 characters"),
-  website: z.string().url("Invalid URL").or(z.literal("")),
+  website: z.string()
+    .transform((val) => {
+      if (!val) return val;
+      const trimmed = val.trim();
+      if (!trimmed) return "";
+      if (trimmed.startsWith("www.") || trimmed.startsWith("www")) {
+        return `https://${trimmed}`;
+      }
+      return trimmed;
+    })
+    .pipe(z.string().url("Invalid URL").or(z.literal(""))),
   email: z.string().email("Invalid email address"),
   telephoneCountryCode: z.string().min(1, "Country code required"),
   telephoneNumber: z.string().min(7, "Invalid phone number"),
   sectors: z.array(z.string()).min(1, "Please select at least one industry sector"),
-  proofUrl: z.string().url("Invalid URL").or(z.literal("")),
+  proofUrl: z.string()
+    .transform((val) => {
+      if (!val) return val;
+      const trimmed = val.trim();
+      if (!trimmed) return "";
+      if (trimmed.startsWith("www.") || trimmed.startsWith("www")) {
+        return `https://${trimmed}`;
+      }
+      return trimmed;
+    })
+    .pipe(z.string().url("Invalid URL").or(z.literal(""))),
 });
 
 type FormData = z.infer<typeof formSchema>;
