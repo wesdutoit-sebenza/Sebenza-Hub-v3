@@ -69,36 +69,30 @@ export default function RecruiterTests() {
     setGeneratingTest(true);
     try {
       // Step 1: Generate blueprint
-      const blueprintResponse = await apiRequest('/api/competency-tests/generate', {
-        method: 'POST',
-        body: JSON.stringify(values),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const blueprintResponse = await apiRequest('POST', '/api/competency-tests/generate', values);
 
       const { blueprint } = await blueprintResponse.json();
 
       // Step 2: Create test from blueprint
-      const testResponse = await apiRequest('/api/competency-tests', {
-        method: 'POST',
-        body: JSON.stringify({
-          title: `${values.jobTitle} Assessment`,
-          jobTitle: values.jobTitle,
-          jobFamily: blueprint.meta.job_family,
-          industry: blueprint.meta.industry || values.industry,
-          seniority: blueprint.meta.seniority || values.seniority,
-          durationMinutes: blueprint.meta.duration_min,
-          languages: blueprint.meta.languages,
-          status: 'draft',
-          weights: blueprint.weights,
-          cutScores: blueprint.cut_scores,
-          antiCheatConfig: blueprint.anti_cheat,
-          candidateNotice: blueprint.candidate_notice,
-          creationMethod: 'ai_generated',
-          aiGenerationPrompt: JSON.stringify(values),
-          sections: blueprint.sections,
-        }),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      const testData = {
+        title: `${values.jobTitle} Assessment`,
+        jobTitle: values.jobTitle,
+        jobFamily: blueprint.meta.job_family,
+        industry: blueprint.meta.industry || values.industry,
+        seniority: blueprint.meta.seniority || values.seniority,
+        durationMinutes: blueprint.meta.duration_min,
+        languages: blueprint.meta.languages,
+        status: 'draft',
+        weights: blueprint.weights,
+        cutScores: blueprint.cut_scores,
+        antiCheatConfig: blueprint.anti_cheat,
+        candidateNotice: blueprint.candidate_notice,
+        creationMethod: 'ai_generated',
+        aiGenerationPrompt: JSON.stringify(values),
+        sections: blueprint.sections,
+      };
+
+      const testResponse = await apiRequest('POST', '/api/competency-tests', testData);
 
       const { test } = await testResponse.json();
 
