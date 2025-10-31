@@ -19,9 +19,9 @@ interface TestSection {
 
 interface TestItem {
   id: string;
-  type: 'mcq' | 'sjt' | 'likert' | 'work_sample';
-  question: string;
-  points: number;
+  format: string;
+  stem: string;
+  maxPoints: number;
   options: any;
   correctAnswer: any;
 }
@@ -283,16 +283,18 @@ export default function TestDetails() {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            {item.type && (
+                            {item.format && (
                               <Badge variant="secondary" className="text-xs">
-                                {item.type.toUpperCase()}
+                                {item.format.toUpperCase()}
                               </Badge>
                             )}
-                            <span className="text-xs text-muted-foreground">
-                              {item.points} points
-                            </span>
+                            {item.maxPoints && (
+                              <span className="text-xs text-muted-foreground">
+                                {item.maxPoints} points
+                              </span>
+                            )}
                           </div>
-                          <p className="text-sm">{item.question}</p>
+                          <p className="text-sm">{item.stem || 'Question content not available'}</p>
                         </div>
                       </div>
                     </div>
