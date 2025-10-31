@@ -53,12 +53,36 @@ import adminRoutes from "./admin.routes";
 // Helper function to extract text from uploaded files
 async function extractTextFromFile(filePath: string, mimetype: string): Promise<string> {
   if (mimetype === 'application/pdf') {
-    // Use pdf-parse v2 - requires PDFParse class with data buffer
+    // Try regular text extraction first (fast for text-based PDFs)
     const { PDFParse } = await import('pdf-parse');
     const dataBuffer = await fs.readFile(filePath);
-    const parser = new PDFParse({ data: dataBuffer });
-    const result = await parser.getText();
-    return result.text;
+    
+    try {
+      const parser = new PDFParse({ data: dataBuffer });
+      const result = await parser.getText();
+      await parser.destroy();
+      
+      // Check if we got meaningful text (>100 chars indicates text-based PDF)
+      if (result.text.trim().length > 100) {
+        console.log(`[PDF Parse] Text-based PDF: extracted ${result.text.length} characters, ${result.total} pages`);
+        return result.text;
+      }
+      
+      // Very little text extracted - likely image-based/scanned PDF, use OCR
+      console.log(`[PDF Parse] Image-based PDF detected (only ${result.text.length} chars). Falling back to OCR...`);
+      
+      // Use Scribe.js OCR for image-based PDFs
+      const scribe = (await import('scribe.js-ocr')).default;
+      const ocrResult = await scribe.extractText([filePath]);
+      const extractedText = ocrResult[0].text || '';
+      
+      console.log(`[OCR] Successfully extracted ${extractedText.length} characters via OCR`);
+      return extractedText;
+      
+    } catch (error) {
+      console.error(`[PDF Parse/OCR] Error extracting text:`, error);
+      throw new Error(`Failed to parse PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   } else if (mimetype === 'text/plain') {
     const fileBuffer = await fs.readFile(filePath);
     return fileBuffer.toString('utf-8');
