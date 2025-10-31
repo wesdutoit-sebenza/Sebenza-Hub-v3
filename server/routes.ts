@@ -71,13 +71,50 @@ async function extractTextFromFile(filePath: string, mimetype: string): Promise<
       // Very little text extracted - likely image-based/scanned PDF, use OCR
       console.log(`[PDF Parse] Image-based PDF detected (only ${result.text.length} chars). Falling back to OCR...`);
       
-      // Use Scribe.js OCR for image-based PDFs
-      const scribe = (await import('scribe.js-ocr')).default;
-      const ocrResult = await scribe.extractText([filePath]);
-      const extractedText = ocrResult[0].text || '';
+      // Convert PDF pages to images and use OpenAI Vision for OCR
+      const { pdf } = await import('pdf-to-img');
+      const openai = (await import('./openai-client')).default;
       
-      console.log(`[OCR] Successfully extracted ${extractedText.length} characters via OCR`);
-      return extractedText;
+      const document = await pdf(filePath, { scale: 2 });
+      const pageTexts: string[] = [];
+      let pageNum = 1;
+      
+      for await (const pageImage of document) {
+        console.log(`[OCR] Processing page ${pageNum}...`);
+        
+        // Convert image buffer to base64
+        const base64Image = pageImage.toString('base64');
+        const dataUrl = `data:image/png;base64,${base64Image}`;
+        
+        // Use OpenAI Vision to extract text
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text: "Extract all text from this image. Return only the extracted text, preserving formatting and structure as much as possible."
+                },
+                {
+                  type: "image_url",
+                  image_url: { url: dataUrl }
+                }
+              ]
+            }
+          ],
+          max_tokens: 4000
+        });
+        
+        const extractedText = response.choices[0]?.message?.content || '';
+        pageTexts.push(extractedText);
+        pageNum++;
+      }
+      
+      const fullText = pageTexts.join('\n\n');
+      console.log(`[OCR] Successfully extracted ${fullText.length} characters from ${pageNum - 1} page(s)`);
+      return fullText;
       
     } catch (error) {
       console.error(`[PDF Parse/OCR] Error extracting text:`, error);
