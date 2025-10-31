@@ -772,7 +772,17 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
 
   app.post("/api/cvs", authenticateSession, async (req, res) => {
     const authReq = req as AuthRequest;
-    const userId = authReq.user!.id;
+    
+    // Defensive check: ensure user is authenticated
+    if (!authReq.user || !authReq.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: User not authenticated.",
+      });
+    }
+    
+    const userId = authReq.user.id;
+    const userEmail = authReq.user.email;
 
     try {
       const validatedData = insertCVSchema.parse(req.body);
@@ -785,7 +795,7 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       
       const cv = await storage.createCV(cvData);
       
-      console.log(`New CV created: ${cv.id} for user ${userId}`);
+      console.log(`[CV] Created: ${cv.id} for user ${userId} (${userEmail}) with reference ${cv.referenceNumber}`);
       
       res.json({
         success: true,
