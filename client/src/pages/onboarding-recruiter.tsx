@@ -29,10 +29,10 @@ const formSchema = z.object({
       return trimmed;
     })
     .pipe(z.string().url("Invalid URL").or(z.literal(""))),
-  email: z.string().email("Invalid email address"),
-  telephoneCountryCode: z.string().min(1, "Country code required"),
-  telephoneNumber: z.string().min(7, "Invalid phone number"),
-  sectors: z.array(z.string()).min(1, "Please select at least one industry sector"),
+  email: z.string().email("Invalid email address").or(z.literal("")),
+  telephoneCountryCode: z.string().optional(),
+  telephoneNumber: z.string().optional(),
+  sectors: z.array(z.string()),
   proofUrl: z.string()
     .transform((val) => {
       if (!val) return val;
@@ -79,7 +79,7 @@ export default function OnboardingRecruiter() {
       agencyName: "",
       website: "",
       email: "",
-      telephoneCountryCode: "+27",
+      telephoneCountryCode: "",
       telephoneNumber: "",
       sectors: [],
       proofUrl: "",
@@ -95,16 +95,19 @@ export default function OnboardingRecruiter() {
 
   const createRecruiterProfileMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      // Combine country code and phone number, remove leading 0
-      const phoneNumber = data.telephoneNumber.replace(/^0+/, '');
-      const fullTelephone = `${data.telephoneCountryCode} ${phoneNumber}`;
+      // Only combine telephone if both fields are provided
+      let fullTelephone: string | undefined = undefined;
+      if (data.telephoneCountryCode && data.telephoneNumber) {
+        const phoneNumber = data.telephoneNumber.replace(/^0+/, '');
+        fullTelephone = `${data.telephoneCountryCode} ${phoneNumber}`;
+      }
       
       const payload = {
         agencyName: data.agencyName,
         website: data.website || undefined,
-        email: data.email,
+        email: data.email || undefined,
         telephone: fullTelephone,
-        sectors: data.sectors,
+        sectors: data.sectors.length > 0 ? data.sectors : undefined,
         proofUrl: data.proofUrl || undefined,
       };
       
@@ -190,14 +193,13 @@ export default function OnboardingRecruiter() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email Address *</FormLabel>
+                    <FormLabel>Email Address (Optional)</FormLabel>
                     <FormControl>
                       <Input 
                         placeholder="contact@youragency.co.za" 
                         type="email"
                         {...field} 
                         data-testid="input-email"
-                        disabled
                       />
                     </FormControl>
                     <FormDescription>
@@ -214,7 +216,7 @@ export default function OnboardingRecruiter() {
                   name="telephoneCountryCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Country Code *</FormLabel>
+                      <FormLabel>Country Code (Optional)</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-country-code">
@@ -240,7 +242,7 @@ export default function OnboardingRecruiter() {
                     name="telephoneNumber"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Telephone Number *</FormLabel>
+                        <FormLabel>Telephone Number (Optional)</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="82 123 4567" 
@@ -263,7 +265,7 @@ export default function OnboardingRecruiter() {
                 name="sectors"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Industry Sectors *</FormLabel>
+                    <FormLabel>Industry Sectors (Optional)</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
