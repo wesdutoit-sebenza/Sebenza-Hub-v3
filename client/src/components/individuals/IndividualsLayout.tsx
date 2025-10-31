@@ -21,6 +21,7 @@ import {
   MessageCircle,
   CreditCard,
   Settings,
+  ClipboardCheck,
 } from "lucide-react";
 
 const menuItems = [
@@ -43,6 +44,11 @@ const menuItems = [
     title: "My Applications",
     url: "/dashboard/individual/applications",
     icon: ClipboardList,
+  },
+  {
+    title: "Take Competency Test",
+    url: "/dashboard/individual/tests",
+    icon: ClipboardCheck,
   },
   {
     title: "Coaching",

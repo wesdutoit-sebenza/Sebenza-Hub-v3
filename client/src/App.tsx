@@ -51,6 +51,7 @@ import IndividualDashboardProfile from "@/pages/individuals/Profile";
 import IndividualDashboardCVs from "@/pages/individuals/CVs";
 import IndividualDashboardJobs from "@/pages/individuals/JobSearches";
 import IndividualDashboardApplications from "@/pages/individuals/Applications";
+import IndividualDashboardTests from "@/pages/individuals/Tests";
 import IndividualDashboardCoaching from "@/pages/individuals/Coaching";
 import IndividualDashboardBilling from "@/pages/individuals/Billing";
 import IndividualDashboardSettings from "@/pages/individuals/Settings";
@@ -97,6 +98,7 @@ function IndividualsRouter() {
         <Route path="/dashboard/individual/cvs" component={IndividualDashboardCVs} />
         <Route path="/dashboard/individual/jobs" component={IndividualDashboardJobs} />
         <Route path="/dashboard/individual/applications" component={IndividualDashboardApplications} />
+        <Route path="/dashboard/individual/tests" component={IndividualDashboardTests} />
         <Route path="/dashboard/individual/coaching" component={IndividualDashboardCoaching} />
         <Route path="/dashboard/individual/billing" component={IndividualDashboardBilling} />
         <Route path="/dashboard/individual/settings" component={IndividualDashboardSettings} />
@@ -173,6 +175,7 @@ function Router() {
       <Route path="/dashboard/individual/cvs" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/jobs" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/applications" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual/tests" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/coaching" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/billing" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/settings" component={() => <IndividualsRouter />} />

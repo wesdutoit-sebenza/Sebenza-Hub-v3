@@ -4812,6 +4812,49 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
     }
   });
 
+  // Get all test attempts for the current user
+  app.get("/api/test-attempts/my-attempts", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      // Fetch user's attempts with test details
+      const attempts = await db
+        .select({
+          id: testAttempts.id,
+          testId: testAttempts.testId,
+          candidateId: testAttempts.candidateId,
+          status: testAttempts.status,
+          startedAt: testAttempts.startedAt,
+          submittedAt: testAttempts.submittedAt,
+          overallScore: testAttempts.overallScore,
+          passed: testAttempts.passed,
+          test: {
+            referenceNumber: competencyTests.referenceNumber,
+            title: competencyTests.title,
+            durationMinutes: competencyTests.durationMinutes,
+          },
+        })
+        .from(testAttempts)
+        .innerJoin(competencyTests, eq(testAttempts.testId, competencyTests.id))
+        .where(eq(testAttempts.candidateId, userId))
+        .orderBy(desc(testAttempts.startedAt));
+
+      res.json({
+        success: true,
+        attempts
+      });
+    } catch (error: any) {
+      console.error("[Get My Attempts] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get test attempts"
+      });
+    }
+  });
+
   // Get attempt details (for timer calculation)
   app.get("/api/test-attempts/:attemptId", authenticateSession, async (req: AuthRequest, res) => {
     try {
