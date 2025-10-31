@@ -152,9 +152,9 @@ export const recruiterProfiles = pgTable("recruiter_profiles", {
   userId: varchar("user_id").notNull().unique(),
   agencyName: text("agency_name").notNull(),
   website: text("website"),
-  email: text("email").notNull(),
-  telephone: text("telephone").notNull(),
-  sectors: text("sectors").array().notNull().default(sql`'{}'::text[]`),
+  email: text("email"),
+  telephone: text("telephone"),
+  sectors: text("sectors").array().default(sql`'{}'::text[]`),
   proofUrl: text("proof_url"), // LinkedIn or company page
   verificationStatus: text("verification_status").notNull().default('pending'), // 'pending', 'approved', 'rejected'
   createdAt: timestamp("created_at").notNull().defaultNow(),
