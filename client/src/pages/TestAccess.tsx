@@ -19,7 +19,11 @@ export default function TestAccess() {
     queryKey: ["/api/tests/take", referenceNumber],
     queryFn: async () => {
       const response = await fetch(`/api/tests/take/${referenceNumber}`);
-      if (!response.ok) throw new Error("Test not found");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.message || (response.status === 404 ? "Test not found" : "Test not available");
+        throw new Error(errorMessage);
+      }
       return response.json();
     },
     enabled: !!referenceNumber,
@@ -66,15 +70,20 @@ export default function TestAccess() {
   }
 
   if (testError || !testData?.success) {
+    const errorMessage = testError instanceof Error ? testError.message : "Test not found";
+    const isNotFound = errorMessage.toLowerCase().includes("not found");
+    
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-2xl">
           <CardContent className="p-8">
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Test Not Found</AlertTitle>
+              <AlertTitle>{isNotFound ? "Test Not Found" : "Test Not Available"}</AlertTitle>
               <AlertDescription>
-                The test with reference number {referenceNumber} could not be found or is not available.
+                {isNotFound 
+                  ? `The test with reference number ${referenceNumber} could not be found.`
+                  : errorMessage}
               </AlertDescription>
             </Alert>
           </CardContent>
