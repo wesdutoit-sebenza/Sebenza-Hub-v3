@@ -148,9 +148,16 @@ export default function IndividualCVs() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    <span>Created {new Date(cv.createdAt).toLocaleDateString()}</span>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      <span>Created {new Date(cv.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    {cv.referenceNumber && (
+                      <Badge variant="outline" className="font-mono text-xs" data-testid={`cv-reference-${cv.id}`}>
+                        {cv.referenceNumber}
+                      </Badge>
+                    )}
                   </div>
 
                   {personalInfo?.contactEmail && (

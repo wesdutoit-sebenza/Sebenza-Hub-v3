@@ -1711,6 +1711,11 @@ export default function RecruiterJobPostings() {
                       <div className="flex flex-wrap gap-2 mt-2">
                         {job.employmentType && <Badge variant="secondary">{job.employmentType}</Badge>}
                         {job.industry && <Badge variant="outline">{job.industry}</Badge>}
+                        {job.referenceNumber && (
+                          <Badge variant="outline" className="font-mono text-xs" data-testid={`job-reference-${job.id}`}>
+                            {job.referenceNumber}
+                          </Badge>
+                        )}
                       </div>
                     </CardDescription>
                   </div>
