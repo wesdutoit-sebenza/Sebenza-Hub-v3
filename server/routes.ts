@@ -73,7 +73,11 @@ async function extractTextFromFile(filePath: string, mimetype: string): Promise<
       
       // Convert PDF pages to images and use OpenAI Vision for OCR
       const { pdf } = await import('pdf-to-img');
-      const openai = (await import('./openai-client')).default;
+      const { default: OpenAI } = await import('openai');
+      const openai = new OpenAI({
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY
+      });
       
       const document = await pdf(filePath, { scale: 2 });
       const pageTexts: string[] = [];
