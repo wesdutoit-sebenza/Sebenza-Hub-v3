@@ -22,8 +22,13 @@ Preferred communication style: Simple, everyday language.
     - **Competency Test Agent** (November 2025): AI-powered assessment platform with unique `TEST-XXXXXX` reference numbers, supporting three creation methods (AI-generated from job description, manual authoring, pre-built template library). 
         - **AI Test Generation** (Completed): GPT-4o-powered blueprint generation from job descriptions with South African compliance (POPIA, Employment Equity, HPCSA). Generates structured tests with sections, items, weights, cut scores, and anti-cheat configurations. Tested successfully with "Warehouse Supervisor" role.
         - **User Authorization**: Supports both organization-based users (businesses/agencies) and individual recruiters. Tests scoped to organization if membership exists, otherwise scoped to creating user via `createdByUserId`.
-        - **Test-Taking API** (In Progress - October 2025): Complete candidate test-taking backend with endpoints for public test access, attempt creation, answer submission, scoring, and results retrieval.
-        - **Pending Features**: Candidate test portal UI with timer and progress tracking, multi-format questions (MCQ, SJT, Likert, work samples), advanced anti-cheat features, ATS integration where test scores automatically update candidate pipeline status, manual authoring UI, pre-built template library.
+        - **Test-Taking Portal** (Completed - October 2025): Full candidate test-taking experience with three public pages (TestAccess, TestTake, TestResults):
+            - **Backend API**: 7 endpoints covering public test access, attempt management (creation, retrieval), answer submission, anti-cheat event recording, test submission with scoring, and results retrieval.
+            - **Frontend**: Three-page standalone portal for candidates (no authentication required for taking tests via public reference number).
+            - **Timer & Security**: Server-authoritative timer enforced via attempt.startedAt timestamp (prevents refresh exploits), hard cutoff on submission (durationMinutes*60 + 5s grace period), real-time anti-cheat tracking of fullscreen exits and tab switches recorded server-side.
+            - **Scoring Engine**: Automated calculation of section scores, overall score, and pass/fail determination based on test configuration and correct answers.
+            - **Proctoring Data**: IP address logging, fullscreen exits, tab switches, and timestamped events stored in database for recruiter review.
+        - **Pending Features**: Multi-format questions (SJT, Likert, work samples - currently MCQ only), ATS integration where test scores automatically update candidate pipeline status, manual authoring UI, pre-built template library, analytics/reporting dashboard surfacing proctoring data.
     - **Organization Settings**: Multi-tenant configuration for teams, pipelines, and compliance.
     - **Location & Job Data**: Comprehensive South African city/town and job title systems with auto-fill.
 - **Backend**: Express.js with TypeScript.
