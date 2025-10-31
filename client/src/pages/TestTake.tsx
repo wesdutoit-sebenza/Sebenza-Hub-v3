@@ -363,13 +363,13 @@ export default function TestTake() {
           </CardHeader>
           <CardContent className="space-y-6">
             {/* MCQ Options */}
-            {currentQuestion.format === "mcq" && currentQuestion.options?.choices && (
+            {currentQuestion.format === "mcq" && Array.isArray(currentQuestion.options) && (
               <RadioGroup
                 value={answers[currentQuestion.id] || ""}
                 onValueChange={handleAnswerChange}
               >
                 <div className="space-y-3">
-                  {currentQuestion.options.choices.map((choice: string, index: number) => (
+                  {currentQuestion.options.map((choice: string, index: number) => (
                     <div 
                       key={index} 
                       className="flex items-start space-x-3 p-4 rounded-lg border hover-elevate cursor-pointer"
