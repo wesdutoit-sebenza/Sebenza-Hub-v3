@@ -770,12 +770,22 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
     }
   });
 
-  app.post("/api/cvs", async (req, res) => {
+  app.post("/api/cvs", authenticateSession, async (req, res) => {
+    const authReq = req as AuthRequest;
+    const userId = authReq.user!.id;
+
     try {
       const validatedData = insertCVSchema.parse(req.body);
-      const cv = await storage.createCV(validatedData);
       
-      console.log(`New CV created: ${cv.id}`);
+      // Ensure the CV is associated with the authenticated user
+      const cvData = {
+        ...validatedData,
+        userId,
+      };
+      
+      const cv = await storage.createCV(cvData);
+      
+      console.log(`New CV created: ${cv.id} for user ${userId}`);
       
       res.json({
         success: true,
