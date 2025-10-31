@@ -16,7 +16,8 @@ Preferred communication style: Simple, everyday language.
 ### Technical Implementations
 - **Frontend**: React with TypeScript (Vite), Wouter for routing, and TanStack React Query for state management.
     - **Recruiters Portal**: Job posting forms with WhatsApp integration, an AI Job Description Generator, and a status-based workflow (Draft, Live, Paused, Closed, Filled) with conditional validation. Unique `JOB-XXXXXX` reference numbers are assigned automatically.
-    - **Individuals Portal**: Multiple CV management, profile management, and an AI Interview Coach ("Jabu") with configurable interviews and real-time feedback. CVs receive unique `CV-XXXXXX` reference numbers, support photo uploads with AI-powered circular cropping, and offer PDF previews.
+    - **Individuals Portal**: Multiple CV management, profile management, competency test access, and an AI Interview Coach ("Jabu") with configurable interviews and real-time feedback. CVs receive unique `CV-XXXXXX` reference numbers, support photo uploads with AI-powered circular cropping, and offer PDF previews.
+        - **Competency Test Dashboard**: Integrated test-taking section with two tabs: "Access Test" (enter reference number to start tests) and "My Attempts" (view in-progress and completed tests with status tracking, scores, and results). Seamlessly navigates to standalone test pages (TestAccess, TestTake, TestResults).
     - **ATS**: Candidate management featuring AI-powered resume ingestion and semantic search.
     - **Integrated Roles & Screening**: Management of hiring roles with configurable scoring and AI-evaluated candidate screening.
     - **Competency Test Agent** (November 2025): AI-powered assessment platform with unique `TEST-XXXXXX` reference numbers, supporting three creation methods (AI-generated from job description, manual authoring, pre-built template library). 
