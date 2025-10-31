@@ -153,10 +153,15 @@ export class MemStorage implements IStorage {
   async createCV(insertCV: InsertCV): Promise<CV> {
     const id = randomUUID();
     const now = new Date();
+    
+    // Generate unique reference number for CV
+    const referenceNumber = `CV-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    
     const cv: CV = {
       ...insertCV,
       id,
       userId: insertCV.userId || null,
+      referenceNumber,
       personalInfo: insertCV.personalInfo as any,
       workExperience: insertCV.workExperience as any,
       skills: insertCV.skills as any,

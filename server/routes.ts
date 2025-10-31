@@ -10,6 +10,7 @@ import { screeningQueue, isQueueAvailable } from "./queue";
 import { z } from "zod";
 import { queueFraudDetection } from "./fraud-queue-helper";
 import { pool } from "./db-pool";
+import { generateUniqueCVReference, generateUniqueJobReference } from "./reference-generator";
 
 // Helper function to enqueue screening jobs for all active roles
 async function enqueueScreeningsForCandidate(candidateId: string) {
@@ -2951,10 +2952,14 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         details: ""
       }));
 
+      // Generate unique reference number
+      const referenceNumber = await generateUniqueCVReference();
+      
       // Create CV record
       const [newCV] = await db.insert(cvs)
         .values({
           userId: userId,
+          referenceNumber,
           personalInfo,
           workExperience,
           skills: allSkills,
@@ -2964,7 +2969,7 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         })
         .returning();
 
-      console.log(`[Individuals] Successfully created CV: ${parsedCandidate.full_name} (${newCV.id})`);
+      console.log(`[Individuals] Successfully created CV: ${parsedCandidate.full_name} (${newCV.id}) - Ref: ${referenceNumber}`);
 
       // Clean up temp file
       try {
@@ -3269,10 +3274,14 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         details: ""
       }));
 
+      // Generate unique reference number
+      const referenceNumber = await generateUniqueCVReference();
+      
       // Create CV record
       const [newCV] = await db.insert(cvs)
         .values({
           userId: userId,
+          referenceNumber,
           personalInfo,
           workExperience,
           skills: allSkills,
@@ -3282,7 +3291,7 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         })
         .returning();
 
-      console.log(`[Individuals] Successfully created CV from paste: ${parsedCandidate.full_name} (${newCV.id})`);
+      console.log(`[Individuals] Successfully created CV from paste: ${parsedCandidate.full_name} (${newCV.id}) - Ref: ${referenceNumber}`);
 
       return res.json({
         success: true,
