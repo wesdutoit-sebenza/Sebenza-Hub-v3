@@ -222,6 +222,11 @@ export async function parseCVWithAI(
 
     const parsed = JSON.parse(responseText) as CVIngestionResult;
 
+    // Log what the AI extracted for debugging
+    console.log(`[CV Ingestion] AI extracted name: "${parsed.candidate?.full_name || '(empty)'}"`);
+    console.log(`[CV Ingestion] AI extracted email: "${parsed.candidate?.contact?.email || '(empty)'}"`);
+    console.log(`[CV Ingestion] AI extracted phone: "${parsed.candidate?.contact?.phone || '(empty)'}"`);
+
     // Ensure source_meta is populated
     parsed.source_meta = {
       filename,
