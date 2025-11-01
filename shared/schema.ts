@@ -23,7 +23,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: text("role").notNull().default('individual'), // 'individual', 'business', 'recruiter', or 'admin' - each user has ONE role
+  role: text("role").notNull().default('individual'), // 'individual', 'business', 'recruiter', 'admin', or 'administrator' - each user has ONE role
   onboardingComplete: integer("onboarding_complete").notNull().default(0), // 0 = not complete, 1 = complete
   lastLoginAt: timestamp("last_login_at"),
   createdAt: timestamp("created_at").defaultNow(),

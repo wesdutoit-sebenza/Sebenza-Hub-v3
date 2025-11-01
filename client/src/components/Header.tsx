@@ -111,7 +111,7 @@ export default function Header() {
                     {user.email}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {user.role === 'admin' && (
+                  {(user.role === 'admin' || user.role === 'administrator') && (
                     <>
                       <DropdownMenuItem
                         onClick={() => setLocation('/admin/overview')}
@@ -247,7 +247,7 @@ export default function Header() {
                   <div className="mt-2 px-4 py-2 text-sm text-slate" data-testid="text-mobile-user-email">
                     {user.email}
                   </div>
-                  {user.role === 'admin' && (
+                  {(user.role === 'admin' || user.role === 'administrator') && (
                     <>
                       <Button 
                         variant="ghost" 

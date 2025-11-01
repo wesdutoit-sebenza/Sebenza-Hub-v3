@@ -231,8 +231,8 @@ export async function setupAuth(app: Express) {
           const userId = user.claims.sub;
           const fullUser = await storage.getUser(userId);
           
-          // Redirect based on role - admins skip onboarding
-          if (fullUser?.role === 'admin') {
+          // Redirect based on role - admins and administrators skip onboarding
+          if (fullUser?.role === 'admin' || fullUser?.role === 'administrator') {
             return res.redirect('/admin/overview');
           }
           
@@ -327,7 +327,7 @@ export const requireAdmin: RequestHandler = async (req, res, next) => {
       return res.status(401).json({ error: "User not found" });
     }
 
-    if (fullUser.role !== 'admin') {
+    if (fullUser.role !== 'admin' && fullUser.role !== 'administrator') {
       return res.status(403).json({ error: "Admin access required" });
     }
 
