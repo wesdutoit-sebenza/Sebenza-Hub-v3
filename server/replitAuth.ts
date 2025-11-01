@@ -77,34 +77,33 @@ async function upsertUser(
       console.log(`[Auth Migration] Migrating user ${existingUser.id} → ${newId} (${email})`);
       
       // Preserve legacy data before deleting
-      const rolesArray = existingUser.roles || [];
-      const onboardingData = existingUser.onboardingComplete || {};
+      const userRole = existingUser.role || 'individual';
+      const onboardingStatus = existingUser.onboardingComplete || 0;
       const createdAt = existingUser.createdAt || new Date();
       
       // Delete old UUID-based record FIRST to avoid unique constraint violation
       await db.delete(users).where(eq(users.id, existingUser.id));
       
-      // Create new record with OIDC sub as ID, preserving roles/onboarding
+      // Create new record with OIDC sub as ID, preserving role/onboarding
       // Note: Using raw SQL to access snake_case column names from DB
-      const rolesLiteral = `ARRAY[${rolesArray.map(r => `'${r}'`).join(',')}]::text[]`;
       
       await db.execute(sql.raw(`
-        INSERT INTO users (id, email, first_name, last_name, profile_image_url, roles, onboarding_complete, created_at, updated_at)
+        INSERT INTO users (id, email, first_name, last_name, profile_image_url, role, onboarding_complete, created_at, updated_at)
         VALUES (
           '${newId.replace(/'/g, "''")}', 
           '${email.replace(/'/g, "''")}', 
           '${(claims["first_name"] || '').replace(/'/g, "''")}', 
           '${(claims["last_name"] || '').replace(/'/g, "''")}', 
           ${claims["profile_image_url"] ? `'${claims["profile_image_url"].replace(/'/g, "''")}'` : 'NULL'}, 
-          ${rolesLiteral}, 
-          '${JSON.stringify(onboardingData).replace(/'/g, "''")}'::jsonb, 
+          '${userRole.replace(/'/g, "''")}', 
+          ${onboardingStatus}, 
           '${createdAt.toISOString()}', 
           NOW()
         )
       `));
       
       // IMPORTANT: Also update MemStorage to keep in-memory cache in sync with preserved data
-      // We need to manually set the user because storage.upsertUser doesn't preserve roles/onboarding
+      // We need to manually set the user because storage.upsertUser doesn't preserve role/onboarding
       const { MemStorage } = await import("./storage");
       const memStorage = storage as any;
       if (memStorage.users instanceof Map) {
@@ -114,8 +113,8 @@ async function upsertUser(
           firstName: claims["first_name"],
           lastName: claims["last_name"],
           profileImageUrl: claims["profile_image_url"],
-          roles: rolesArray, // Preserved from legacy
-          onboardingComplete: onboardingData, // Preserved from legacy
+          role: userRole, // Preserved from legacy
+          onboardingComplete: onboardingStatus, // Preserved from legacy
           createdAt: createdAt, // Preserved from legacy
           updatedAt: new Date(),
         });
@@ -129,7 +128,7 @@ async function upsertUser(
   const [dbUser] = await db.select().from(users).where(eq(users.id, newId));
   
   if (dbUser) {
-    // User exists in DB - load into MemStorage with preserved roles/onboarding
+    // User exists in DB - load into MemStorage with preserved role/onboarding
     // Handle both camelCase (Drizzle) and snake_case (raw DB) field names
     const { MemStorage } = await import("./storage");
     const memStorage = storage as any;
@@ -140,8 +139,8 @@ async function upsertUser(
         firstName: claims["first_name"] || dbUser.firstName || (dbUser as any).first_name,
         lastName: claims["last_name"] || dbUser.lastName || (dbUser as any).last_name,
         profileImageUrl: claims["profile_image_url"] || dbUser.profileImageUrl || (dbUser as any).profile_image_url,
-        roles: dbUser.roles || [], // Preserve existing roles (e.g., admin)
-        onboardingComplete: dbUser.onboardingComplete || (dbUser as any).onboarding_complete || {}, // Preserve existing onboarding
+        role: dbUser.role || 'individual', // Preserve existing role (e.g., admin)
+        onboardingComplete: dbUser.onboardingComplete || (dbUser as any).onboarding_complete || 0, // Preserve existing onboarding
         createdAt: dbUser.createdAt || (dbUser as any).created_at || new Date(), // Preserve creation date
         updatedAt: new Date(),
       });
@@ -207,14 +206,43 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  app.get("/api/callback", (req, res, next) => {
+  app.get("/api/callback", async (req, res, next) => {
     // Use the actual Replit domain instead of localhost for authentication
     const domains = process.env.REPLIT_DOMAINS!.split(",");
     const authDomain = domains.includes(req.hostname) ? req.hostname : domains[0];
     
-    passport.authenticate(`replitauth:${authDomain}`, {
-      successReturnToOrRedirect: "/onboarding",
-      failureRedirect: "/api/login",
+    passport.authenticate(`replitauth:${authDomain}`, async (err: any, user: any) => {
+      if (err) {
+        return res.redirect("/api/login");
+      }
+      
+      if (!user || !user.claims?.sub) {
+        return res.redirect("/api/login");
+      }
+      
+      // Log the user in
+      req.login(user, async (loginErr) => {
+        if (loginErr) {
+          return res.redirect("/api/login");
+        }
+        
+        try {
+          // Get full user profile to check role
+          const userId = user.claims.sub;
+          const fullUser = await storage.getUser(userId);
+          
+          // Redirect based on role - admins skip onboarding
+          if (fullUser?.role === 'admin') {
+            return res.redirect('/admin/overview');
+          }
+          
+          // All other users go to onboarding
+          return res.redirect('/onboarding');
+        } catch (error) {
+          console.error("[Auth] Error fetching user for redirect:", error);
+          return res.redirect('/onboarding');
+        }
+      });
     })(req, res, next);
   });
 
@@ -299,8 +327,7 @@ export const requireAdmin: RequestHandler = async (req, res, next) => {
       return res.status(401).json({ error: "User not found" });
     }
 
-    const userRoles = fullUser.roles || [];
-    if (!userRoles.includes('admin')) {
+    if (fullUser.role !== 'admin') {
       return res.status(403).json({ error: "Admin access required" });
     }
 

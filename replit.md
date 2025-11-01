@@ -6,6 +6,17 @@ Sebenza Hub is a marketing website for a South African recruiting platform that 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 
+## Admin User Configuration (November 2025)
+Three admin users created with full dashboard access:
+- **wes.dutoit@sebenzahub.co.za** - Wes Du Toit
+- **jabulani.mkhwanazi@sebenzahub.co.za** - Jabulani Mkhwanazi  
+- **admin@sebenzahub.co.za** - Admin User
+
+**Admin Privileges:**
+- Skip onboarding - redirected directly to `/admin/overview` after login
+- Access to all 3 dashboards: Admin, Individual, and Recruiter (via Header dropdown)
+- Full system access including user management, competency tests, ATS, and compliance settings
+
 ## System Architecture
 
 ### UI/UX Decisions
