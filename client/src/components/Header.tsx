@@ -76,7 +76,7 @@ export default function Header() {
         <div className="flex items-center justify-between h-16">
           <Link href="/" data-testid="link-home" className="hover-elevate px-2 py-1 rounded-md">
             <h1 className="logo-sebenza font-serif font-semibold text-xl">
-              Sebenza <span className="logo-hub">HUB</span>
+              Sebenza <span className="logo-hub text-[#eda51d]">HUB</span>
             </h1>
           </Link>
 
