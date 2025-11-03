@@ -373,6 +373,13 @@ export const jobAdminSchema = z.object({
   visibility: z.enum(["Public", "Invite-only", "Internal"]).default("Public"),
   status: z.enum(["Draft", "Live", "Paused", "Closed", "Filled"]).default("Draft"),
   targetStartDate: z.string().optional(),
+  closingDate: z.string().optional(), // Closing date for applications
+  externalJobBoards: z.object({
+    linkedin: z.boolean().default(false),
+    pnet: z.boolean().default(false),
+    careerJunction: z.boolean().default(false),
+    jobMail: z.boolean().default(false),
+  }).optional(),
 });
 
 export const jobSeoSchema = z.object({

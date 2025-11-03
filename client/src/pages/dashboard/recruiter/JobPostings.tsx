@@ -289,6 +289,13 @@ export default function RecruiterJobPostings() {
         visibility: "Public",
         status: "Draft",
         pipeline: ["Applied", "Screen", "Interview 1", "Interview 2", "Offer", "Hired"],
+        closingDate: "",
+        externalJobBoards: {
+          linkedin: false,
+          pnet: false,
+          careerJunction: false,
+          jobMail: false,
+        },
       },
     },
   });
@@ -517,10 +524,10 @@ export default function RecruiterJobPostings() {
       compensation: job.compensation ? {
         ...job.compensation,
         // Convert legacy string values to booleans using explicit affirmative checks
-        commissionAvailable: normalizeToBoolean(job.compensation.commissionAvailable),
-        performanceBonus: normalizeToBoolean(job.compensation.performanceBonus),
-        medicalAidContribution: normalizeToBoolean(job.compensation.medicalAidContribution),
-        pensionContribution: normalizeToBoolean(job.compensation.pensionContribution),
+        commissionAvailable: normalizeToBoolean((job.compensation as any)?.commissionAvailable),
+        performanceBonus: normalizeToBoolean((job.compensation as any)?.performanceBonus),
+        medicalAidContribution: normalizeToBoolean((job.compensation as any)?.medicalAidContribution),
+        pensionContribution: normalizeToBoolean((job.compensation as any)?.pensionContribution),
       } : job.compensation,
     };
     
@@ -2302,6 +2309,112 @@ export default function RecruiterJobPostings() {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              {/* Closing Date */}
+              <div className="mt-4">
+                <FormField
+                  control={form.control}
+                  name="admin.closingDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Closing Date for Applications</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date" 
+                          {...field} 
+                          data-testid="input-admin-closing-date" 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Optional deadline for candidates to apply
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* External Job Boards */}
+              <div className="mt-6">
+                <h4 className="text-sm font-medium mb-3">Post to External Job Boards</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <FormField
+                    control={form.control}
+                    name="admin.externalJobBoards.linkedin"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-linkedin"
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal cursor-pointer">
+                          LinkedIn
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="admin.externalJobBoards.pnet"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-pnet"
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal cursor-pointer">
+                          Pnet
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="admin.externalJobBoards.careerJunction"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-career-junction"
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal cursor-pointer">
+                          CareerJunction
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="admin.externalJobBoards.jobMail"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center space-x-2 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-job-mail"
+                          />
+                        </FormControl>
+                        <FormLabel className="font-normal cursor-pointer">
+                          Job Mail
+                        </FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             </FormSection>
 
