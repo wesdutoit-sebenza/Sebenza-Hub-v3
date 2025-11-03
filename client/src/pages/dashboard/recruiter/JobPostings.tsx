@@ -495,10 +495,38 @@ export default function RecruiterJobPostings() {
     },
   });
 
+  // Helper function to normalize legacy string values to booleans
+  const normalizeToBoolean = (value: any): boolean => {
+    // If already a boolean, return as-is
+    if (typeof value === 'boolean') return value;
+    
+    // If string, check for explicit affirmative values
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase();
+      return normalized === 'yes' || normalized === 'true' || normalized === '1';
+    }
+    
+    // For any other type (null, undefined, number, etc.), treat as false
+    return false;
+  };
+
   const handleEditJob = (job: Job) => {
-    // Load job data into form
+    // Normalize legacy data: convert any string values in compensation to booleans
+    const normalizedJob = {
+      ...job,
+      compensation: job.compensation ? {
+        ...job.compensation,
+        // Convert legacy string values to booleans using explicit affirmative checks
+        commissionAvailable: normalizeToBoolean(job.compensation.commissionAvailable),
+        performanceBonus: normalizeToBoolean(job.compensation.performanceBonus),
+        medicalAidContribution: normalizeToBoolean(job.compensation.medicalAidContribution),
+        pensionContribution: normalizeToBoolean(job.compensation.pensionContribution),
+      } : job.compensation,
+    };
+    
+    // Load normalized job data into form
     setEditingJobId(job.id);
-    form.reset(job as any);
+    form.reset(normalizedJob as any);
     setShowForm(true);
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
