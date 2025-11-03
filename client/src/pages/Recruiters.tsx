@@ -698,6 +698,7 @@ export default function Recruiters() {
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Button
             size="lg"
+            className="bg-[#ae6d0f]"
             data-testid="button-workflow"
             onClick={() => console.log("See recruiter workflow clicked")}
           >
