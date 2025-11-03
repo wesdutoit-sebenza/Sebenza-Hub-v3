@@ -250,6 +250,7 @@ export default function RecruiterJobPostings() {
       application: {
         method: "in-app",
         closingDate: todayISO(),
+        whatsappNumber: "",
       },
       companyDetails: {
         name: "",
@@ -1444,6 +1445,28 @@ export default function RecruiterJobPostings() {
                       <FormControl>
                         <Input type="email" placeholder="hiring@company.com" {...field} data-testid="input-contact-email" />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="application.whatsappNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>WhatsApp Number</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="tel" 
+                          placeholder="+27 82 123 4567" 
+                          {...field} 
+                          data-testid="input-whatsapp-number" 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Optional - for WhatsApp-first candidate communication
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
