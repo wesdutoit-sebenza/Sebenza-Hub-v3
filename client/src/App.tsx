@@ -49,6 +49,7 @@ import AdminFraudDetection from "@/pages/admin/FraudDetection";
 import { IndividualsLayout } from "@/components/individuals/IndividualsLayout";
 import IndividualDashboardProfile from "@/pages/individuals/Profile";
 import IndividualDashboardCVs from "@/pages/individuals/CVs";
+import IndividualDashboardAllJobs from "@/pages/individuals/AllJobs";
 import IndividualDashboardAutoJobSearch from "@/pages/individuals/AutoJobSearch";
 import IndividualDashboardManualJobSearch from "@/pages/individuals/ManualJobSearch";
 import IndividualDashboardSavedJobSearches from "@/pages/individuals/SavedJobSearches";
@@ -98,6 +99,7 @@ function IndividualsRouter() {
       <Switch>
         <Route path="/dashboard/individual/profile" component={IndividualDashboardProfile} />
         <Route path="/dashboard/individual/cvs" component={IndividualDashboardCVs} />
+        <Route path="/dashboard/individual/jobs/all" component={IndividualDashboardAllJobs} />
         <Route path="/dashboard/individual/jobs/auto" component={IndividualDashboardAutoJobSearch} />
         <Route path="/dashboard/individual/jobs/manual" component={IndividualDashboardManualJobSearch} />
         <Route path="/dashboard/individual/jobs/saved" component={IndividualDashboardSavedJobSearches} />
@@ -177,6 +179,7 @@ function Router() {
       <Route path="/admin" component={() => <AdminRouter />} />
       <Route path="/dashboard/individual/profile" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/cvs" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual/jobs/all" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/jobs/auto" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/jobs/manual" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/jobs/saved" component={() => <IndividualsRouter />} />

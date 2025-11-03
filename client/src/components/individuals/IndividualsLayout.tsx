@@ -34,6 +34,7 @@ import {
   Sparkles,
   Search,
   Save,
+  List,
 } from "lucide-react";
 
 interface MenuItem {
@@ -62,6 +63,11 @@ const menuItems: MenuItem[] = [
     title: "Job Searches",
     icon: Briefcase,
     subItems: [
+      {
+        title: "All Jobs",
+        url: "/dashboard/individual/jobs/all",
+        icon: List,
+      },
       {
         title: "Auto Job Search",
         url: "/dashboard/individual/jobs/auto",

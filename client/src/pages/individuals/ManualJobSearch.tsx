@@ -1,19 +1,14 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { 
   Briefcase, 
   MapPin, 
   DollarSign, 
   Clock, 
-  Search, 
-  Filter, 
   ExternalLink, 
   FileText,
   Building2,
@@ -36,43 +31,10 @@ import {
 
 export default function ManualJobSearch() {
   const [, setLocation] = useLocation();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [locationFilter, setLocationFilter] = useState("all");
-  const [industryFilter, setIndustryFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
 
   const { data: jobsData, isLoading } = useQuery<{ success: boolean; jobs: CompleteJob[] }>({
     queryKey: ["/api/jobs?status=Live"],
   });
-
-  const locations = jobsData?.jobs
-    ? Array.from(new Set(jobsData.jobs.map(job => formatLocation(job))))
-    : [];
-  
-  const industries = jobsData?.jobs
-    ? Array.from(new Set(jobsData.jobs.map(job => job.industry || job.companyDetails?.industry).filter(Boolean)))
-    : [];
-
-  const employmentTypes = jobsData?.jobs
-    ? Array.from(new Set(jobsData.jobs.map(job => job.employmentType).filter(Boolean)))
-    : [];
-
-  const filteredJobs = jobsData?.jobs?.filter(job => {
-    const matchesSearch = searchQuery === "" || 
-      job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.core?.summary?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const jobLocation = formatLocation(job);
-    const jobIndustry = job.industry || job.companyDetails?.industry;
-    
-    const matchesLocation = locationFilter === "all" || jobLocation === locationFilter;
-    const matchesIndustry = industryFilter === "all" || jobIndustry === industryFilter;
-    const matchesType = typeFilter === "all" || job.employmentType === typeFilter;
-
-    return matchesSearch && matchesLocation && matchesIndustry && matchesType;
-  }) || [];
 
   const handleApplyViaWhatsApp = (job: CompleteJob) => {
     const whatsapp = job.application?.whatsappNumber || job.whatsappContact;
@@ -88,83 +50,28 @@ export default function ManualJobSearch() {
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Manual Job Search</h1>
         <p className="text-muted-foreground">
-          Browse and filter available jobs with transparent salary ranges and comprehensive details
+          Browse all currently active job postings with transparent salary ranges
         </p>
       </div>
 
-      <div className="bg-graphite rounded-lg p-8">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold text-white mb-2">Browse Available Jobs</h2>
-          <p className="text-white/80">
-            All jobs include transparent salary ranges. Apply directly via WhatsApp.
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-5 w-5" />
-            <Input
-              type="text"
-              placeholder="Search by job title, company, or keywords..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12 text-base bg-white"
-              data-testid="input-job-search"
-            />
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex items-center gap-2 flex-1">
-              <Filter className="h-4 w-4 text-white/70" />
-              <Select value={locationFilter} onValueChange={setLocationFilter}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white" data-testid="select-location">
-                  <SelectValue placeholder="All Locations" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Locations</SelectItem>
-                  {locations.map(location => (
-                    <SelectItem key={location} value={location}>{location}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      <div className="space-y-4">
+        {isLoading ? (
+          <Card className="bg-white/95">
+            <CardContent className="p-8 text-center">
+              <p className="text-muted-foreground">Loading jobs...</p>
+            </CardContent>
+          </Card>
+        ) : jobsData?.jobs && jobsData.jobs.length > 0 ? (
+          <>
+            <div className="mb-4 p-4 bg-muted rounded-lg flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Live Jobs Available</p>
+                <p className="text-2xl font-bold">{jobsData.jobs.length}</p>
+              </div>
+              <Briefcase className="h-12 w-12 text-primary opacity-20" />
             </div>
 
-            <Select value={industryFilter} onValueChange={setIndustryFilter} >
-              <SelectTrigger className="bg-white/10 border-white/20 text-white flex-1" data-testid="select-industry">
-                <SelectValue placeholder="All Industries" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Industries</SelectItem>
-                {industries.filter((ind): ind is string => !!ind).map(industry => (
-                  <SelectItem key={industry} value={industry}>{industry}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="bg-white/10 border-white/20 text-white flex-1" data-testid="select-type">
-                <SelectValue placeholder="All Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                {employmentTypes.filter((t): t is string => !!t).map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          {isLoading ? (
-            <Card className="bg-white/95">
-              <CardContent className="p-8 text-center">
-                <p className="text-muted-foreground">Loading jobs...</p>
-              </CardContent>
-            </Card>
-          ) : filteredJobs.length > 0 ? (
-            <div className="space-y-4">
-              {filteredJobs.map((job) => {
+            {jobsData.jobs.map((job) => {
                 const daysLeft = getDaysRemaining(job.application?.closingDate || job.admin?.closingDate);
                 const isUrgent = daysLeft !== null && daysLeft <= 7;
                 const perks = getCompensationPerks(job);
@@ -325,19 +232,18 @@ export default function ManualJobSearch() {
                   </Card>
                 );
               })}
-            </div>
+            </>
           ) : (
             <Card className="bg-white/95">
               <CardContent className="p-12 text-center">
                 <Briefcase className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">No jobs found</h3>
+                <h3 className="text-xl font-semibold mb-2">No live jobs available</h3>
                 <p className="text-muted-foreground">
-                  Try adjusting your filters or search terms
+                  Check back soon for new opportunities
                 </p>
               </CardContent>
             </Card>
           )}
-        </div>
       </div>
     </div>
   );
