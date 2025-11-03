@@ -219,7 +219,6 @@ export default function Recruiters() {
         description="Purpose-built tools for SA recruiters. Verify employers, require salary transparency, and export to all major job boards."
         breadcrumb="For Recruiters"
       />
-
       <Section>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
           <div>
@@ -232,7 +231,7 @@ export default function Recruiters() {
                   <div className="flex-shrink-0">{feature.icon}</div>
                   <div>
                     <h3 className="font-semibold mb-1 text-white-brand" data-testid="text-feature-title">{feature.title}</h3>
-                    <p className="text-sm text-slate" data-testid="text-feature-description">
+                    <p className="text-sm text-[#ffffff]" data-testid="text-feature-description">
                       {feature.description}
                     </p>
                   </div>
@@ -257,7 +256,6 @@ export default function Recruiters() {
           </div>
         </div>
       </Section>
-
       <Section className="bg-graphite" id="jobs">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
@@ -672,7 +670,6 @@ export default function Recruiters() {
           )}
         </div>
       </Section>
-
       <Section>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
           <Card className="p-6">
@@ -716,7 +713,6 @@ export default function Recruiters() {
           </Button>
         </div>
       </Section>
-
       <Section id="pricing">
         <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-pricing-title">
           Pricing for Recruiters
@@ -726,7 +722,6 @@ export default function Recruiters() {
         </p>
         <PricingTable plans={recruiterPricingPlans} />
       </Section>
-
       <Section className="bg-graphite" id="faq">
         <h2 className="text-3xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-faq-title">
           Recruiter FAQs
