@@ -195,6 +195,26 @@ export const COMMON_BENEFITS = [
   "Disability Cover",
 ] as const;
 
+export const SA_LANGUAGES = [
+  "Afrikaans",
+  "English",
+  "isiNdebele",
+  "isiXhosa",
+  "isiZulu",
+  "Sepedi",
+  "Sesotho",
+  "Setswana",
+  "siSwati",
+  "Tshivenda",
+  "Xitsonga",
+] as const;
+
+export const PROFICIENCY_LEVELS = [
+  "Basic",
+  "Intermediate",
+  "Expert",
+] as const;
+
 export const DEFAULT_PIPELINE_STAGES = [
   "Applied",
   "Screen",

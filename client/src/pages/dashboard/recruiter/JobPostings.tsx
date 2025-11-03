@@ -61,6 +61,8 @@ import {
   REQUIRED_ATTACHMENTS,
   OPTIONAL_ATTACHMENTS,
   COMMON_BENEFITS,
+  SA_LANGUAGES,
+  PROFICIENCY_LEVELS,
 } from "@shared/jobTaxonomies";
 import { JOB_TITLES, JOB_TITLES_BY_INDUSTRY, getIndustryForJobTitle } from "@shared/jobTitles";
 import { CITIES_BY_PROVINCE, getLocationDataForCity } from "@shared/cities";
@@ -240,6 +242,7 @@ export default function RecruiterJobPostings() {
         requiredSkills: [],
         qualifications: [""],
         experience: [""],
+        languagesRequired: [],
       },
       compensation: {
         displayRange: true,
@@ -1620,6 +1623,165 @@ export default function RecruiterJobPostings() {
                     {form.formState.errors.core?.experience && (
                       <p className="text-sm text-destructive">{form.formState.errors.core.experience.message}</p>
                     )}
+                  </div>
+                </div>
+
+                {/* Other Requirements */}
+                <div className="pt-6 border-t space-y-6">
+                  <div>
+                    <h4 className="text-sm font-semibold mb-4">Other Requirements</h4>
+                    
+                    {/* Driver's License */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <FormField
+                        control={form.control}
+                        name="core.driversLicenseRequired"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Driver's License Required</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value}>
+                              <FormControl>
+                                <SelectTrigger data-testid="select-drivers-license-required">
+                                  <SelectValue placeholder="Select..." />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="Yes">Yes</SelectItem>
+                                <SelectItem value="No">No</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {form.watch("core.driversLicenseRequired") === "Yes" && (
+                        <FormField
+                          control={form.control}
+                          name="core.licenseCode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>License Code</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  {...field} 
+                                  placeholder="e.g., Code 08, Code 10, Code 14" 
+                                  data-testid="input-license-code"
+                                />
+                              </FormControl>
+                              <FormDescription className="text-xs">
+                                e.g., Code 08, Code 10, Code 14
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+                    </div>
+
+                    {/* Languages Required */}
+                    <FormField
+                      control={form.control}
+                      name="core.languagesRequired"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Languages Required</FormLabel>
+                          <div className="space-y-2">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className="w-full justify-between font-normal"
+                                    data-testid="button-languages-required"
+                                  >
+                                    {field.value && field.value.length > 0
+                                      ? `${field.value.length} language${field.value.length > 1 ? 's' : ''} selected`
+                                      : "Select languages..."}
+                                    <Plus className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-full p-0" align="start">
+                                <Command>
+                                  <CommandInput placeholder="Search languages..." />
+                                  <CommandList>
+                                    <CommandEmpty>No language found.</CommandEmpty>
+                                    <CommandGroup>
+                                      {SA_LANGUAGES.map((language) => (
+                                        <CommandItem
+                                          key={language}
+                                          onSelect={() => {
+                                            const current = field.value || [];
+                                            const exists = current.find(l => l.language === language);
+                                            if (!exists) {
+                                              field.onChange([...current, { language, proficiency: "Intermediate" }]);
+                                            }
+                                          }}
+                                          data-testid={`command-language-${language}`}
+                                        >
+                                          <Checkbox
+                                            checked={field.value?.some(l => l.language === language) || false}
+                                            className="mr-2"
+                                          />
+                                          {language}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+
+                            {/* Display selected languages with proficiency dropdowns */}
+                            {field.value && field.value.length > 0 && (
+                              <div className="space-y-2 mt-2">
+                                {field.value.map((lang, idx) => (
+                                  <div key={lang.language} className="flex items-center gap-2 p-2 border rounded-md">
+                                    <span className="flex-1 text-sm">{lang.language}</span>
+                                    <Select
+                                      value={lang.proficiency}
+                                      onValueChange={(proficiency) => {
+                                        const updated = [...(field.value || [])];
+                                        updated[idx] = { ...updated[idx], proficiency: proficiency as "Basic" | "Intermediate" | "Expert" };
+                                        field.onChange(updated);
+                                      }}
+                                    >
+                                      <SelectTrigger className="w-[140px]" data-testid={`select-proficiency-${lang.language}`}>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {PROFICIENCY_LEVELS.map((level) => (
+                                          <SelectItem key={level} value={level}>{level}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => {
+                                        const updated = field.value?.filter((_, i) => i !== idx);
+                                        field.onChange(updated);
+                                      }}
+                                      aria-label={`Remove ${lang.language}`}
+                                      data-testid={`button-remove-language-${lang.language}`}
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <FormDescription className="text-xs">
+                            Select required languages and set proficiency levels
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </div>
               </div>
