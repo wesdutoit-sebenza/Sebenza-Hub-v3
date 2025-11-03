@@ -786,20 +786,30 @@ export default function RecruiterJobPostings() {
 
   const onSubmit = (data: FormData) => {
     console.log("Form submitted with data:", data);
+    console.log("Job status:", data.admin?.status);
+    
+    // Clean up data: remove null values for optional fields to avoid validation errors
+    const cleanedData = {
+      ...data,
+      contract: data.contract || undefined,
+      benefits: data.benefits || undefined,
+      attachments: data.attachments || undefined,
+      accessibility: data.accessibility || undefined,
+    };
     
     // If status is Draft, skip strict validation
-    if (data.admin?.status === "Draft") {
+    if (cleanedData.admin?.status === "Draft") {
       console.log("Saving as draft - skipping strict validation");
       if (editingJobId) {
-        updateJobMutation.mutate({ jobId: editingJobId, data });
+        updateJobMutation.mutate({ jobId: editingJobId, data: cleanedData });
       } else {
-        createJobMutation.mutate(data);
+        createJobMutation.mutate(cleanedData);
       }
       return;
     }
     
     // For Live/Paused/Closed/Filled, validate strictly
-    const validationResult = insertJobSchema.safeParse(data);
+    const validationResult = insertJobSchema.safeParse(cleanedData);
     
     if (!validationResult.success) {
       const errors = validationResult.error.format();
@@ -820,9 +830,9 @@ export default function RecruiterJobPostings() {
     
     // Validation passed, submit the form
     if (editingJobId) {
-      updateJobMutation.mutate({ jobId: editingJobId, data });
+      updateJobMutation.mutate({ jobId: editingJobId, data: cleanedData });
     } else {
-      createJobMutation.mutate(data);
+      createJobMutation.mutate(cleanedData);
     }
   };
 
