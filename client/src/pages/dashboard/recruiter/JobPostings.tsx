@@ -795,6 +795,8 @@ export default function RecruiterJobPostings() {
       benefits: data.benefits || undefined,
       attachments: data.attachments || undefined,
       accessibility: data.accessibility || undefined,
+      branding: data.branding || undefined,
+      seo: data.seo || undefined,
     };
     
     // If status is Draft, skip strict validation
