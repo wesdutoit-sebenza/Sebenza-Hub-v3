@@ -86,7 +86,11 @@ export default function Header() {
                 key={link.path} 
                 href={link.path}
                 data-testid={`link-nav-${link.label.toLowerCase().replace(/\s+/g, '-')}`}
-                className="px-4 py-2 rounded-md text-sm font-medium transition-colors hover-elevate border-b-2 border-amber text-[#eda51d]"
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-colors hover-elevate ${
+                  isActive(link.path)
+                    ? "text-amber border-b-2 border-amber"
+                    : "text-white-brand"
+                }`}
               >
                 {link.label}
               </Link>
