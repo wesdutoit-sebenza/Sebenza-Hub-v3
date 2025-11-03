@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { useEffect } from "react";
+import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Sidebar,
@@ -10,9 +10,17 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   User,
   FileText,
@@ -22,9 +30,24 @@ import {
   CreditCard,
   Settings,
   ClipboardCheck,
+  ChevronRight,
+  Sparkles,
+  Search,
+  Save,
 } from "lucide-react";
 
-const menuItems = [
+interface MenuItem {
+  title: string;
+  url?: string;
+  icon: any;
+  subItems?: {
+    title: string;
+    url: string;
+    icon: any;
+  }[];
+}
+
+const menuItems: MenuItem[] = [
   {
     title: "Profile",
     url: "/dashboard/individual/profile",
@@ -37,8 +60,24 @@ const menuItems = [
   },
   {
     title: "Job Searches",
-    url: "/dashboard/individual/jobs",
     icon: Briefcase,
+    subItems: [
+      {
+        title: "Auto Job Search",
+        url: "/dashboard/individual/jobs/auto",
+        icon: Sparkles,
+      },
+      {
+        title: "Manual Job Search",
+        url: "/dashboard/individual/jobs/manual",
+        icon: Search,
+      },
+      {
+        title: "Saved Job Searches",
+        url: "/dashboard/individual/jobs/saved",
+        icon: Save,
+      },
+    ],
   },
   {
     title: "My Applications",
@@ -74,13 +113,25 @@ interface IndividualsLayoutProps {
 export function IndividualsLayout({ children }: IndividualsLayoutProps) {
   const [location, setLocation] = useLocation();
   const { user, loading } = useAuth();
+  const [openItems, setOpenItems] = useState<string[]>(["Job Searches"]);
 
-  // Development: Email verification check disabled
-  // useEffect(() => {
-  //   if (!loading && user && !user.emailVerified) {
-  //     setLocation("/verify-email");
-  //   }
-  // }, [user, loading, setLocation]);
+  const toggleItem = (title: string) => {
+    setOpenItems(prev =>
+      prev.includes(title)
+        ? prev.filter(item => item !== title)
+        : [...prev, title]
+    );
+  };
+
+  const isActive = (url?: string) => {
+    if (!url) return false;
+    return location === url;
+  };
+
+  const isSubItemActive = (subItems?: { url: string }[]) => {
+    if (!subItems) return false;
+    return subItems.some(sub => location === sub.url);
+  };
 
   const style = {
     "--sidebar-width": "18rem",
@@ -98,14 +149,56 @@ export function IndividualsLayout({ children }: IndividualsLayoutProps) {
               <SidebarGroupContent>
                 <SidebarMenu>
                   {menuItems.map((item) => (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild isActive={location === item.url}>
-                        <Link href={item.url} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
-                          <item.icon className="w-4 h-4" />
-                          <span>{item.title}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
+                    item.subItems ? (
+                      <Collapsible
+                        key={item.title}
+                        open={openItems.includes(item.title)}
+                        onOpenChange={() => toggleItem(item.title)}
+                        className="group/collapsible"
+                      >
+                        <SidebarMenuItem>
+                          <CollapsibleTrigger asChild>
+                            <SidebarMenuButton
+                              isActive={isSubItemActive(item.subItems)}
+                              data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}
+                            >
+                              <item.icon className="w-4 h-4" />
+                              <span>{item.title}</span>
+                              <ChevronRight className={`ml-auto h-4 w-4 transition-transform ${openItems.includes(item.title) ? 'rotate-90' : ''}`} />
+                            </SidebarMenuButton>
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <SidebarMenuSub>
+                              {item.subItems.map((subItem) => (
+                                <SidebarMenuSubItem key={subItem.title}>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={isActive(subItem.url)}
+                                  >
+                                    <Link 
+                                      href={subItem.url}
+                                      data-testid={`link-${subItem.title.toLowerCase().replace(/\s+/g, '-')}`}
+                                    >
+                                      <subItem.icon className="w-4 h-4" />
+                                      <span>{subItem.title}</span>
+                                    </Link>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              ))}
+                            </SidebarMenuSub>
+                          </CollapsibleContent>
+                        </SidebarMenuItem>
+                      </Collapsible>
+                    ) : (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton asChild isActive={isActive(item.url)}>
+                          <Link href={item.url!} data-testid={`link-${item.title.toLowerCase().replace(/\s+/g, '-')}`}>
+                            <item.icon className="w-4 h-4" />
+                            <span>{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
                   ))}
                 </SidebarMenu>
               </SidebarGroupContent>

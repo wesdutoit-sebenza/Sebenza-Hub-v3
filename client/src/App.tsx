@@ -49,7 +49,9 @@ import AdminFraudDetection from "@/pages/admin/FraudDetection";
 import { IndividualsLayout } from "@/components/individuals/IndividualsLayout";
 import IndividualDashboardProfile from "@/pages/individuals/Profile";
 import IndividualDashboardCVs from "@/pages/individuals/CVs";
-import IndividualDashboardJobs from "@/pages/individuals/JobSearches";
+import IndividualDashboardAutoJobSearch from "@/pages/individuals/AutoJobSearch";
+import IndividualDashboardManualJobSearch from "@/pages/individuals/ManualJobSearch";
+import IndividualDashboardSavedJobSearches from "@/pages/individuals/SavedJobSearches";
 import IndividualDashboardApplications from "@/pages/individuals/Applications";
 import IndividualDashboardTests from "@/pages/individuals/Tests";
 import IndividualDashboardCoaching from "@/pages/individuals/Coaching";
@@ -96,7 +98,9 @@ function IndividualsRouter() {
       <Switch>
         <Route path="/dashboard/individual/profile" component={IndividualDashboardProfile} />
         <Route path="/dashboard/individual/cvs" component={IndividualDashboardCVs} />
-        <Route path="/dashboard/individual/jobs" component={IndividualDashboardJobs} />
+        <Route path="/dashboard/individual/jobs/auto" component={IndividualDashboardAutoJobSearch} />
+        <Route path="/dashboard/individual/jobs/manual" component={IndividualDashboardManualJobSearch} />
+        <Route path="/dashboard/individual/jobs/saved" component={IndividualDashboardSavedJobSearches} />
         <Route path="/dashboard/individual/applications" component={IndividualDashboardApplications} />
         <Route path="/dashboard/individual/tests" component={IndividualDashboardTests} />
         <Route path="/dashboard/individual/coaching" component={IndividualDashboardCoaching} />
@@ -148,7 +152,7 @@ function Router() {
       <Route path="/recruiters" component={Recruiters} />
       <Route path="/businesses" component={Businesses} />
       <Route path="/jobs/:id" component={JobDetail} />
-      <Route path="/individuals/job-searches" component={IndividualDashboardJobs} />
+      <Route path="/individuals/job-searches" component={IndividualDashboardManualJobSearch} />
       <Route path="/individuals" component={Individuals} />
       <Route path="/screening" component={Screening} />
       <Route path="/candidates/new" component={CandidateAdd} />
@@ -173,7 +177,9 @@ function Router() {
       <Route path="/admin" component={() => <AdminRouter />} />
       <Route path="/dashboard/individual/profile" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/cvs" component={() => <IndividualsRouter />} />
-      <Route path="/dashboard/individual/jobs" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual/jobs/auto" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual/jobs/manual" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual/jobs/saved" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/applications" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/tests" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/coaching" component={() => <IndividualsRouter />} />
