@@ -333,7 +333,7 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-serif font-semibold mb-4 text-white-brand" data-testid="text-cta-title">
             Ready to transform your hiring?
           </h2>
-          <p className="text-slate mb-8">
+          <p className="mb-8 text-[#ffffff]">
             Join the waitlist for early access. No credit card required.
           </p>
           <form onSubmit={handleEmailSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
