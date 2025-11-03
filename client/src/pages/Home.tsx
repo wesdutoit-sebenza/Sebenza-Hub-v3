@@ -155,7 +155,7 @@ export default function Home() {
                 <span className="text-lg font-semibold text-amber">1</span>
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2 text-white-brand">Post Your Role</h3>
+                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Post Your Role</h3>
                 <p className="text-slate">
                   Create compliant job listings with transparent salary ranges and clear requirements.
                 </p>
