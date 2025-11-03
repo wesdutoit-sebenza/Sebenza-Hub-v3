@@ -220,11 +220,28 @@ function JobFormNavigation() {
   // Scroll active nav item into view when it changes
   useEffect(() => {
     const activeNavButton = navRefs.current[activeSection];
-    if (activeNavButton && scrollContainerRef.current) {
-      activeNavButton.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
+    const container = scrollContainerRef.current;
+    
+    if (activeNavButton && container) {
+      const buttonTop = activeNavButton.offsetTop;
+      const buttonHeight = activeNavButton.offsetHeight;
+      const containerScrollTop = container.scrollTop;
+      const containerHeight = container.clientHeight;
+      
+      // Check if button is outside visible area
+      if (buttonTop < containerScrollTop) {
+        // Button is above visible area, scroll up
+        container.scrollTo({
+          top: buttonTop - 10, // 10px padding
+          behavior: "smooth"
+        });
+      } else if (buttonTop + buttonHeight > containerScrollTop + containerHeight) {
+        // Button is below visible area, scroll down
+        container.scrollTo({
+          top: buttonTop - containerHeight + buttonHeight + 10, // 10px padding
+          behavior: "smooth"
+        });
+      }
     }
   }, [activeSection]);
 
@@ -246,14 +263,14 @@ function JobFormNavigation() {
   };
 
   return (
-    <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-hidden">
-      <Card className="h-full flex flex-col">
-        <CardHeader className="pb-3 flex-shrink-0">
+    <div className="sticky top-20">
+      <Card>
+        <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium">Quick Navigation</CardTitle>
         </CardHeader>
         <CardContent 
           ref={scrollContainerRef}
-          className="space-y-1 overflow-y-auto flex-1 pr-2"
+          className="space-y-1 max-h-[70vh] overflow-y-auto pr-2"
         >
           {FORM_SECTIONS.map((section) => (
             <button
