@@ -103,7 +103,7 @@ export default function Individuals() {
     const matchesSearch = !searchTerm || 
       job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      job.description.toLowerCase().includes(searchTerm.toLowerCase());
+      (job.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
     
     const matchesLocation = locationFilter === "all" || job.location === locationFilter;
     const matchesIndustry = industryFilter === "all" || job.industry === industryFilter;
@@ -379,7 +379,7 @@ export default function Individuals() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all" data-testid="option-location-all">All Locations</SelectItem>
-                  {availableLocations.map((loc) => (
+                  {availableLocations.map((loc) => loc && (
                     <SelectItem key={loc} value={loc} data-testid={`option-location-${loc.toLowerCase().replace(/\s+/g, '-')}`}>
                       {loc}
                     </SelectItem>
@@ -393,7 +393,7 @@ export default function Individuals() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all" data-testid="option-industry-all">All Industries</SelectItem>
-                  {availableIndustries.map((ind) => (
+                  {availableIndustries.map((ind) => ind && (
                     <SelectItem key={ind} value={ind} data-testid={`option-industry-${ind.toLowerCase().replace(/\s+/g, '-')}`}>
                       {ind}
                     </SelectItem>
@@ -407,7 +407,7 @@ export default function Individuals() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all" data-testid="option-type-all">All Types</SelectItem>
-                  {availableEmploymentTypes.map((type) => (
+                  {availableEmploymentTypes.map((type) => type && (
                     <SelectItem key={type} value={type} data-testid={`option-type-${type.toLowerCase().replace(/\s+/g, '-')}`}>
                       {type}
                     </SelectItem>
