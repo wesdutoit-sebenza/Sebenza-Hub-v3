@@ -310,7 +310,7 @@ export default function Home() {
                   </span>
                 </div>
                 <div>
-                  <p className="font-semibold text-sm text-white-brand" data-testid="text-testimonial-name">{testimonial.name}</p>
+                  <p className="font-semibold text-sm text-[#70787e]" data-testid="text-testimonial-name">{testimonial.name}</p>
                   <p className="text-xs text-slate" data-testid="text-testimonial-role">
                     {testimonial.title}, {testimonial.company}
                   </p>
