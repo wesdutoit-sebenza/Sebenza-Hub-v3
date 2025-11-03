@@ -19,7 +19,7 @@ export default function FAQAccordion({ audience = "all" }: FAQAccordionProps) {
     <Accordion type="single" collapsible className="w-full">
       {filteredFaqs.map((faq, idx) => (
         <AccordionItem key={idx} value={`item-${idx}`} data-testid={`accordion-item-${idx}`}>
-          <AccordionTrigger data-testid={`accordion-trigger-${idx}`} className="text-left">
+          <AccordionTrigger data-testid={`accordion-trigger-${idx}`} className="text-left text-[#ffffff]">
             {faq.q}
           </AccordionTrigger>
           <AccordionContent data-testid={`accordion-content-${idx}`} className="text-muted-foreground">
