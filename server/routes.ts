@@ -2840,6 +2840,283 @@ Return format:
     }
   });
 
+  // Scrape company website for AI description generation
+  app.post("/api/jobs/scrape-website", authenticateSession, async (req, res) => {
+    try {
+      const { websiteUrl } = req.body;
+
+      if (!websiteUrl) {
+        return res.status(400).json({
+          success: false,
+          message: "Website URL is required",
+        });
+      }
+
+      // Validate URL format
+      let url: URL;
+      try {
+        url = new URL(websiteUrl);
+      } catch {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid URL format",
+        });
+      }
+
+      // Security: SSRF protection - only allow http/https schemes
+      if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+        return res.status(400).json({
+          success: false,
+          message: "Only HTTP and HTTPS protocols are allowed",
+        });
+      }
+
+      // Security: SSRF protection - block private/loopback/broadcast IP ranges
+      const hostname = url.hostname.toLowerCase();
+      
+      // Block localhost and loopback addresses
+      if (hostname === 'localhost' || 
+          hostname === '127.0.0.1' || 
+          hostname.startsWith('127.') ||
+          hostname === '::1' ||
+          hostname === '0.0.0.0') {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot scrape local addresses",
+        });
+      }
+
+      // Block private IP ranges (10.x.x.x, 172.16-31.x.x, 192.168.x.x)
+      const ipv4Pattern = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/;
+      const ipMatch = hostname.match(ipv4Pattern);
+      if (ipMatch) {
+        const [, a, b, c, d] = ipMatch.map(Number);
+        if (
+          a === 10 || // 10.0.0.0/8
+          (a === 172 && b >= 16 && b <= 31) || // 172.16.0.0/12
+          (a === 192 && b === 168) || // 192.168.0.0/16
+          (a === 169 && b === 254) || // Link-local 169.254.0.0/16
+          a >= 224 // Multicast and reserved
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: "Cannot scrape private IP addresses",
+          });
+        }
+      }
+
+      // Block IPv6 private/link-local addresses
+      if (hostname.includes(':') && 
+          (hostname.startsWith('fe80:') || 
+           hostname.startsWith('fc00:') || 
+           hostname.startsWith('fd00:'))) {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot scrape private IPv6 addresses",
+        });
+      }
+
+      // Fetch home page content with timeout
+      console.log(`[Website Scrape] Fetching ${websiteUrl}`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      try {
+        const homeResponse = await fetch(websiteUrl, {
+          signal: controller.signal,
+          redirect: 'manual', // Disable automatic redirects to prevent redirect-based SSRF
+          headers: {
+            'User-Agent': 'Sebenza Hub Job Board (Website Info Scraper)',
+          },
+        });
+        clearTimeout(timeoutId);
+
+        // Block redirects that might point to internal resources
+        if (homeResponse.status >= 300 && homeResponse.status < 400) {
+          return res.status(400).json({
+            success: false,
+            message: "Website redirects are not supported for security reasons. Please use the final URL.",
+          });
+        }
+      
+      if (!homeResponse.ok) {
+        throw new Error(`Failed to fetch website: ${homeResponse.status} ${homeResponse.statusText}`);
+      }
+
+      const homeHtml = await homeResponse.text();
+      
+      // Extract text content from HTML (simple extraction)
+      const homeText = homeHtml
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .substring(0, 5000); // Limit to first 5000 chars
+
+      // Try to find and fetch "About Us" page
+      let aboutText = '';
+      const aboutPatterns = ['/about', '/about-us', '/about_us', '/company', '/who-we-are'];
+      
+      for (const pattern of aboutPatterns) {
+        try {
+          const aboutUrl = `${url.origin}${pattern}`;
+          const aboutController = new AbortController();
+          const aboutTimeoutId = setTimeout(() => aboutController.abort(), 10000); // 10 second timeout
+          
+          try {
+            const aboutResponse = await fetch(aboutUrl, {
+              signal: aboutController.signal,
+              redirect: 'manual', // Disable automatic redirects to prevent redirect-based SSRF
+              headers: {
+                'User-Agent': 'Sebenza Hub Job Board (Website Info Scraper)',
+              },
+            });
+            clearTimeout(aboutTimeoutId);
+
+            // Skip if redirect (security measure)
+            if (aboutResponse.status >= 300 && aboutResponse.status < 400) {
+              continue;
+            }
+            
+            if (aboutResponse.ok) {
+              console.log(`[Website Scrape] Found about page at ${aboutUrl}`);
+              const aboutHtml = await aboutResponse.text();
+              aboutText = aboutHtml
+                .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+                .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+                .replace(/<[^>]+>/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .substring(0, 5000);
+              break;
+            }
+          } finally {
+            clearTimeout(aboutTimeoutId);
+          }
+        } catch (err) {
+          // Skip if about page not found or timeout
+          continue;
+        }
+      }
+
+      res.json({
+        success: true,
+        content: {
+          homePageText: homeText,
+          aboutPageText: aboutText,
+          websiteUrl: websiteUrl,
+        },
+      });
+      } catch (fetchError: any) {
+        if (fetchError.name === 'AbortError') {
+          return res.status(408).json({
+            success: false,
+            message: "Website request timed out. Please try again.",
+          });
+        }
+        throw fetchError;
+      }
+    } catch (error: any) {
+      console.error("[Website Scrape] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to scrape website",
+      });
+    }
+  });
+
+  // Generate AI company description with tone selection
+  app.post("/api/jobs/generate-company-description", authenticateSession, async (req, res) => {
+    try {
+      const { websiteContent, tone } = req.body;
+
+      if (!websiteContent) {
+        return res.status(400).json({
+          success: false,
+          message: "Website content is required",
+        });
+      }
+
+      const validTones = ['Professional', 'Formal', 'Approachable', 'Concise', 'Detailed', 'Auto-Select'];
+      const selectedTone = validTones.includes(tone) ? tone : 'Auto-Select';
+
+      // Initialize OpenAI client
+      const OpenAI = (await import("openai")).default;
+      const openai = new OpenAI({
+        baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
+        apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY,
+      });
+
+      const toneInstructions: Record<string, string> = {
+        'Professional': 'Write in a professional, polished tone suitable for corporate environments.',
+        'Formal': 'Use formal, sophisticated language with a traditional business tone.',
+        'Approachable': 'Write in a friendly, warm, and conversational tone that makes candidates feel welcome.',
+        'Concise': 'Be brief and to-the-point. Focus on key facts without elaboration.',
+        'Detailed': 'Provide comprehensive information with rich details about the company.',
+        'Auto-Select': 'Choose the most appropriate tone based on the company\'s industry and content.',
+      };
+
+      const systemPrompt = `You are an expert recruiter helping write compelling company descriptions for job postings.
+
+Your task:
+1. Analyze the provided website content (home page and about page)
+2. Write a 5-10 line company description that will appear on a job posting
+3. ${toneInstructions[selectedTone]}
+4. Focus on: company mission, culture, what they do, and what makes them unique
+5. Make it attractive to potential job candidates
+
+South African Context:
+- Use South African English spelling
+- Consider local market and business culture
+- Emphasize diversity, transformation, and inclusivity where relevant
+
+Format:
+- 5-10 complete sentences
+- Each sentence on a new line
+- No bullet points or special formatting
+- Focus on what job seekers care about`;
+
+      const userPrompt = `Website: ${websiteContent.websiteUrl}
+
+Home Page Content:
+${websiteContent.homePageText}
+
+${websiteContent.aboutPageText ? `About Page Content:\n${websiteContent.aboutPageText}` : ''}
+
+Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
+
+      // Call OpenAI API
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.7,
+        max_tokens: 500,
+      });
+
+      const description = completion.choices[0]?.message?.content?.trim();
+
+      if (!description) {
+        throw new Error("No response from AI");
+      }
+
+      res.json({
+        success: true,
+        description,
+        tone: selectedTone,
+      });
+    } catch (error: any) {
+      console.error("[Company Description AI] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to generate company description",
+      });
+    }
+  });
+
   // ============================================================================
   // ATS - Resume Upload and AI Parsing
   // ============================================================================

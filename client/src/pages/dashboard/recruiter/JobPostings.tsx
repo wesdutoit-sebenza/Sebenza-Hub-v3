@@ -43,6 +43,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles, AlertCircle, Play, Pause, Eye, EyeOff, Trash2, Edit, CheckCircle2, Upload, FileText as FileTextIcon } from "lucide-react";
 import { type Job, type RecruiterProfile, insertJobSchema } from "@shared/schema";
 import { JobDescriptionAIDialog } from "@/components/JobDescriptionAIDialog";
+import { CompanyDescriptionAIDialog } from "@/components/CompanyDescriptionAIDialog";
 import { ImportJobDialog } from "@/components/ImportJobDialog";
 import {
   SA_PROVINCES,
@@ -177,6 +178,7 @@ export default function RecruiterJobPostings() {
   const [jobTitleSearchQuery, setJobTitleSearchQuery] = useState("");
   const [jobTitleDropdownOpen, setJobTitleDropdownOpen] = useState(false);
   const [aiDialogOpen, setAIDialogOpen] = useState(false);
+  const [companyDescriptionAIDialogOpen, setCompanyDescriptionAIDialogOpen] = useState(false);
 
   const { data: jobsData, isLoading } = useQuery<{ success: boolean; count: number; jobs: Job[] }>({
     queryKey: ["/api/jobs"],
@@ -831,7 +833,31 @@ export default function RecruiterJobPostings() {
                 name="companyDetails.description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company Description</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Company Description</FormLabel>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const website = form.watch("companyDetails.website");
+                          if (!website) {
+                            toast({
+                              title: "Company Website Required",
+                              description: "Please enter a company website first before using the AI Assistant.",
+                              variant: "destructive",
+                            });
+                            return;
+                          }
+                          setCompanyDescriptionAIDialogOpen(true);
+                        }}
+                        className="whitespace-nowrap"
+                        data-testid="button-company-ai-assistant"
+                      >
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        AI Assistant
+                      </Button>
+                    </div>
                     <FormControl>
                       <Textarea 
                         {...field} 
@@ -1792,6 +1818,17 @@ export default function RecruiterJobPostings() {
           }}
           onInsert={(description) => {
             form.setValue("core.summary", description);
+          }}
+        />
+
+        {/* AI Company Description Dialog */}
+        <CompanyDescriptionAIDialog
+          open={companyDescriptionAIDialogOpen}
+          onOpenChange={setCompanyDescriptionAIDialogOpen}
+          companyWebsite={form.watch("companyDetails.website")}
+          companyName={form.watch("companyDetails.name")}
+          onInsert={(description) => {
+            form.setValue("companyDetails.description", description);
           }}
         />
       </div>
