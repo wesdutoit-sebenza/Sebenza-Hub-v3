@@ -154,7 +154,7 @@ export default function Individuals() {
             <h2 className="text-3xl font-serif font-semibold mb-6 text-white-brand" data-testid="text-whatsapp-title">
               Apply on WhatsApp
             </h2>
-            <p className="text-slate mb-6">
+            <p className="mb-6 text-[#ffffff]">
               See a job you like? Scan the QR code or tap the button. We'll guide you through a quick application right in WhatsApp—no emails, no portals.
             </p>
             <Button
