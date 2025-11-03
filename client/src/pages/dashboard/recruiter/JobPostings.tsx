@@ -397,8 +397,13 @@ export default function RecruiterJobPostings() {
         employmentType: data.employmentType || "Permanent",
         industry: data.jobIndustry || "Other",
       };
+
+      // Remove null values to prevent validation errors
+      const cleanedData = Object.fromEntries(
+        Object.entries(transformedData).filter(([_, v]) => v !== null)
+      );
       
-      return apiRequest("PUT", `/api/jobs/${jobId}`, transformedData);
+      return apiRequest("PUT", `/api/jobs/${jobId}`, cleanedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
@@ -435,8 +440,13 @@ export default function RecruiterJobPostings() {
         employmentType: data.employmentType || "Permanent",
         industry: data.jobIndustry || "Other", // Map jobIndustry to legacy industry field
       };
+
+      // Remove null values to prevent validation errors
+      const cleanedData = Object.fromEntries(
+        Object.entries(transformedData).filter(([_, v]) => v !== null)
+      );
       
-      return apiRequest("POST", "/api/jobs", transformedData);
+      return apiRequest("POST", "/api/jobs", cleanedData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
