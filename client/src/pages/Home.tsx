@@ -281,7 +281,7 @@ export default function Home() {
                   className="w-full aspect-video object-cover"
                 />
               </div>
-              <h3 className="text-2xl font-serif font-semibold mb-2 text-white-brand" data-testid="text-teaser-title">For Individuals</h3>
+              <h3 className="text-2xl font-serif font-semibold mb-2 text-[#70787e]" data-testid="text-teaser-title">For Individuals</h3>
               <p className="text-slate mb-4">
                 One profile. Real salary ranges. Skills that matter.
               </p>
