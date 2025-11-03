@@ -381,7 +381,7 @@ export const jobBrandingSchema = z.object({
 });
 
 export const jobAdminSchema = z.object({
-  jobId: z.string().min(1),
+  jobId: z.string().min(1).optional(), // Optional since job already has an id field
   pipeline: z.array(z.string()).default(["Applied", "Screen", "Interview 1", "Interview 2", "Offer", "Hired"]),
   owner: z.string().min(1),
   backupOwner: z.string().optional(),
