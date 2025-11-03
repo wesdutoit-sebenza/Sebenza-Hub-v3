@@ -263,14 +263,14 @@ function JobFormNavigation() {
   };
 
   return (
-    <div className="sticky top-20">
+    <div className="sticky top-20 self-start">
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-medium">Quick Navigation</CardTitle>
         </CardHeader>
         <CardContent 
           ref={scrollContainerRef}
-          className="space-y-1 max-h-[70vh] overflow-y-auto pr-2"
+          className="space-y-1 max-h-[calc(100vh-12rem)] overflow-y-auto pr-2"
         >
           {FORM_SECTIONS.map((section) => (
             <button
