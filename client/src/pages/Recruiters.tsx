@@ -263,7 +263,7 @@ export default function Recruiters() {
               <h2 className="text-3xl font-serif font-semibold mb-2 text-white-brand" data-testid="text-jobs-title">
                 Job Postings
               </h2>
-              <p className="text-slate">
+              <p className="text-[#ffffff]">
                 Post jobs with mandatory salary ranges and WhatsApp contact
               </p>
             </div>
