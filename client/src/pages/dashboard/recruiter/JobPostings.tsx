@@ -264,32 +264,31 @@ function JobFormNavigation() {
 
   return (
     <div className="sticky top-20 self-start">
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-medium">Quick Navigation</CardTitle>
+      <Card className="w-64">
+        <CardHeader className="pb-2 pt-3 px-3">
+          <CardTitle className="text-xs font-medium">Quick Navigation</CardTitle>
         </CardHeader>
-        <CardContent 
-          ref={scrollContainerRef}
-          className="space-y-1 max-h-[calc(100vh-12rem)] overflow-y-auto pr-2"
-        >
-          {FORM_SECTIONS.map((section) => (
-            <button
-              key={section.id}
-              ref={(el) => { navRefs.current[section.id] = el; }}
-              onClick={() => scrollToSection(section.id)}
-              className={`
-                w-full text-left px-3 py-2 rounded-md text-sm transition-colors
-                hover-elevate active-elevate-2
-                ${activeSection === section.id 
-                  ? "bg-primary text-primary-foreground font-medium" 
-                  : "text-muted-foreground"
-                }
-              `}
-              data-testid={`nav-${section.id}`}
-            >
-              {section.label}
-            </button>
-          ))}
+        <CardContent className="px-3 pb-3 pt-0">
+          <div className="space-y-0.5">
+            {FORM_SECTIONS.map((section) => (
+              <button
+                key={section.id}
+                ref={(el) => { navRefs.current[section.id] = el; }}
+                onClick={() => scrollToSection(section.id)}
+                className={`
+                  w-full text-left px-2 py-1.5 rounded text-xs transition-colors
+                  hover-elevate active-elevate-2
+                  ${activeSection === section.id 
+                    ? "bg-primary text-primary-foreground font-medium" 
+                    : "text-muted-foreground"
+                  }
+                `}
+                data-testid={`nav-${section.id}`}
+              >
+                {section.label}
+              </button>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -2447,7 +2446,7 @@ export default function RecruiterJobPostings() {
               </div>
 
               {/* Closing Date */}
-              <div className="mt-4">
+              <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="admin.closingDate"
@@ -2468,6 +2467,39 @@ export default function RecruiterJobPostings() {
                     </FormItem>
                   )}
                 />
+                
+                <FormItem>
+                  <FormLabel>Days Left</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="text" 
+                      value={(() => {
+                        const closingDate = form.watch("admin.closingDate");
+                        if (!closingDate) return "N/A";
+                        
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const closing = new Date(closingDate);
+                        closing.setHours(0, 0, 0, 0);
+                        
+                        const diffTime = closing.getTime() - today.getTime();
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        
+                        if (diffDays < 0) return "Closed";
+                        if (diffDays === 0) return "Today";
+                        if (diffDays === 1) return "1 day";
+                        return `${diffDays} days`;
+                      })()}
+                      readOnly
+                      disabled
+                      className="bg-muted"
+                      data-testid="text-days-left" 
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Calculated automatically from closing date
+                  </FormDescription>
+                </FormItem>
               </div>
 
               {/* External Job Boards */}
