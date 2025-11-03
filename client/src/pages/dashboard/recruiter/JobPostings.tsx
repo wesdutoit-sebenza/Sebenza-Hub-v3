@@ -256,6 +256,7 @@ export default function RecruiterJobPostings() {
         name: "",
         industry: "",
         recruitingAgency: "",
+        description: "",
         eeAa: false,
         contactEmail: "",
       },
@@ -786,6 +787,31 @@ export default function RecruiterJobPostings() {
                     </FormControl>
                     <FormDescription>
                       Start typing to search for an address. This will auto-fill city, province, and postal code.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </FormSection>
+
+            {/* Company Description */}
+            <FormSection title="Company Description" description="Describe the company to attract candidates">
+              <FormField
+                control={form.control}
+                name="companyDetails.description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company Description</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        {...field} 
+                        rows={6}
+                        className="resize-none"
+                        data-testid="textarea-company-description" 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Provide a brief overview of your company, its culture, mission, and what makes it a great place to work.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
