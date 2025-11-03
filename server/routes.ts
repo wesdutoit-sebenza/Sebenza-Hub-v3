@@ -427,25 +427,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verify user owns this job (either posted it or owns the organization)
-      if (existingJob.postedByUserId !== user.id && existingJob.organizationId !== user.id) {
+      // Allow null values for backward compatibility with old jobs
+      if (existingJob.postedByUserId && existingJob.postedByUserId !== user.id && 
+          existingJob.organizationId && existingJob.organizationId !== user.id) {
         return res.status(403).json({
           success: false,
           message: "You don't have permission to update this job.",
         });
       }
       
+      // Get recruiter profile to set organization_id if not set
+      let organizationId = existingJob.organizationId;
+      let postedByUserId = existingJob.postedByUserId;
+      
+      // If organizationId or postedByUserId are null (old jobs), set them now
+      if (!organizationId || !postedByUserId) {
+        const [recruiterProfile] = await db.select()
+          .from(recruiterProfiles)
+          .where(eq(recruiterProfiles.userId, user.id));
+        
+        if (recruiterProfile) {
+          organizationId = organizationId || recruiterProfile.userId;
+          postedByUserId = postedByUserId || user.id;
+        }
+      }
+      
       // Accept any updates without full validation for flexibility
       const validatedData = req.body;
       
+      // Prepare update data
+      const updateData: any = {
+        ...validatedData,
+        updatedAt: new Date()
+      };
+      
+      // Only set organizationId and postedByUserId if they have valid values
+      if (organizationId) {
+        updateData.organizationId = organizationId;
+      }
+      if (postedByUserId) {
+        updateData.postedByUserId = postedByUserId;
+      }
+      
       // Update in database with updatedAt timestamp
-      // Preserve organization_id and posted_by_user_id
       const [job] = await db.update(jobs)
-        .set({ 
-          ...validatedData,
-          organizationId: existingJob.organizationId, // Preserve
-          postedByUserId: existingJob.postedByUserId, // Preserve
-          updatedAt: new Date() 
-        })
+        .set(updateData)
         .where(eq(jobs.id, id))
         .returning();
 
