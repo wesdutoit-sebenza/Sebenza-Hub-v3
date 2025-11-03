@@ -237,13 +237,12 @@ export const jobCompensationSchema = z.object({
   displayRange: z.boolean().default(true),
   currency: z.string().default("ZAR"),
   payType: z.enum(["Annual", "Monthly", "Hourly", "Day Rate"]).default("Annual"),
-  min: z.number().nonnegative().optional(),
-  max: z.number().nonnegative().optional(),
-  ctc: z.boolean().default(true),
-  commission: z.boolean().default(false),
-  commissionNotes: z.string().optional(),
-  bonus: z.boolean().default(false),
-  bonusNotes: z.string().optional(),
+  min: z.number().nonnegative().optional(), // Basic Salary minimum
+  max: z.number().nonnegative().optional(), // Basic Salary maximum
+  commissionAvailable: z.string().optional(), // Commission details
+  performanceBonus: z.string().optional(), // Performance bonus details
+  medicalAidContribution: z.string().optional(), // Medical aid contribution details
+  pensionContribution: z.string().optional(), // Pension/Provident fund contribution details
 }).refine(
   (val) => {
     if (val.min == null && val.max == null) return true;

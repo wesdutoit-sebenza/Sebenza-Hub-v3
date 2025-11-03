@@ -249,9 +249,10 @@ export default function RecruiterJobPostings() {
         displayRange: true,
         currency: "ZAR",
         payType: "Annual",
-        ctc: true,
-        commission: false,
-        bonus: false,
+        commissionAvailable: "",
+        performanceBonus: "",
+        medicalAidContribution: "",
+        pensionContribution: "",
       },
       application: {
         method: "in-app",
@@ -1835,101 +1836,143 @@ export default function RecruiterJobPostings() {
                     </FormItem>
                   )}
                 />
-
-                <FormField
-                  control={form.control}
-                  name="compensation.min"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Minimum</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                          data-testid="input-salary-min"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="compensation.max"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Maximum</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          {...field}
-                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                          data-testid="input-salary-max"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
 
               {form.formState.errors.compensation && (
                 <p className="text-sm text-destructive">{form.formState.errors.compensation.message}</p>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                <FormField
-                  control={form.control}
-                  name="compensation.ctc"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="checkbox-ctc"
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">CTC (Cost to Company)</FormLabel>
-                    </FormItem>
-                  )}
-                />
+              {/* Cost to Company Section */}
+              <div className="mt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="h-px bg-border flex-1" />
+                  <h3 className="text-sm font-medium text-muted-foreground">Cost to Company</h3>
+                  <div className="h-px bg-border flex-1" />
+                </div>
 
-                <FormField
-                  control={form.control}
-                  name="compensation.commission"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="checkbox-commission"
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">Commission Available</FormLabel>
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="compensation.min"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Basic Salary - Minimum</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                            data-testid="input-salary-min"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <FormField
-                  control={form.control}
-                  name="compensation.bonus"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                          data-testid="checkbox-bonus"
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">Performance Bonus</FormLabel>
-                    </FormItem>
-                  )}
-                />
+                  <FormField
+                    control={form.control}
+                    name="compensation.max"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Basic Salary - Maximum</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                            data-testid="input-salary-max"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="compensation.commissionAvailable"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Commission Available</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="e.g., 10% on sales, uncapped"
+                            data-testid="input-commission-available"
+                          />
+                        </FormControl>
+                        <FormDescription className="text-xs">
+                          Describe commission structure if applicable
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="compensation.performanceBonus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Performance Bonus</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="e.g., Annual bonus up to 15% based on KPIs"
+                            data-testid="input-performance-bonus"
+                          />
+                        </FormControl>
+                        <FormDescription className="text-xs">
+                          Describe performance bonus structure
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="compensation.medicalAidContribution"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Medical Aid Contribution</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="e.g., 50% of medical aid premiums"
+                            data-testid="input-medical-aid"
+                          />
+                        </FormControl>
+                        <FormDescription className="text-xs">
+                          Company contribution to medical aid
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="compensation.pensionContribution"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pension/Provident Fund Contributions</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="e.g., 10% employer contribution"
+                            data-testid="input-pension-contribution"
+                          />
+                        </FormControl>
+                        <FormDescription className="text-xs">
+                          Company pension or provident fund contribution
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             </FormSection>
 
