@@ -573,7 +573,7 @@ export default function RecruiterJobPostings() {
                       <FormLabel>Recruiting Agency</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Agency name from profile" 
+ 
                           {...field} 
                           disabled 
                           data-testid="input-recruiting-agency" 
@@ -594,7 +594,7 @@ export default function RecruiterJobPostings() {
                     <FormItem>
                       <FormLabel>Company Name *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Your Company Name" {...field} data-testid="input-company-name" />
+                        <Input {...field} data-testid="input-company-name" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -610,7 +610,7 @@ export default function RecruiterJobPostings() {
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-company-industry">
-                            <SelectValue placeholder="Select company industry" />
+                            <SelectValue />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -655,7 +655,6 @@ export default function RecruiterJobPostings() {
                         <PopoverContent className="w-full p-0" align="start">
                           <Command>
                             <CommandInput
-                              placeholder="Search cities..."
                               value={citySearchQuery}
                               onValueChange={setCitySearchQuery}
                               data-testid="input-city-search"
@@ -710,7 +709,7 @@ export default function RecruiterJobPostings() {
                           {...field} 
                           readOnly 
                           disabled
-                          placeholder="Select a city to auto-fill"
+
                           className="bg-muted"
                           data-testid="input-province-readonly"
                         />
@@ -734,7 +733,7 @@ export default function RecruiterJobPostings() {
                           {...field} 
                           readOnly 
                           disabled
-                          placeholder="Select a city to auto-fill"
+
                           className="bg-muted"
                           data-testid="input-postal-code-readonly"
                         />
@@ -780,7 +779,6 @@ export default function RecruiterJobPostings() {
                             if (postalCode) form.setValue('core.location.postalCode', postalCode);
                           }
                         }}
-                        placeholder="Search for an address..."
                         data-testid="input-address-search"
                       />
                     </FormControl>
@@ -822,7 +820,6 @@ export default function RecruiterJobPostings() {
                         <PopoverContent className="w-full p-0" align="start">
                           <Command>
                             <CommandInput
-                              placeholder="Search job titles..."
                               value={jobTitleSearchQuery}
                               onValueChange={setJobTitleSearchQuery}
                               data-testid="input-job-title-search"
@@ -886,7 +883,7 @@ export default function RecruiterJobPostings() {
                     <FormItem>
                       <FormLabel>Department *</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Sales" {...field} data-testid="input-department" />
+                        <Input {...field} data-testid="input-department" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -904,7 +901,7 @@ export default function RecruiterJobPostings() {
                           <FormLabel>Custom Job Title *</FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="Enter custom job title" 
+ 
                               value={field.value === "Other" ? "" : field.value}
                               onChange={field.onChange}
                               data-testid="input-custom-job-title" 
@@ -932,7 +929,6 @@ export default function RecruiterJobPostings() {
                           {...field} 
                           readOnly 
                           disabled
-                          placeholder="Select a job title to auto-fill"
                           className="bg-muted"
                           data-testid="input-job-industry-readonly"
                         />
@@ -1027,7 +1023,6 @@ export default function RecruiterJobPostings() {
                             type="number"
                             min={0}
                             max={100}
-                            placeholder="e.g., 40"
                             {...field}
                             onChange={(e) => field.onChange(parseInt(e.target.value))}
                             data-testid="input-hybrid-percent"
@@ -1051,7 +1046,6 @@ export default function RecruiterJobPostings() {
                     {respFields.map((field, idx) => (
                       <div key={field.id} className="flex gap-2">
                         <Input
-                          placeholder={`Responsibility ${idx + 1}`}
                           {...form.register(`core.responsibilities.${idx}`)}
                           data-testid={`input-responsibility-${idx}`}
                         />
@@ -1095,7 +1089,6 @@ export default function RecruiterJobPostings() {
                         value={field.value || []}
                         onChange={field.onChange}
                         maxSkills={20}
-                        placeholder="Select required skills..."
                       />
                     )}
                   />
@@ -1167,7 +1160,7 @@ export default function RecruiterJobPostings() {
                     <FormItem>
                       <FormLabel>Minimum Qualifications *</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., Matric, Diploma" {...field} data-testid="input-qualifications" />
+                        <Input {...field} data-testid="input-qualifications" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1209,7 +1202,6 @@ export default function RecruiterJobPostings() {
                         <FormLabel>Job Summary *</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="2–4 lines summarizing the role and what makes it exciting"
                             className="min-h-[100px]"
                             {...field}
                             data-testid="textarea-summary"
@@ -1287,7 +1279,6 @@ export default function RecruiterJobPostings() {
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder="e.g., 300000"
                           {...field}
                           onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                           data-testid="input-salary-min"
@@ -1307,7 +1298,6 @@ export default function RecruiterJobPostings() {
                       <FormControl>
                         <Input
                           type="number"
-                          placeholder="e.g., 420000"
                           {...field}
                           onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                           data-testid="input-salary-max"
@@ -1411,7 +1401,6 @@ export default function RecruiterJobPostings() {
                         <FormLabel>External URL *</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="https://company.com/careers/apply"
                             {...field}
                             data-testid="input-external-url"
                           />
@@ -1443,7 +1432,7 @@ export default function RecruiterJobPostings() {
                     <FormItem>
                       <FormLabel>Contact Email *</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="hiring@company.com" {...field} data-testid="input-contact-email" />
+                        <Input type="email" {...field} data-testid="input-contact-email" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1459,7 +1448,7 @@ export default function RecruiterJobPostings() {
                       <FormControl>
                         <Input 
                           type="tel" 
-                          placeholder="+27 82 123 4567" 
+ 
                           {...field} 
                           data-testid="input-whatsapp-number" 
                         />
@@ -1636,7 +1625,7 @@ export default function RecruiterJobPostings() {
                     <FormItem>
                       <FormLabel>Job Owner *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Hiring manager name" {...field} data-testid="input-owner" />
+                        <Input {...field} data-testid="input-owner" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1774,7 +1763,6 @@ export default function RecruiterJobPostings() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search jobs..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
