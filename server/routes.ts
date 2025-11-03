@@ -569,6 +569,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const convertDates = (obj: any): any => {
         if (obj === null || obj === undefined) return obj;
         
+        // Check if it's already a Date object - don't convert it
+        if (obj instanceof Date) {
+          return obj;
+        }
+        
         if (typeof obj === 'string') {
           // Check if it's a valid date string (ISO format with time OR date-only format)
           if (/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?/.test(obj)) {
