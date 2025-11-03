@@ -1565,3 +1565,108 @@ export const insertTestResponseSchema = createInsertSchema(testResponses).omit({
 
 export type InsertTestResponse = z.infer<typeof insertTestResponseSchema>;
 export type TestResponse = typeof testResponses.$inferSelect;
+
+// Job Embeddings - for semantic search and auto-matching
+// Stores embeddings as JSON array for compatibility (similar to candidateEmbeddings)
+export const jobEmbeddings = pgTable("job_embeddings", {
+  jobId: varchar("job_id").primaryKey().notNull(),
+  embedding: text("embedding").notNull(), // Store as JSON array for compatibility
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertJobEmbeddingSchema = createInsertSchema(jobEmbeddings).omit({
+  updatedAt: true,
+});
+
+export type InsertJobEmbedding = z.infer<typeof insertJobEmbeddingSchema>;
+export type JobEmbedding = typeof jobEmbeddings.$inferSelect;
+
+// Auto Search Preferences - candidate's saved job search criteria
+export const autoSearchPreferences = pgTable("auto_search_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().unique(), // One preference set per user
+  
+  // Job title preferences
+  jobTitles: text("job_titles").array().default(sql`'{}'::text[]`), // Multiple desired titles
+  
+  // Location preferences
+  locationCity: text("location_city"),
+  locationProvince: text("location_province"),
+  latitude: text("latitude"), // Store as text for precision
+  longitude: text("longitude"), // Store as text for precision
+  radiusKm: integer("radius_km").default(50), // Search radius in kilometers
+  enforceRadius: integer("enforce_radius").default(0), // 0 = soft filter, 1 = hard filter
+  
+  // Employment preferences
+  employmentTypes: text("employment_types").array().default(sql`'{}'::text[]`), // ['permanent', 'contract', etc]
+  workArrangements: text("work_arrangements").array().default(sql`'{}'::text[]`), // ['onsite', 'hybrid', 'remote']
+  
+  // Seniority preferences
+  seniorityTarget: text("seniority_target"), // 'entry', 'intermediate', 'senior', 'executive', etc
+  
+  // Salary preferences
+  salaryMin: integer("salary_min"), // Minimum expected salary (ZAR/month)
+  salaryMax: integer("salary_max"), // Maximum expected salary (ZAR/month)
+  enforceSalary: integer("enforce_salary").default(0), // 0 = soft filter, 1 = hard filter
+  
+  // Search preferences
+  topK: integer("top_k").default(20), // Number of results to return
+  notifyOnNewMatches: integer("notify_on_new_matches").default(0), // 0 = no, 1 = yes
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertAutoSearchPreferencesSchema = createInsertSchema(autoSearchPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertAutoSearchPreferences = z.infer<typeof insertAutoSearchPreferencesSchema>;
+export type AutoSearchPreferences = typeof autoSearchPreferences.$inferSelect;
+
+// Auto Search Results - cached matching results
+export const autoSearchResults = pgTable("auto_search_results", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  jobId: varchar("job_id").notNull(),
+  
+  // Scores
+  heuristicScore: integer("heuristic_score").notNull(), // 0-100
+  llmScore: integer("llm_score"), // 0-100, null if not yet re-ranked
+  finalScore: integer("final_score").notNull(), // 0-100, weighted combination
+  
+  // Match details
+  vecSimilarity: text("vec_similarity"), // Store as text for precision (0.0-1.0)
+  skillsJaccard: text("skills_jaccard"), // Store as text for precision (0.0-1.0)
+  titleSimilarity: text("title_similarity"), // Store as text for precision (0.0-1.0)
+  distanceKm: text("distance_km"), // Store as text for precision
+  salaryAlignment: text("salary_alignment"), // Store as text for precision (0.0-1.0)
+  seniorityAlignment: text("seniority_alignment"), // Store as text for precision (0.0-1.0)
+  
+  // LLM-generated insights
+  explanation: text("explanation"), // Concise explanation of why this job fits (<= 320 chars)
+  risks: text("risks"), // Potential concerns or gaps (<= 200 chars)
+  highlightedSkills: text("highlighted_skills").array().default(sql`'{}'::text[]`), // Key matching skills
+  
+  // User interaction
+  viewed: integer("viewed").default(0), // 0 = not viewed, 1 = viewed
+  applied: integer("applied").default(0), // 0 = not applied, 1 = applied
+  feedback: text("feedback"), // 'positive', 'negative', null
+  
+  generatedAt: timestamp("generated_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_auto_search_user").on(table.userId),
+  index("idx_auto_search_job").on(table.jobId),
+  index("idx_auto_search_score").on(table.finalScore),
+  uniqueIndex("idx_auto_search_unique").on(table.userId, table.jobId, table.generatedAt),
+]);
+
+export const insertAutoSearchResultSchema = createInsertSchema(autoSearchResults).omit({
+  id: true,
+  generatedAt: true,
+});
+
+export type InsertAutoSearchResult = z.infer<typeof insertAutoSearchResultSchema>;
+export type AutoSearchResult = typeof autoSearchResults.$inferSelect;

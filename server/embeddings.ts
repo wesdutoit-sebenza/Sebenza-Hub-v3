@@ -8,13 +8,25 @@ import {
   projects,
   skills,
   candidateSkills,
-  candidateEmbeddings 
+  candidateEmbeddings,
+  jobs,
+  jobEmbeddings
 } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY 
-});
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("OPENAI_API_KEY environment variable is not set");
+    }
+    openai = new OpenAI({ 
+      apiKey: process.env.OPENAI_API_KEY 
+    });
+  }
+  return openai;
+}
 
 /**
  * Generate and store embedding for a candidate using OpenAI's embedding model
@@ -150,7 +162,7 @@ export async function indexCandidate(candidateId: string): Promise<boolean> {
     console.log(`[Embeddings] Generating embedding for ${text.length} characters of text`);
 
     // Generate embedding using OpenAI
-    const embeddingResponse = await openai.embeddings.create({
+    const embeddingResponse = await getOpenAIClient().embeddings.create({
       model: "text-embedding-3-small",
       input: text
     });
@@ -214,4 +226,227 @@ export async function batchIndexCandidates(
 
   console.log(`[Embeddings] Batch complete: ${successful} successful, ${failed} failed`);
   return { successful, failed };
+}
+
+/**
+ * Generate embedding from raw text using OpenAI
+ * Generic helper function for embedding generation
+ * 
+ * @param text - Text content to embed
+ * @returns Promise<number[]> - Embedding vector
+ */
+export async function generateEmbedding(text: string): Promise<number[]> {
+  if (!text || !text.trim()) {
+    throw new Error("Cannot generate embedding for empty text");
+  }
+
+  const embeddingResponse = await getOpenAIClient().embeddings.create({
+    model: "text-embedding-3-small",
+    input: text
+  });
+
+  return embeddingResponse.data[0].embedding;
+}
+
+/**
+ * Generate and store embedding for a job posting
+ * Combines title, description, responsibilities, and skills
+ * 
+ * @param jobId - UUID of the job to index
+ * @returns Promise<boolean> - Returns true if successful, false otherwise
+ */
+export async function indexJob(jobId: string): Promise<boolean> {
+  try {
+    console.log(`[Embeddings] Generating embedding for job: ${jobId}`);
+
+    // Fetch job data
+    const jobData = await db.query.jobs.findFirst({
+      where: eq(jobs.id, jobId),
+    });
+
+    if (!jobData) {
+      console.error(`[Embeddings] Job not found: ${jobId}`);
+      return false;
+    }
+
+    // Build text representation of job for embedding
+    const textParts: string[] = [];
+
+    // Add title
+    if (jobData.title) {
+      textParts.push(jobData.title);
+    }
+
+    // Add company
+    if (jobData.company) {
+      textParts.push(`Company: ${jobData.company}`);
+    }
+
+    // Add location
+    if (jobData.location) {
+      textParts.push(`Location: ${jobData.location}`);
+    }
+
+    // Add seniority from core JSONB
+    if (jobData.core && typeof jobData.core === 'object') {
+      const core = jobData.core as any;
+      if (core.seniority) {
+        textParts.push(`Seniority: ${core.seniority}`);
+      }
+      if (core.summary) {
+        textParts.push(core.summary);
+      }
+      if (core.department) {
+        textParts.push(`Department: ${core.department}`);
+      }
+      if (core.workArrangement) {
+        textParts.push(`Work Arrangement: ${core.workArrangement}`);
+      }
+    }
+
+    // Add employment type
+    if (jobData.employmentType) {
+      textParts.push(`Employment Type: ${jobData.employmentType}`);
+    }
+
+    // Add industry
+    if (jobData.industry) {
+      textParts.push(`Industry: ${jobData.industry}`);
+    }
+
+    // Add description
+    if (jobData.description) {
+      textParts.push(jobData.description);
+    }
+
+    // Add requirements
+    if (jobData.requirements) {
+      textParts.push(`Requirements: ${jobData.requirements}`);
+    }
+
+    // Add role details from JSONB
+    if (jobData.roleDetails && typeof jobData.roleDetails === 'object') {
+      const roleDetails = jobData.roleDetails as any;
+      
+      if (roleDetails.keyResponsibilities && Array.isArray(roleDetails.keyResponsibilities)) {
+        textParts.push(`Responsibilities: ${roleDetails.keyResponsibilities.join("; ")}`);
+      }
+      
+      if (roleDetails.requiredSkills && Array.isArray(roleDetails.requiredSkills)) {
+        textParts.push(`Required Skills: ${roleDetails.requiredSkills.join(", ")}`);
+      }
+      
+      if (roleDetails.niceToHaveSkills && Array.isArray(roleDetails.niceToHaveSkills)) {
+        textParts.push(`Nice to Have: ${roleDetails.niceToHaveSkills.join(", ")}`);
+      }
+
+      if (roleDetails.toolsTech && Array.isArray(roleDetails.toolsTech)) {
+        textParts.push(`Technologies: ${roleDetails.toolsTech.join(", ")}`);
+      }
+    }
+
+    // Combine all text
+    const text = textParts.join("\n");
+
+    if (!text.trim()) {
+      console.warn(`[Embeddings] No text content for job ${jobId}, skipping embedding`);
+      return false;
+    }
+
+    console.log(`[Embeddings] Generating embedding for ${text.length} characters of text`);
+
+    // Generate embedding using OpenAI
+    const embedding = await generateEmbedding(text);
+
+    // Store embedding as JSON string (for compatibility with text column)
+    const embeddingJson = JSON.stringify(embedding);
+
+    // Insert or update embedding
+    await db
+      .insert(jobEmbeddings)
+      .values({
+        jobId,
+        embedding: embeddingJson
+      })
+      .onConflictDoUpdate({
+        target: jobEmbeddings.jobId,
+        set: {
+          embedding: embeddingJson,
+          updatedAt: new Date()
+        }
+      });
+
+    console.log(`[Embeddings] Successfully generated and stored embedding for job: ${jobId}`);
+    return true;
+
+  } catch (error) {
+    console.error(`[Embeddings] Error indexing job ${jobId}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Batch index multiple jobs
+ * @param jobIds - Array of job UUIDs to index
+ * @returns Promise<{ successful: number, failed: number }>
+ */
+export async function batchIndexJobs(
+  jobIds: string[]
+): Promise<{ successful: number; failed: number }> {
+  console.log(`[Embeddings] Batch indexing ${jobIds.length} jobs`);
+  
+  let successful = 0;
+  let failed = 0;
+
+  for (const jobId of jobIds) {
+    const result = await indexJob(jobId);
+    if (result) {
+      successful++;
+    } else {
+      failed++;
+    }
+  }
+
+  console.log(`[Embeddings] Batch complete: ${successful} successful, ${failed} failed`);
+  return { successful, failed };
+}
+
+/**
+ * Get embedding for a candidate
+ * @param candidateId - UUID of the candidate
+ * @returns Promise<number[] | null> - Embedding vector or null if not found
+ */
+export async function getCandidateEmbedding(candidateId: string): Promise<number[] | null> {
+  try {
+    const result = await db.query.candidateEmbeddings.findFirst({
+      where: eq(candidateEmbeddings.candidateId, candidateId),
+    });
+
+    if (!result) return null;
+
+    return JSON.parse(result.embedding);
+  } catch (error) {
+    console.error(`[Embeddings] Error retrieving candidate embedding ${candidateId}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Get embedding for a job
+ * @param jobId - UUID of the job
+ * @returns Promise<number[] | null> - Embedding vector or null if not found
+ */
+export async function getJobEmbedding(jobId: string): Promise<number[] | null> {
+  try {
+    const result = await db.query.jobEmbeddings.findFirst({
+      where: eq(jobEmbeddings.jobId, jobId),
+    });
+
+    if (!result) return null;
+
+    return JSON.parse(result.embedding);
+  } catch (error) {
+    console.error(`[Embeddings] Error retrieving job embedding ${jobId}:`, error);
+    return null;
+  }
 }

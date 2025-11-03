@@ -3,8 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, insertIndividualPreferencesSchema, insertIndividualNotificationSettingsSchema, type User } from "@shared/schema";
 import { db } from "./db";
-import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, testAttempts, testResponses, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema } from "@shared/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, testAttempts, testResponses, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema, autoSearchPreferences, autoSearchResults } from "@shared/schema";
+import { eq, and, desc, sql, inArray, or } from "drizzle-orm";
 import { authenticateSession, requireRole, type AuthRequest } from "./auth-middleware";
 import { screeningQueue, isQueueAvailable } from "./queue";
 import { z } from "zod";
@@ -6086,6 +6086,219 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   
   // JWT token authentication routes (for mobile app)
   app.use("/api/auth/token", tokenAuthRoutes);
+
+  // Auto Search endpoints
+  const { matchJobs } = await import("./auto-search/matching");
+  const { rerankMatches } = await import("./auto-search/reranker");
+  
+  // POST /api/auto-search - Run job matching for a candidate
+  app.post("/api/auto-search", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const preferences = req.body;
+
+      console.log(`[Auto Search] Running match for user ${user.id}`);
+
+      // Add user ID to preferences
+      const searchPrefs = { ...preferences, userId: user.id };
+
+      // Step 1: Run heuristic matching
+      const matches = await matchJobs(searchPrefs);
+
+      if (matches.length === 0) {
+        return res.json({
+          success: true,
+          message: "No matching jobs found",
+          results: [],
+        });
+      }
+
+      // Step 2: Get candidate profile for LLM re-ranking
+      const candidateProfile = await db.query.candidateProfiles.findFirst({
+        where: eq(candidateProfiles.userId, user.id),
+      });
+
+      if (!candidateProfile) {
+        return res.status(404).json({
+          success: false,
+          message: "Candidate profile not found",
+        });
+      }
+
+      // Step 3: LLM re-ranking
+      const rerankedMatches = await rerankMatches(
+        matches,
+        candidateProfile,
+        preferences,
+        preferences.topK || 10
+      );
+
+      // Step 4: Save results to cache
+      const resultInserts = rerankedMatches.map((match: any) => ({
+        userId: user.id,
+        jobId: match.jobId,
+        heuristicScore: match.scores.heuristic,
+        llmScore: match.scores.llm,
+        finalScore: match.scores.final,
+        vecSimilarity: match.scores.breakdown.vecSimilarity.toString(),
+        skillsJaccard: match.scores.breakdown.skillsJaccard.toString(),
+        titleSimilarity: match.scores.breakdown.titleSimilarity.toString(),
+        distanceKm: match.scores.breakdown.distanceKm?.toString(),
+        salaryAlignment: match.scores.breakdown.salaryAlignment.toString(),
+        seniorityAlignment: match.scores.breakdown.seniorityAlignment.toString(),
+        explanation: match.explanation,
+        risks: match.risks,
+        highlightedSkills: match.highlightedSkills,
+      }));
+
+      if (resultInserts.length > 0) {
+        await db.insert(autoSearchResults).values(resultInserts);
+      }
+
+      console.log(`[Auto Search] Returning ${rerankedMatches.length} matches for user ${user.id}`);
+
+      res.json({
+        success: true,
+        results: rerankedMatches.map((match: any) => ({
+          jobId: match.jobId,
+          company: match.job.company,
+          title: match.job.title,
+          location: match.job.location,
+          salary: {
+            min: match.job.salaryMin,
+            max: match.job.salaryMax,
+          },
+          scores: match.scores,
+          explanation: match.explanation,
+          risks: match.risks,
+          highlightedSkills: match.highlightedSkills,
+        })),
+      });
+    } catch (error: any) {
+      console.error("[Auto Search] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Error running auto search",
+      });
+    }
+  });
+
+  // GET /api/auto-search/preferences - Get user's saved preferences
+  app.get("/api/auto-search/preferences", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+
+      const preferences = await db.query.autoSearchPreferences.findFirst({
+        where: eq(autoSearchPreferences.userId, user.id),
+      });
+
+      res.json({
+        success: true,
+        preferences: preferences || null,
+      });
+    } catch (error: any) {
+      console.error("[Auto Search] Error fetching preferences:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching preferences",
+      });
+    }
+  });
+
+  // PUT /api/auto-search/preferences - Save user's preferences
+  app.put("/api/auto-search/preferences", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const preferencesData = req.body;
+
+      // Insert or update preferences
+      const [savedPrefs] = await db
+        .insert(autoSearchPreferences)
+        .values({
+          userId: user.id,
+          ...preferencesData,
+        })
+        .onConflictDoUpdate({
+          target: autoSearchPreferences.userId,
+          set: {
+            ...preferencesData,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+
+      res.json({
+        success: true,
+        message: "Preferences saved successfully",
+        preferences: savedPrefs,
+      });
+    } catch (error: any) {
+      console.error("[Auto Search] Error saving preferences:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error saving preferences",
+      });
+    }
+  });
+
+  // GET /api/auto-search/results - Get cached search results
+  app.get("/api/auto-search/results", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+
+      // Get latest results
+      const results = await db
+        .select()
+        .from(autoSearchResults)
+        .where(eq(autoSearchResults.userId, user.id))
+        .orderBy(sql`${autoSearchResults.finalScore} DESC`)
+        .limit(50);
+
+      // Get full job details for each result
+      const jobIds = results.map((r: any) => r.jobId);
+      const jobsData = await db
+        .select()
+        .from(jobs)
+        .where(inArray(jobs.id, jobIds));
+
+      // Combine results with job data
+      const enrichedResults = results.map((result: any) => {
+        const job = jobsData.find((j: any) => j.id === result.jobId);
+        return {
+          jobId: result.jobId,
+          company: job?.company,
+          title: job?.title,
+          location: job?.location,
+          salary: {
+            min: job?.salaryMin,
+            max: job?.salaryMax,
+          },
+          scores: {
+            heuristic: result.heuristicScore,
+            llm: result.llmScore,
+            final: result.finalScore,
+          },
+          explanation: result.explanation,
+          risks: result.risks,
+          highlightedSkills: result.highlightedSkills,
+          viewed: result.viewed,
+          applied: result.applied,
+          generatedAt: result.generatedAt,
+        };
+      });
+
+      res.json({
+        success: true,
+        results: enrichedResults,
+      });
+    } catch (error: any) {
+      console.error("[Auto Search] Error fetching results:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching results",
+      });
+    }
+  });
 
   const httpServer = createServer(app);
 
