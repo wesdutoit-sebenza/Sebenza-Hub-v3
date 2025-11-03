@@ -29,7 +29,7 @@ export default function PageHeader({ title, description, breadcrumb, gradientVar
           {title}
         </h1>
         {description && (
-          <p className="text-lg text-slate max-w-2xl" data-testid="text-page-description">
+          <p className="text-lg max-w-2xl text-[#ffffff]" data-testid="text-page-description">
             {description}
           </p>
         )}
