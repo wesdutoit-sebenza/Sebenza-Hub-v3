@@ -405,7 +405,7 @@ export default function RecruiterJobPostings() {
         salaryMin: data.compensation?.min || 0,
         salaryMax: data.compensation?.max || 0,
         description: data.core?.summary || "",
-        requirements: data.core?.minQualifications || "",
+        requirements: data.core?.qualifications?.join(", ") || "",
         whatsappContact: data.application?.whatsappNumber || "",
         employmentType: data.employmentType || "Permanent",
         industry: data.jobIndustry || "Other",
@@ -448,7 +448,7 @@ export default function RecruiterJobPostings() {
         salaryMin: data.compensation?.min || 0,
         salaryMax: data.compensation?.max || 0,
         description: data.core?.summary || "",
-        requirements: data.core?.minQualifications || "",
+        requirements: data.core?.qualifications?.join(", ") || "",
         whatsappContact: data.application?.whatsappNumber || "",
         employmentType: data.employmentType || "Permanent",
         industry: data.jobIndustry || "Other", // Map jobIndustry to legacy industry field
@@ -1336,43 +1336,6 @@ export default function RecruiterJobPostings() {
                     </div>
                   )}
                 </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                <FormField
-                  control={form.control}
-                  name="core.minQualifications"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Minimum Qualifications *</FormLabel>
-                      <FormControl>
-                        <Input {...field} data-testid="input-qualifications" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="core.yearsExperience"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Years of Experience *</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={0}
-                          max={50}
-                          {...field}
-                          onChange={(e) => field.onChange(parseInt(e.target.value))}
-                          data-testid="input-years-experience"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </div>
             </FormSection>
 
