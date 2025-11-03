@@ -1324,6 +1324,33 @@ export default function RecruiterJobPostings() {
               </div>
             </FormSection>
 
+            {/* Qualifications & Experience Required */}
+            <FormSection title="Qualifications & Experience Required" description="Specify the required qualifications and experience for this role">
+              <div className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="core.minQualifications"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Minimum Qualifications *</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          className="min-h-[120px]"
+                          placeholder="e.g., Bachelor's degree in Computer Science or related field, 3+ years of experience in software development..."
+                          {...field}
+                          data-testid="textarea-qualifications"
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        List the minimum education, certifications, and experience required for this position
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </FormSection>
+
             {/* Compensation */}
             <FormSection title="Compensation & Perks" description="Salary range and additional benefits">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
