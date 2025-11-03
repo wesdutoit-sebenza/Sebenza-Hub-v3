@@ -253,6 +253,7 @@ export default function RecruiterJobPostings() {
         method: "in-app",
         closingDate: todayISO(),
         whatsappNumber: "",
+        competencyTestReference: "",
       },
       companyDetails: {
         name: "",
