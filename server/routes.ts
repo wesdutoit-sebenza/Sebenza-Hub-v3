@@ -490,6 +490,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete job
+  app.delete("/api/jobs/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Get job before deleting to log it
+      const [existingJob] = await db.select().from(jobs).where(eq(jobs.id, id));
+      
+      if (!existingJob) {
+        return res.status(404).json({
+          success: false,
+          message: "Job not found.",
+        });
+      }
+      
+      // Delete the job
+      await db.delete(jobs).where(eq(jobs.id, id));
+
+      console.log(`Job deleted: ${existingJob.title} at ${existingJob.company}`);
+      
+      res.json({
+        success: true,
+        message: "Job deleted successfully!",
+      });
+    } catch (error: any) {
+      console.error("Job delete error:", error);
+      res.status(400).json({
+        success: false,
+        message: "Error deleting job.",
+      });
+    }
+  });
+
   // Job Applications API - Track which jobs users have applied to
   
   // Create a new job application

@@ -171,6 +171,7 @@ export default function RecruiterJobPostings() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [citySearchQuery, setCitySearchQuery] = useState("");
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
   const [jobTitleSearchQuery, setJobTitleSearchQuery] = useState("");
@@ -336,7 +337,7 @@ export default function RecruiterJobPostings() {
   }, [skillSuggestionsData, selectedSkills]);
 
   const updateJobStatusMutation = useMutation({
-    mutationFn: async ({ jobId, status }: { jobId: number; status: string }) => {
+    mutationFn: async ({ jobId, status }: { jobId: string; status: string }) => {
       return apiRequest("PATCH", `/api/jobs/${jobId}/status`, { status });
     },
     onSuccess: () => {
@@ -350,6 +351,63 @@ export default function RecruiterJobPostings() {
       toast({
         title: "Error",
         description: error.message || "Failed to update job status.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteJobMutation = useMutation({
+    mutationFn: async (jobId: string) => {
+      return apiRequest("DELETE", `/api/jobs/${jobId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
+      toast({
+        title: "Success!",
+        description: "Job deleted successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete job.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateJobMutation = useMutation({
+    mutationFn: async ({ jobId, data }: { jobId: string; data: FormData }) => {
+      // Transform data to include legacy fields for backward compatibility
+      const locationParts = [data.core?.location?.city, data.core?.location?.province].filter(Boolean);
+      const transformedData = {
+        ...data,
+        company: data.companyDetails?.name || "",
+        location: locationParts.length > 0 ? locationParts.join(", ") : undefined,
+        salaryMin: data.compensation?.min,
+        salaryMax: data.compensation?.max,
+        description: data.core?.summary,
+        requirements: data.core?.minQualifications,
+        employmentType: data.employmentType,
+        industry: data.jobIndustry || "Other",
+      };
+      
+      return apiRequest("PUT", `/api/jobs/${jobId}`, transformedData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
+      toast({
+        title: "Success!",
+        description: "Job updated successfully.",
+      });
+      form.reset();
+      setShowForm(false);
+      setEditingJobId(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update job.",
         variant: "destructive",
       });
     },
@@ -391,13 +449,32 @@ export default function RecruiterJobPostings() {
     },
   });
 
+  const handleEditJob = (job: Job) => {
+    // Load job data into form
+    setEditingJobId(job.id);
+    form.reset(job as any);
+    setShowForm(true);
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteJob = (jobId: string, jobTitle: string) => {
+    if (confirm(`Are you sure you want to delete "${jobTitle}"? This action cannot be undone.`)) {
+      deleteJobMutation.mutate(jobId);
+    }
+  };
+
   const onSubmit = (data: FormData) => {
     console.log("Form submitted with data:", data);
     
     // If status is Draft, skip strict validation
     if (data.admin?.status === "Draft") {
       console.log("Saving as draft - skipping strict validation");
-      createJobMutation.mutate(data);
+      if (editingJobId) {
+        updateJobMutation.mutate({ jobId: editingJobId, data });
+      } else {
+        createJobMutation.mutate(data);
+      }
       return;
     }
     
@@ -422,7 +499,11 @@ export default function RecruiterJobPostings() {
     }
     
     // Validation passed, submit the form
-    createJobMutation.mutate(data);
+    if (editingJobId) {
+      updateJobMutation.mutate({ jobId: editingJobId, data });
+    } else {
+      createJobMutation.mutate(data);
+    }
   };
 
   const onInvalid = (errors: any) => {
@@ -443,10 +524,20 @@ export default function RecruiterJobPostings() {
     return (
       <div className="max-w-5xl mx-auto p-6">
         <div className="mb-6">
-          <Button variant="ghost" onClick={() => setShowForm(false)} data-testid="button-cancel">
+          <Button 
+            variant="ghost" 
+            onClick={() => {
+              setShowForm(false);
+              setEditingJobId(null);
+              form.reset();
+            }} 
+            data-testid="button-cancel"
+          >
             ← Back to Jobs
           </Button>
-          <h1 className="text-3xl font-bold mt-4 mb-2">Create Job Posting</h1>
+          <h1 className="text-3xl font-bold mt-4 mb-2">
+            {editingJobId ? "Edit Job Posting" : "Create Job Posting"}
+          </h1>
           <p className="text-muted-foreground">Complete job details for comprehensive candidate matching</p>
         </div>
 
@@ -1820,6 +1911,7 @@ export default function RecruiterJobPostings() {
                   <Button
                     size="sm"
                     variant="ghost"
+                    onClick={() => handleEditJob(job)}
                     data-testid={`button-edit-${job.id}`}
                   >
                     <Edit className="mr-1 h-3 w-3" />
@@ -1829,6 +1921,8 @@ export default function RecruiterJobPostings() {
                     size="sm"
                     variant="ghost"
                     className="text-destructive hover:text-destructive"
+                    onClick={() => handleDeleteJob(job.id, job.title)}
+                    disabled={deleteJobMutation.isPending}
                     data-testid={`button-delete-${job.id}`}
                   >
                     <Trash2 className="mr-1 h-3 w-3" />
