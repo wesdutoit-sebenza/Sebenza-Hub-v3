@@ -128,7 +128,6 @@ export default function Individuals() {
         description="Stop wasting time on mystery jobs. See transparent salaries, apply via WhatsApp, and prove your skills with quick assessments."
         breadcrumb="For Individuals"
       />
-
       <Section>
         <h2 className="text-3xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-section-title">
           How it works
@@ -143,7 +142,7 @@ export default function Individuals() {
                 {step.number}
               </div>
               <h3 className="font-semibold text-lg mb-2 text-white-brand" data-testid="text-step-title">{step.title}</h3>
-              <p className="text-sm text-slate" data-testid="text-step-description">
+              <p className="text-sm text-[#ffffff]" data-testid="text-step-description">
                 {step.description}
               </p>
             </div>
@@ -268,19 +267,16 @@ export default function Individuals() {
           )}
         </div>
       </Section>
-
       {showResumeUpload && (
         <Section>
           <ResumeUpload onSuccess={() => setShowResumeUpload(false)} />
         </Section>
       )}
-
       {showCVBuilder && (
         <Section>
           <CVBuilder onComplete={() => setShowCVBuilder(false)} />
         </Section>
       )}
-
       {/* Interview Coach Section */}
       {!showCVBuilder && !showResumeUpload && (
         <Section className="bg-graphite">
@@ -351,7 +347,6 @@ export default function Individuals() {
           </div>
         </Section>
       )}
-
       {!showCVBuilder && !showResumeUpload && (<>
         <Section className="bg-graphite" id="jobs">
         <div className="max-w-6xl mx-auto">
