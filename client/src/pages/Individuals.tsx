@@ -287,7 +287,7 @@ export default function Individuals() {
                 AI Interview Coach
               </h2>
             </div>
-            <p className="text-slate max-w-2xl mx-auto mb-6">
+            <p className="max-w-2xl mx-auto mb-6 text-[#ffffff]">
               Practice for your next interview with Jabu, our AI coach. Get personalized questions, 
               real-time feedback, and improve your interview skills.
             </p>
