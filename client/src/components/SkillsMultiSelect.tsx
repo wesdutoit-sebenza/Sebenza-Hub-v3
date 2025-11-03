@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Check } from "lucide-react";
+import { Check, ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,6 +69,16 @@ export function SkillsMultiSelect({
 
   const handleRemoveSkill = (skill: string) => {
     onChange(value.filter(s => s !== skill));
+  };
+
+  const handleMoveSkill = (fromIndex: number, toIndex: number) => {
+    if (toIndex < 0 || toIndex >= value.length) return;
+    
+    const newValue = [...value];
+    const [movedSkill] = newValue.splice(fromIndex, 1);
+    newValue.splice(toIndex, 0, movedSkill);
+    
+    onChange(newValue);
   };
 
   return (
@@ -146,26 +156,56 @@ export function SkillsMultiSelect({
         </PopoverContent>
       </Popover>
 
-      {/* Display selected skills as badges */}
+      {/* Display selected skills as badges with sorting */}
       {value.length > 0 && (
-        <div className="flex flex-wrap gap-2" data-testid="selected-skills-container">
-          {value.map((skill) => (
-            <Badge
-              key={skill}
-              variant="secondary"
-              className="gap-1"
-              data-testid={`badge-skill-${skill.toLowerCase().replace(/\s+/g, '-')}`}
-            >
-              {skill}
-              <button
-                type="button"
-                className="ml-1 hover:text-destructive"
-                onClick={() => handleRemoveSkill(skill)}
-                data-testid={`button-remove-skill-${skill.toLowerCase().replace(/\s+/g, '-')}`}
+        <div className="space-y-2" data-testid="selected-skills-container">
+          {value.map((skill, idx) => (
+            <div key={skill} className="flex gap-2 items-center">
+              <Badge
+                variant="secondary"
+                className="flex-1"
+                data-testid={`badge-skill-${skill.toLowerCase().replace(/\s+/g, '-')}`}
               >
-                ×
-              </button>
-            </Badge>
+                {skill}
+              </Badge>
+              <div className="flex gap-1">
+                {/* Move Up Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleMoveSkill(idx, idx - 1)}
+                  disabled={idx === 0}
+                  aria-label="Move skill up"
+                  data-testid={`button-move-up-skill-${idx}`}
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </Button>
+                {/* Move Down Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleMoveSkill(idx, idx + 1)}
+                  disabled={idx === value.length - 1}
+                  aria-label="Move skill down"
+                  data-testid={`button-move-down-skill-${idx}`}
+                >
+                  <ArrowDown className="h-4 w-4" />
+                </Button>
+                {/* Remove Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleRemoveSkill(skill)}
+                  aria-label="Remove skill"
+                  data-testid={`button-remove-skill-${skill.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  ×
+                </Button>
+              </div>
+            </div>
           ))}
         </div>
       )}

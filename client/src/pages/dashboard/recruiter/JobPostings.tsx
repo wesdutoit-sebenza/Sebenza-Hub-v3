@@ -296,12 +296,14 @@ export default function RecruiterJobPostings() {
     fields: qualFields,
     append: qualAppend,
     remove: qualRemove,
+    move: qualMove,
   } = useFieldArray({ control: form.control, name: "core.qualifications" });
 
   const {
     fields: expFields,
     append: expAppend,
     remove: expRemove,
+    move: expMove,
   } = useFieldArray({ control: form.control, name: "core.experience" });
 
   const workArrangement = form.watch("core.workArrangement");
@@ -1244,6 +1246,7 @@ export default function RecruiterJobPostings() {
                             size="icon"
                             onClick={() => respMove(idx, idx - 1)}
                             disabled={idx === 0}
+                            aria-label="Move responsibility up"
                             data-testid={`button-move-up-responsibility-${idx}`}
                           >
                             <ArrowUp className="h-4 w-4" />
@@ -1255,6 +1258,7 @@ export default function RecruiterJobPostings() {
                             size="icon"
                             onClick={() => respMove(idx, idx + 1)}
                             disabled={idx === respFields.length - 1}
+                            aria-label="Move responsibility down"
                             data-testid={`button-move-down-responsibility-${idx}`}
                           >
                             <ArrowDown className="h-4 w-4" />
@@ -1266,6 +1270,7 @@ export default function RecruiterJobPostings() {
                               variant="outline"
                               size="icon"
                               onClick={() => respRemove(idx)}
+                              aria-label="Remove responsibility"
                               data-testid={`button-remove-responsibility-${idx}`}
                             >
                               <X className="h-4 w-4" />
@@ -1419,17 +1424,45 @@ export default function RecruiterJobPostings() {
                           {...form.register(`core.qualifications.${idx}`)}
                           data-testid={`input-qualification-${idx}`}
                         />
-                        {idx > 0 && (
+                        <div className="flex gap-1">
+                          {/* Move Up Button */}
                           <Button
                             type="button"
                             variant="outline"
                             size="icon"
-                            onClick={() => qualRemove(idx)}
-                            data-testid={`button-remove-qualification-${idx}`}
+                            onClick={() => qualMove(idx, idx - 1)}
+                            disabled={idx === 0}
+                            aria-label="Move qualification up"
+                            data-testid={`button-move-up-qualification-${idx}`}
                           >
-                            <X className="h-4 w-4" />
+                            <ArrowUp className="h-4 w-4" />
                           </Button>
-                        )}
+                          {/* Move Down Button */}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => qualMove(idx, idx + 1)}
+                            disabled={idx === qualFields.length - 1}
+                            aria-label="Move qualification down"
+                            data-testid={`button-move-down-qualification-${idx}`}
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                          {/* Remove Button */}
+                          {idx > 0 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => qualRemove(idx)}
+                              aria-label="Remove qualification"
+                              data-testid={`button-remove-qualification-${idx}`}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                     <Button
@@ -1459,17 +1492,45 @@ export default function RecruiterJobPostings() {
                           {...form.register(`core.experience.${idx}`)}
                           data-testid={`input-experience-${idx}`}
                         />
-                        {idx > 0 && (
+                        <div className="flex gap-1">
+                          {/* Move Up Button */}
                           <Button
                             type="button"
                             variant="outline"
                             size="icon"
-                            onClick={() => expRemove(idx)}
-                            data-testid={`button-remove-experience-${idx}`}
+                            onClick={() => expMove(idx, idx - 1)}
+                            disabled={idx === 0}
+                            aria-label="Move experience requirement up"
+                            data-testid={`button-move-up-experience-${idx}`}
                           >
-                            <X className="h-4 w-4" />
+                            <ArrowUp className="h-4 w-4" />
                           </Button>
-                        )}
+                          {/* Move Down Button */}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => expMove(idx, idx + 1)}
+                            disabled={idx === expFields.length - 1}
+                            aria-label="Move experience requirement down"
+                            data-testid={`button-move-down-experience-${idx}`}
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                          {/* Remove Button */}
+                          {idx > 0 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => expRemove(idx)}
+                              aria-label="Remove experience requirement"
+                              data-testid={`button-remove-experience-${idx}`}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                     <Button
