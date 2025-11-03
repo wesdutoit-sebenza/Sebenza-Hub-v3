@@ -539,7 +539,7 @@ export default function Individuals() {
         <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-pricing-title">
           Pricing for Job Seekers
         </h2>
-        <p className="text-center text-slate mb-12 max-w-2xl mx-auto">
+        <p className="text-center mb-12 max-w-2xl mx-auto text-[#ffffff]">
           Find your next opportunity with our free or premium plans. All plans include profile creation and job search tools.
         </p>
         <PricingTable plans={individualPricingPlans} />
