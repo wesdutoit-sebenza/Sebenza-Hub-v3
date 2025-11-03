@@ -595,7 +595,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Convert all date strings recursively
       const convertedData = convertDates(updateData);
       
-      console.log("Converted data (check for Date objects)");
+      // Log specific fields to check conversion
+      console.log("createdAt type:", typeof convertedData.createdAt, convertedData.createdAt);
+      console.log("updatedAt type:", typeof convertedData.updatedAt, convertedData.updatedAt);
+      console.log("application.closingDate type:", typeof convertedData.application?.closingDate, convertedData.application?.closingDate);
+      console.log("admin.closingDate type:", typeof convertedData.admin?.closingDate, convertedData.admin?.closingDate);
       
       // Only set organizationId and postedByUserId if they have valid values
       if (organizationId) {
