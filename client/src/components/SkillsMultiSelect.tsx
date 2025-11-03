@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Check, ArrowUp, ArrowDown } from "lucide-react";
+import { Check, ArrowUp, ArrowDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,12 +15,25 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { SKILLS_BY_CATEGORY } from "@shared/skills";
 
+interface SkillWithDetails {
+  skill: string;
+  level: "Basic" | "Intermediate" | "Expert";
+  priority: "Must-Have" | "Nice-to-Have";
+}
+
 interface SkillsMultiSelectProps {
-  value: string[];
-  onChange: (skills: string[]) => void;
+  value: SkillWithDetails[];
+  onChange: (skills: SkillWithDetails[]) => void;
   maxSkills?: number;
   placeholder?: string;
   className?: string;
@@ -49,26 +62,30 @@ export function SkillsMultiSelect({
     })).filter(category => category.skills.length > 0);
   }, [searchQuery]);
 
-  const handleToggleSkill = (skill: string) => {
-    const currentIndex = value.indexOf(skill);
-    let newValue: string[];
+  const selectedSkillNames = useMemo(() => value.map(s => s.skill), [value]);
+
+  const handleToggleSkill = (skillName: string) => {
+    const currentIndex = selectedSkillNames.indexOf(skillName);
 
     if (currentIndex === -1) {
       // Adding a skill - check max limit
       if (value.length >= maxSkills) {
         return; // Don't add if at max
       }
-      newValue = [...value, skill];
+      const newSkill: SkillWithDetails = {
+        skill: skillName,
+        level: "Intermediate",
+        priority: "Must-Have",
+      };
+      onChange([...value, newSkill]);
     } else {
       // Removing a skill
-      newValue = value.filter(s => s !== skill);
+      onChange(value.filter(s => s.skill !== skillName));
     }
-
-    onChange(newValue);
   };
 
-  const handleRemoveSkill = (skill: string) => {
-    onChange(value.filter(s => s !== skill));
+  const handleRemoveSkill = (skillName: string) => {
+    onChange(value.filter(s => s.skill !== skillName));
   };
 
   const handleMoveSkill = (fromIndex: number, toIndex: number) => {
@@ -78,6 +95,18 @@ export function SkillsMultiSelect({
     const [movedSkill] = newValue.splice(fromIndex, 1);
     newValue.splice(toIndex, 0, movedSkill);
     
+    onChange(newValue);
+  };
+
+  const handleUpdateLevel = (index: number, level: "Basic" | "Intermediate" | "Expert") => {
+    const newValue = [...value];
+    newValue[index] = { ...newValue[index], level };
+    onChange(newValue);
+  };
+
+  const handleUpdatePriority = (index: number, priority: "Must-Have" | "Nice-to-Have") => {
+    const newValue = [...value];
+    newValue[index] = { ...newValue[index], priority };
     onChange(newValue);
   };
 
@@ -120,7 +149,7 @@ export function SkillsMultiSelect({
                   heading={category.category}
                 >
                   {category.skills.map((skill) => {
-                    const isSelected = value.includes(skill);
+                    const isSelected = selectedSkillNames.includes(skill);
                     const isDisabled = !isSelected && value.length >= maxSkills;
 
                     return (
@@ -156,54 +185,103 @@ export function SkillsMultiSelect({
         </PopoverContent>
       </Popover>
 
-      {/* Display selected skills as badges with sorting */}
+      {/* Display selected skills with level and priority controls */}
       {value.length > 0 && (
-        <div className="space-y-2" data-testid="selected-skills-container">
-          {value.map((skill, idx) => (
-            <div key={skill} className="flex gap-2 items-center">
-              <Badge
-                variant="secondary"
-                className="flex-1"
-                data-testid={`badge-skill-${skill.toLowerCase().replace(/\s+/g, '-')}`}
-              >
-                {skill}
-              </Badge>
-              <div className="flex gap-1">
-                {/* Move Up Button */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleMoveSkill(idx, idx - 1)}
-                  disabled={idx === 0}
-                  aria-label="Move skill up"
-                  data-testid={`button-move-up-skill-${idx}`}
+        <div className="space-y-3" data-testid="selected-skills-container">
+          {value.map((skillObj, idx) => (
+            <div key={skillObj.skill} className="space-y-2 p-3 border rounded-md">
+              {/* Skill name and controls row */}
+              <div className="flex gap-2 items-center">
+                <Badge
+                  variant="secondary"
+                  className="flex-1"
+                  data-testid={`badge-skill-${skillObj.skill.toLowerCase().replace(/\s+/g, '-')}`}
                 >
-                  <ArrowUp className="h-4 w-4" />
-                </Button>
-                {/* Move Down Button */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleMoveSkill(idx, idx + 1)}
-                  disabled={idx === value.length - 1}
-                  aria-label="Move skill down"
-                  data-testid={`button-move-down-skill-${idx}`}
-                >
-                  <ArrowDown className="h-4 w-4" />
-                </Button>
-                {/* Remove Button */}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleRemoveSkill(skill)}
-                  aria-label="Remove skill"
-                  data-testid={`button-remove-skill-${skill.toLowerCase().replace(/\s+/g, '-')}`}
-                >
-                  ×
-                </Button>
+                  {skillObj.skill}
+                </Badge>
+                <div className="flex gap-1">
+                  {/* Move Up Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleMoveSkill(idx, idx - 1)}
+                    disabled={idx === 0}
+                    aria-label="Move skill up"
+                    data-testid={`button-move-up-skill-${idx}`}
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  {/* Move Down Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleMoveSkill(idx, idx + 1)}
+                    disabled={idx === value.length - 1}
+                    aria-label="Move skill down"
+                    data-testid={`button-move-down-skill-${idx}`}
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                  </Button>
+                  {/* Remove Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => handleRemoveSkill(skillObj.skill)}
+                    aria-label="Remove skill"
+                    data-testid={`button-remove-skill-${skillObj.skill.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Level and Priority dropdowns row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Skill Level
+                  </label>
+                  <Select
+                    value={skillObj.level}
+                    onValueChange={(value) => handleUpdateLevel(idx, value as "Basic" | "Intermediate" | "Expert")}
+                  >
+                    <SelectTrigger 
+                      className="h-8 text-sm"
+                      data-testid={`select-skill-level-${idx}`}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Basic">Basic</SelectItem>
+                      <SelectItem value="Intermediate">Intermediate</SelectItem>
+                      <SelectItem value="Expert">Expert</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">
+                    Priority
+                  </label>
+                  <Select
+                    value={skillObj.priority}
+                    onValueChange={(value) => handleUpdatePriority(idx, value as "Must-Have" | "Nice-to-Have")}
+                  >
+                    <SelectTrigger 
+                      className="h-8 text-sm"
+                      data-testid={`select-skill-priority-${idx}`}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Must-Have">Must-Have</SelectItem>
+                      <SelectItem value="Nice-to-Have">Nice-to-Have</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           ))}

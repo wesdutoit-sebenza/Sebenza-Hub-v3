@@ -252,6 +252,13 @@ export const jobCompensationSchema = z.object({
   { message: "Salary range must have both min and max, and min < max" }
 );
 
+// Skill with proficiency level and priority
+export const skillWithDetailsSchema = z.object({
+  skill: z.string().min(1, "Skill name is required"),
+  level: z.enum(["Basic", "Intermediate", "Expert"]).default("Intermediate"),
+  priority: z.enum(["Must-Have", "Nice-to-Have"]).default("Must-Have"),
+});
+
 export const jobCoreSchema = z.object({
   seniority: z.enum(["Intern", "Junior", "Mid", "Senior", "Lead", "Manager", "Director", "Executive"]),
   department: z.string().min(2, "Required"),
@@ -263,7 +270,7 @@ export const jobCoreSchema = z.object({
   visaNote: z.string().optional(),
   summary: z.string().min(20, "Give a short 2–4 line summary"),
   responsibilities: z.array(z.string().min(2)).min(5, "Add at least 5 responsibilities"),
-  requiredSkills: z.array(z.string()).min(5, "Add at least 5 required skills"),
+  requiredSkills: z.array(skillWithDetailsSchema).min(5, "Add at least 5 required skills"),
   qualifications: z.array(z.string().min(2)).min(1, "Add at least 1 qualification"),
   experience: z.array(z.string().min(2)).min(1, "Add at least 1 experience requirement"),
 });
@@ -282,6 +289,7 @@ export const jobCompanyDetailsSchema = z.object({
   logoUrl: z.string().url().optional(), // Company logo URL
   description: z.string().optional(), // Company description
   linkedinUrl: z.string().url().optional(), // Company LinkedIn page
+  companySize: z.enum(["1-10", "11-50", "51-200", "201-500", "501-1000", "1001-5000", "5000+"]).optional(), // Company size
   eeAa: z.boolean().default(false),
   contactEmail: z.string().email(),
 });

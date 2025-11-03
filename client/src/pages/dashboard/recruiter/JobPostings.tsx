@@ -262,6 +262,7 @@ export default function RecruiterJobPostings() {
         logoUrl: "",
         description: "",
         linkedinUrl: "",
+        companySize: undefined,
         eeAa: false,
         contactEmail: "",
       },
@@ -823,36 +824,72 @@ export default function RecruiterJobPostings() {
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="companyDetails.linkedinUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company LinkedIn Page</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="url"
-                        placeholder="https://www.linkedin.com/company/yourcompany"
-                        onBlur={(e) => {
-                          field.onBlur(); // Preserve RHF touched-state
-                          const value = e.target.value.trim();
-                          if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
-                            // Auto-add https:// if missing
-                            const updatedValue = `https://${value}`;
-                            field.onChange(updatedValue);
-                          }
-                        }}
-                        data-testid="input-company-linkedin" 
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Link to company's LinkedIn profile
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="companyDetails.linkedinUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company LinkedIn Page</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="url"
+                          placeholder="https://www.linkedin.com/company/yourcompany"
+                          onBlur={(e) => {
+                            field.onBlur(); // Preserve RHF touched-state
+                            const value = e.target.value.trim();
+                            if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
+                              // Auto-add https:// if missing
+                              const updatedValue = `https://${value}`;
+                              field.onChange(updatedValue);
+                            }
+                          }}
+                          data-testid="input-company-linkedin" 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Link to company's LinkedIn profile
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="companyDetails.companySize"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Size (Optional)</FormLabel>
+                      <Select 
+                        onValueChange={(value) => field.onChange(value === "not-specified" ? undefined : value)} 
+                        value={field.value || "not-specified"}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-company-size">
+                            <SelectValue placeholder="Select company size" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="not-specified">Not specified</SelectItem>
+                          <SelectItem value="1-10">1-10 employees</SelectItem>
+                          <SelectItem value="11-50">11-50 employees</SelectItem>
+                          <SelectItem value="51-200">51-200 employees</SelectItem>
+                          <SelectItem value="201-500">201-500 employees</SelectItem>
+                          <SelectItem value="501-1000">501-1,000 employees</SelectItem>
+                          <SelectItem value="1001-5000">1,001-5,000 employees</SelectItem>
+                          <SelectItem value="5000+">5,000+ employees</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Number of employees in the company
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </FormSection>
 
             {/* Company Description */}
