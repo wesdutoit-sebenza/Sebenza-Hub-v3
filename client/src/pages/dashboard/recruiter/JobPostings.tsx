@@ -693,7 +693,7 @@ export default function RecruiterJobPostings() {
 
   if (showForm) {
     return (
-      <div className="max-w-5xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-6">
         <div className="mb-6">
           <Button 
             variant="ghost" 
@@ -712,8 +712,16 @@ export default function RecruiterJobPostings() {
           <p className="text-muted-foreground">Complete job details for comprehensive candidate matching</p>
         </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
+        <div className="flex gap-6">
+          {/* Sticky Navigation Sidebar - Hidden on mobile, shown on lg+ */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <JobFormNavigation />
+          </aside>
+
+          {/* Form Content */}
+          <div className="flex-1 min-w-0">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit, onInvalid)} className="space-y-6">
             {/* Form Validation Errors Alert */}
             {Object.keys(form.formState.errors).length > 0 && (
               <Alert variant="destructive" data-testid="alert-form-errors">
@@ -2588,8 +2596,10 @@ export default function RecruiterJobPostings() {
                 {createJobMutation.isPending ? "Saving..." : "Save Job"}
               </Button>
             </div>
-          </form>
-        </Form>
+              </form>
+            </Form>
+          </div>
+        </div>
 
         {/* AI Job Description Dialog */}
         <JobDescriptionAIDialog
