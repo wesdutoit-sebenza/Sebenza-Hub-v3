@@ -139,7 +139,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4 text-[#3e3233] bg-[#1a2328]">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Welcome to Sebenza Hub</CardTitle>
