@@ -238,8 +238,8 @@ export default function RecruiterJobPostings() {
         summary: "",
         responsibilities: [""],
         requiredSkills: [],
-        minQualifications: "",
-        yearsExperience: 0,
+        qualifications: [""],
+        experience: [""],
       },
       compensation: {
         displayRange: true,
@@ -289,6 +289,18 @@ export default function RecruiterJobPostings() {
     append: respAppend,
     remove: respRemove,
   } = useFieldArray({ control: form.control, name: "core.responsibilities" });
+
+  const {
+    fields: qualFields,
+    append: qualAppend,
+    remove: qualRemove,
+  } = useFieldArray({ control: form.control, name: "core.qualifications" });
+
+  const {
+    fields: expFields,
+    append: expAppend,
+    remove: expRemove,
+  } = useFieldArray({ control: form.control, name: "core.experience" });
 
   const workArrangement = form.watch("core.workArrangement");
   const applicationMethod = form.watch("application.method");
@@ -1326,28 +1338,86 @@ export default function RecruiterJobPostings() {
 
             {/* Qualifications & Experience Required */}
             <FormSection title="Qualifications & Experience Required" description="Specify the required qualifications and experience for this role">
-              <div className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="core.minQualifications"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Minimum Qualifications *</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          className="min-h-[120px]"
-                          placeholder="e.g., Bachelor's degree in Computer Science or related field, 3+ years of experience in software development..."
-                          {...field}
-                          data-testid="textarea-qualifications"
+              <div className="space-y-6">
+                {/* Qualifications */}
+                <div>
+                  <FormLabel>Qualifications * (min 1)</FormLabel>
+                  <div className="space-y-2 mt-2">
+                    {qualFields.map((field, idx) => (
+                      <div key={field.id} className="flex gap-2">
+                        <Input
+                          placeholder="e.g., Bachelor's degree in Computer Science"
+                          {...form.register(`core.qualifications.${idx}`)}
+                          data-testid={`input-qualification-${idx}`}
                         />
-                      </FormControl>
-                      <FormDescription>
-                        List the minimum education, certifications, and experience required for this position
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        {idx > 0 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => qualRemove(idx)}
+                            data-testid={`button-remove-qualification-${idx}`}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => qualAppend("")}
+                      size="sm"
+                      data-testid="button-add-qualification"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Qualification
+                    </Button>
+                    {form.formState.errors.core?.qualifications && (
+                      <p className="text-sm text-destructive">{form.formState.errors.core.qualifications.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Experience */}
+                <div>
+                  <FormLabel>Experience Requirements * (min 1)</FormLabel>
+                  <div className="space-y-2 mt-2">
+                    {expFields.map((field, idx) => (
+                      <div key={field.id} className="flex gap-2">
+                        <Input
+                          placeholder="e.g., 3+ years in software development"
+                          {...form.register(`core.experience.${idx}`)}
+                          data-testid={`input-experience-${idx}`}
+                        />
+                        {idx > 0 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => expRemove(idx)}
+                            data-testid={`button-remove-experience-${idx}`}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => expAppend("")}
+                      size="sm"
+                      data-testid="button-add-experience"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Experience Requirement
+                    </Button>
+                    {form.formState.errors.core?.experience && (
+                      <p className="text-sm text-destructive">{form.formState.errors.core.experience.message}</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </FormSection>
 

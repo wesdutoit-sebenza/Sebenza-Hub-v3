@@ -264,8 +264,8 @@ export const jobCoreSchema = z.object({
   summary: z.string().min(20, "Give a short 2–4 line summary"),
   responsibilities: z.array(z.string().min(2)).min(5, "Add at least 5 responsibilities"),
   requiredSkills: z.array(z.string()).min(5, "Add at least 5 required skills"),
-  minQualifications: z.string().min(2),
-  yearsExperience: z.number().min(0).max(50),
+  qualifications: z.array(z.string().min(2)).min(1, "Add at least 1 qualification"),
+  experience: z.array(z.string().min(2)).min(1, "Add at least 1 experience requirement"),
 });
 
 export const jobApplicationSchema = z.object({
