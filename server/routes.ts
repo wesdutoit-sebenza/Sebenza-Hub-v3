@@ -570,8 +570,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         if (obj === null || obj === undefined) return obj;
         
         if (typeof obj === 'string') {
-          // Check if it's a valid date string (ISO format)
-          if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(obj)) {
+          // Check if it's a valid date string (ISO format with time OR date-only format)
+          if (/^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2})?/.test(obj)) {
             return new Date(obj);
           }
           return obj;
