@@ -400,6 +400,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to normalize legacy skills data
+  const normalizeJobSkills = (job: any) => {
+    if (!job.core || !job.core.requiredSkills) return job;
+    
+    const skills = job.core.requiredSkills;
+    
+    // Handle empty or malformed arrays
+    if (!Array.isArray(skills) || skills.length === 0) return job;
+    
+    // Check if first element is valid before using 'in' operator
+    const first = skills[0];
+    
+    // If already in new format (array of objects), return as-is
+    if (first && typeof first === 'object' && 'skill' in first) {
+      return job;
+    }
+    
+    // If legacy format (array of strings), convert to new format
+    if (typeof first === 'string') {
+      return {
+        ...job,
+        core: {
+          ...job.core,
+          requiredSkills: skills
+            .filter((skill: any) => typeof skill === 'string' && skill.trim())
+            .map((skill: string) => ({
+              skill,
+              level: "Intermediate" as const,
+              priority: "Must-Have" as const,
+            })),
+        },
+      };
+    }
+    
+    return job;
+  };
+
   app.get("/api/jobs", async (req, res) => {
     try {
       const { status } = req.query;
@@ -414,10 +451,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .from(jobs)
             .orderBy(desc(jobs.createdAt));
       
+      // Normalize legacy skills data
+      const normalizedJobs = allJobs.map(normalizeJobSkills);
+      
       res.json({
         success: true,
-        count: allJobs.length,
-        jobs: allJobs,
+        count: normalizedJobs.length,
+        jobs: normalizedJobs,
       });
     } catch (error) {
       console.error("Error fetching jobs:", error);
@@ -443,9 +483,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Normalize legacy skills data
+      const normalizedJob = normalizeJobSkills(job);
+      
       res.json({
         success: true,
-        job,
+        job: normalizedJob,
       });
     } catch (error) {
       console.error("Error fetching job:", error);
@@ -712,13 +755,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .where(eq(jobApplications.userId, user.id))
         .orderBy(desc(jobApplications.appliedAt));
       
+      // Normalize legacy skills data in job records
+      const normalizedApplications = applications.map(a => ({
+        ...a.application,
+        job: a.job ? normalizeJobSkills(a.job) : a.job,
+      }));
+      
       res.json({
         success: true,
-        count: applications.length,
-        applications: applications.map(a => ({
-          ...a.application,
-          job: a.job,
-        })),
+        count: normalizedApplications.length,
+        applications: normalizedApplications,
       });
     } catch (error) {
       console.error("Error fetching applications:", error);
