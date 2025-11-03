@@ -373,9 +373,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate unique reference number
       const referenceNumber = await generateUniqueJobReference();
       
+      // Convert date strings to Date objects for Drizzle
+      const insertData: any = { ...validatedData };
+      if (insertData.closingDate && typeof insertData.closingDate === 'string') {
+        insertData.closingDate = new Date(insertData.closingDate);
+      }
+      if (insertData.admin?.targetStartDate && typeof insertData.admin.targetStartDate === 'string') {
+        insertData.admin = {
+          ...insertData.admin,
+          targetStartDate: new Date(insertData.admin.targetStartDate)
+        };
+      }
+      
       // Insert into database with organization_id and posted_by_user_id
       const [job] = await db.insert(jobs).values({
-        ...validatedData,
+        ...insertData,
         referenceNumber,
         organizationId: recruiterProfile.userId, // Set from recruiter profile
         postedByUserId: user.id, // Set from logged-in user
@@ -550,6 +562,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...validatedData,
         updatedAt: new Date()
       };
+      
+      // Convert date strings to Date objects for Drizzle
+      if (updateData.closingDate && typeof updateData.closingDate === 'string') {
+        updateData.closingDate = new Date(updateData.closingDate);
+      }
+      
+      // Convert admin.targetStartDate from string to Date if present
+      if (updateData.admin?.targetStartDate && typeof updateData.admin.targetStartDate === 'string') {
+        updateData.admin = {
+          ...updateData.admin,
+          targetStartDate: new Date(updateData.admin.targetStartDate)
+        };
+      }
       
       // Only set organizationId and postedByUserId if they have valid values
       if (organizationId) {
