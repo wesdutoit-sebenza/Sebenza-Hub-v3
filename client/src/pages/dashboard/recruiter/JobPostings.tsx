@@ -256,6 +256,7 @@ export default function RecruiterJobPostings() {
         name: "",
         industry: "",
         recruitingAgency: "",
+        website: "",
         description: "",
         eeAa: false,
         contactEmail: "",
@@ -630,6 +631,24 @@ export default function RecruiterJobPostings() {
                   )}
                 />
               </div>
+
+              {/* Company Website */}
+              <FormField
+                control={form.control}
+                name="companyDetails.website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company Website</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="url" data-testid="input-company-website" />
+                    </FormControl>
+                    <FormDescription>
+                      Full URL including https:// (e.g., https://www.example.com)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Location Fields */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
