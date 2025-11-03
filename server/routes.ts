@@ -295,10 +295,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/jobs", async (req, res) => {
+  app.post("/api/jobs", authenticateSession, async (req, res) => {
     try {
+      const user = req.user as any;
       const requestData = req.body;
       const jobStatus = requestData.admin?.status || "Draft";
+      
+      // Get recruiter profile to set organization_id
+      const [recruiterProfile] = await db.select()
+        .from(recruiterProfiles)
+        .where(eq(recruiterProfiles.userId, user.id));
+      
+      if (!recruiterProfile) {
+        return res.status(403).json({
+          success: false,
+          message: "Recruiter profile not found. Please complete your profile first.",
+        });
+      }
       
       // For drafts, skip strict validation
       let validatedData;
@@ -313,13 +326,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate unique reference number
       const referenceNumber = await generateUniqueJobReference();
       
-      // Insert into database
+      // Insert into database with organization_id and posted_by_user_id
       const [job] = await db.insert(jobs).values({
         ...validatedData,
-        referenceNumber
+        referenceNumber,
+        organizationId: recruiterProfile.userId, // Set from recruiter profile
+        postedByUserId: user.id, // Set from logged-in user
       }).returning();
       
-      console.log(`New job created: ${job.title} at ${job.company} (Status: ${jobStatus}) - Ref: ${referenceNumber}`);
+      console.log(`New job created: ${job.title} at ${job.company} (Status: ${jobStatus}) - Ref: ${referenceNumber} by user ${user.id}`);
       
       // Queue fraud detection for job posting
       await queueFraudDetection('job_post', job.id, job, job.postedByUserId || undefined);
@@ -394,27 +409,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/jobs/:id", async (req, res) => {
+  app.put("/api/jobs/:id", authenticateSession, async (req, res) => {
     try {
+      const user = req.user as any;
       const { id } = req.params;
       
-      // Accept any updates without full validation for flexibility
-      const validatedData = req.body;
+      // Check if job exists and user has permission
+      const [existingJob] = await db.select()
+        .from(jobs)
+        .where(eq(jobs.id, id));
       
-      // Update in database with updatedAt timestamp
-      const [job] = await db.update(jobs)
-        .set({ ...validatedData, updatedAt: new Date() })
-        .where(eq(jobs.id, id))
-        .returning();
-      
-      if (!job) {
+      if (!existingJob) {
         return res.status(404).json({
           success: false,
           message: "Job not found.",
         });
       }
+      
+      // Verify user owns this job (either posted it or owns the organization)
+      if (existingJob.postedByUserId !== user.id && existingJob.organizationId !== user.id) {
+        return res.status(403).json({
+          success: false,
+          message: "You don't have permission to update this job.",
+        });
+      }
+      
+      // Accept any updates without full validation for flexibility
+      const validatedData = req.body;
+      
+      // Update in database with updatedAt timestamp
+      // Preserve organization_id and posted_by_user_id
+      const [job] = await db.update(jobs)
+        .set({ 
+          ...validatedData,
+          organizationId: existingJob.organizationId, // Preserve
+          postedByUserId: existingJob.postedByUserId, // Preserve
+          updatedAt: new Date() 
+        })
+        .where(eq(jobs.id, id))
+        .returning();
 
-      console.log(`Job updated: ${job.title} at ${job.company}`);
+      console.log(`Job updated: ${job.title} at ${job.company} by user ${user.id}`);
       
       res.json({
         success: true,
@@ -491,11 +526,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Delete job
-  app.delete("/api/jobs/:id", async (req, res) => {
+  app.delete("/api/jobs/:id", authenticateSession, async (req, res) => {
     try {
+      const user = req.user as any;
       const { id } = req.params;
       
-      // Get job before deleting to log it
+      // Get job before deleting to check ownership and log it
       const [existingJob] = await db.select().from(jobs).where(eq(jobs.id, id));
       
       if (!existingJob) {
@@ -505,10 +541,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Verify user owns this job (either posted it or owns the organization)
+      if (existingJob.postedByUserId !== user.id && existingJob.organizationId !== user.id) {
+        return res.status(403).json({
+          success: false,
+          message: "You don't have permission to delete this job.",
+        });
+      }
+      
       // Delete the job
       await db.delete(jobs).where(eq(jobs.id, id));
 
-      console.log(`Job deleted: ${existingJob.title} at ${existingJob.company}`);
+      console.log(`Job deleted: ${existingJob.title} at ${existingJob.company} by user ${user.id}`);
       
       res.json({
         success: true,
