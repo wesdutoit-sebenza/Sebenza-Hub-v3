@@ -297,7 +297,22 @@ export const jobCompanyDetailsSchema = z.object({
   industry: z.string().optional(), // Company Industry
   recruitingAgency: z.string().optional(), // Recruiting Agency name
   website: z.string().url().optional(), // Company website
-  logoUrl: z.string().url().optional(), // Company logo URL
+  logoUrl: z.string()
+    .refine((val) => {
+      if (!val || val.length === 0) return true; // Allow empty/undefined
+      // Allow valid HTTP/HTTPS URLs only
+      try {
+        const url = new URL(val);
+        if (url.protocol === 'http:' || url.protocol === 'https:') {
+          return true;
+        }
+        return false;
+      } catch {
+        // Allow relative paths that match our upload pattern
+        return /^\/uploads\/company-logos\/.+\.(png|jpg|jpeg|webp|gif)$/i.test(val);
+      }
+    }, { message: "Invalid url" })
+    .optional(), // Company logo URL (full URL or relative upload path)
   description: z.string().optional(), // Company description
   linkedinUrl: z.string().url().optional(), // Company LinkedIn page
   companySize: z.enum(["1-10", "11-50", "51-200", "201-500", "501-1000", "1001-5000", "5000+"]).optional(), // Company size
