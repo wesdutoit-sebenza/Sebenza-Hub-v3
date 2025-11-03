@@ -717,7 +717,7 @@ export default function Recruiters() {
         <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-pricing-title">
           Pricing for Recruiters
         </h2>
-        <p className="text-center text-slate mb-12 max-w-2xl mx-auto">
+        <p className="text-center mb-12 max-w-2xl mx-auto text-[#ffffff]">
           Choose the plan that fits your recruitment needs. All plans include POPIA compliance and WhatsApp integration.
         </p>
         <PricingTable plans={recruiterPricingPlans} />
