@@ -243,6 +243,7 @@ export default function RecruiterJobPostings() {
         qualifications: [""],
         experience: [""],
         languagesRequired: [],
+        licenseCode: "",
       },
       compensation: {
         displayRange: true,
