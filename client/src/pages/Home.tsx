@@ -86,7 +86,6 @@ export default function Home() {
           </video>
         </div>
       </section>
-
       <section className="relative min-h-[80vh] flex items-center justify-center px-6 overflow-hidden">
         <div 
           className="absolute inset-0 bg-cover bg-center"
@@ -121,7 +120,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       <Section id="value-props">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {valueProps.map((prop, idx) => {
@@ -129,14 +127,13 @@ export default function Home() {
             return (
               <Card key={idx} className="p-6 hover-elevate" data-testid={`card-value-${idx}`}>
                 <Icon size={32} className="text-amber mb-4" />
-                <h3 className="font-semibold text-lg mb-2 text-white-brand" data-testid="text-value-title">{prop.title}</h3>
+                <h3 className="font-semibold text-lg mb-2 text-[#70787e]" data-testid="text-value-title">{prop.title}</h3>
                 <p className="text-sm text-slate" data-testid="text-value-description">{prop.description}</p>
               </Card>
             );
           })}
         </div>
       </Section>
-
       <Section className="bg-graphite" id="how-it-works">
         <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-how-it-works-title">
           Hiring made simple
@@ -230,7 +227,6 @@ export default function Home() {
           </Card>
         </div>
       </Section>
-
       <Section id="for-who">
         <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-section-title">
           Built for everyone in SA hiring
@@ -297,7 +293,6 @@ export default function Home() {
           </Link>
         </div>
       </Section>
-
       <Section className="bg-graphite" id="testimonials">
         <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-testimonials-title">
           Trusted by SA recruiters
@@ -325,7 +320,6 @@ export default function Home() {
           ))}
         </div>
       </Section>
-
       <Section id="faq">
         <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-faq-title">
           Frequently asked questions
@@ -334,7 +328,6 @@ export default function Home() {
           <FAQAccordion audience="all" />
         </div>
       </Section>
-
       <Section className="bg-graphite" id="cta">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-serif font-semibold mb-4 text-white-brand" data-testid="text-cta-title">
@@ -360,7 +353,6 @@ export default function Home() {
           </form>
         </div>
       </Section>
-
       <Modal isOpen={showTourModal} onClose={() => setShowTourModal(false)} title="Product Tour">
         <TourSlides />
       </Modal>
