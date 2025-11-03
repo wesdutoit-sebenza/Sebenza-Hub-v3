@@ -557,36 +557,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Accept any updates without full validation for flexibility
       const validatedData = req.body;
       
+      console.log("Update data received:", JSON.stringify(validatedData, null, 2));
+      
       // Prepare update data
       const updateData: any = {
         ...validatedData,
         updatedAt: new Date()
       };
       
-      // Convert date strings to Date objects for Drizzle
-      if (updateData.closingDate && typeof updateData.closingDate === 'string') {
-        updateData.closingDate = new Date(updateData.closingDate);
-      }
+      // Helper function to recursively convert date strings to Date objects
+      const convertDates = (obj: any): any => {
+        if (obj === null || obj === undefined) return obj;
+        
+        if (typeof obj === 'string') {
+          // Check if it's a valid date string (ISO format)
+          if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(obj)) {
+            return new Date(obj);
+          }
+          return obj;
+        }
+        
+        if (Array.isArray(obj)) {
+          return obj.map(convertDates);
+        }
+        
+        if (typeof obj === 'object') {
+          const result: any = {};
+          for (const [key, value] of Object.entries(obj)) {
+            result[key] = convertDates(value);
+          }
+          return result;
+        }
+        
+        return obj;
+      };
       
-      // Convert admin.targetStartDate from string to Date if present
-      if (updateData.admin?.targetStartDate && typeof updateData.admin.targetStartDate === 'string') {
-        updateData.admin = {
-          ...updateData.admin,
-          targetStartDate: new Date(updateData.admin.targetStartDate)
-        };
-      }
+      // Convert all date strings recursively
+      const convertedData = convertDates(updateData);
+      
+      console.log("Converted data (check for Date objects)");
       
       // Only set organizationId and postedByUserId if they have valid values
       if (organizationId) {
-        updateData.organizationId = organizationId;
+        convertedData.organizationId = organizationId;
       }
       if (postedByUserId) {
-        updateData.postedByUserId = postedByUserId;
+        convertedData.postedByUserId = postedByUserId;
       }
       
       // Update in database with updatedAt timestamp
       const [job] = await db.update(jobs)
-        .set(updateData)
+        .set(convertedData)
         .where(eq(jobs.id, id))
         .returning();
 
