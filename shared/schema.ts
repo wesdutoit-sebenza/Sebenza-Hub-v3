@@ -259,6 +259,12 @@ export const skillWithDetailsSchema = z.object({
   priority: z.enum(["Must-Have", "Nice-to-Have"]).default("Must-Have"),
 });
 
+// Language with proficiency level
+export const languageWithProficiencySchema = z.object({
+  language: z.string().min(1, "Language is required"),
+  proficiency: z.enum(["Basic", "Intermediate", "Expert"]).default("Intermediate"),
+});
+
 export const jobCoreSchema = z.object({
   seniority: z.enum(["Intern", "Junior", "Mid", "Senior", "Lead", "Manager", "Director", "Executive"]),
   department: z.string().min(2, "Required"),
@@ -273,6 +279,9 @@ export const jobCoreSchema = z.object({
   requiredSkills: z.array(skillWithDetailsSchema).min(5, "Add at least 5 required skills"),
   qualifications: z.array(z.string().min(2)).min(1, "Add at least 1 qualification"),
   experience: z.array(z.string().min(2)).min(1, "Add at least 1 experience requirement"),
+  driversLicenseRequired: z.enum(["Yes", "No"]).optional(),
+  licenseCode: z.string().optional(),
+  languagesRequired: z.array(languageWithProficiencySchema).optional(),
 });
 
 export const jobApplicationSchema = z.object({
