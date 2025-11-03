@@ -169,6 +169,96 @@ function FormSection({ title, description, children, id }: { title: string; desc
   );
 }
 
+// Job Form Navigation Component
+const FORM_SECTIONS = [
+  { id: "company-info", label: "Company Info" },
+  { id: "company-description", label: "Company Description" },
+  { id: "core-details", label: "Core Details" },
+  { id: "responsibilities", label: "Responsibilities" },
+  { id: "job-summary", label: "Job Summary" },
+  { id: "qualifications", label: "Qualifications" },
+  { id: "compensation", label: "Compensation" },
+  { id: "application-details", label: "Application" },
+  { id: "compliance", label: "Compliance" },
+  { id: "admin-publishing", label: "Admin & Publishing" },
+  { id: "legal-consents", label: "Legal Consents" },
+];
+
+function JobFormNavigation() {
+  const [activeSection, setActiveSection] = useState<string>(FORM_SECTIONS[0].id);
+
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: "-20% 0px -70% 0px",
+      threshold: 0,
+    };
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+    // Observe all sections
+    FORM_SECTIONS.forEach(({ id }) => {
+      const element = document.getElementById(id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 80; // Adjust for sticky header
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  return (
+    <div className="sticky top-20 h-fit">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium">Quick Navigation</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1">
+          {FORM_SECTIONS.map((section) => (
+            <button
+              key={section.id}
+              onClick={() => scrollToSection(section.id)}
+              className={`
+                w-full text-left px-3 py-2 rounded-md text-sm transition-colors
+                hover-elevate active-elevate-2
+                ${activeSection === section.id 
+                  ? "bg-primary text-primary-foreground font-medium" 
+                  : "text-muted-foreground"
+                }
+              `}
+              data-testid={`nav-${section.id}`}
+            >
+              {section.label}
+            </button>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 export default function RecruiterJobPostings() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
