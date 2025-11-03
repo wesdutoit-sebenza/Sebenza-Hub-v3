@@ -279,6 +279,7 @@ export const jobApplicationSchema = z.object({
   method: z.enum(["in-app", "external"]).default("in-app"),
   externalUrl: z.string().url().optional(),
   closingDate: z.string().min(1), // ISO yyyy-mm-dd
+  whatsappNumber: z.string().optional(),
   competencyTestRequired: z.enum(["Yes", "No"]).optional(),
   competencyTestReference: z.string().optional(),
 });
