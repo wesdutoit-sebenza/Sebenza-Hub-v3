@@ -186,21 +186,21 @@ export default function Individuals() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           <Card className="p-6 hover-elevate" data-testid="card-portfolio-upload">
             <Upload className="text-amber mb-4" size={32} />
-            <h3 className="font-semibold mb-2 text-white-brand">Upload work samples</h3>
+            <h3 className="font-semibold mb-2 text-[#70787e]">Upload work samples</h3>
             <p className="text-sm text-slate">
               Show, don't just tell. Upload your best work to your profile.
             </p>
           </Card>
           <Card className="p-6 hover-elevate" data-testid="card-portfolio-assessment">
             <Award className="text-amber mb-4" size={32} />
-            <h3 className="font-semibold mb-2 text-white-brand">Short assessments</h3>
+            <h3 className="font-semibold mb-2 text-[#70787e]">Short assessments</h3>
             <p className="text-sm text-slate">
               2-minute skill checks that prove what you can do.
             </p>
           </Card>
           <Card className="p-6 hover-elevate" data-testid="card-portfolio-verified">
             <Shield className="text-amber mb-4" size={32} />
-            <h3 className="font-semibold mb-2 text-white-brand">Verified credentials</h3>
+            <h3 className="font-semibold mb-2 text-[#70787e]">Verified credentials</h3>
             <p className="text-sm text-slate">
               Get badges for completed tasks, qualifications, and experience.
             </p>
@@ -260,7 +260,7 @@ export default function Individuals() {
                   {showCVBuilder ? "Hide Builder" : "Build CV Manually"}
                 </Button>
               </div>
-              <p className="text-xs text-slate max-w-md mx-auto">
+              <p className="text-xs max-w-md mx-auto text-[#ffffff]">
                 Upload your existing resume for instant AI-powered profile creation, or build your CV step-by-step
               </p>
             </>
@@ -354,7 +354,7 @@ export default function Individuals() {
             <h2 className="text-3xl font-serif font-semibold mb-4 text-white-brand" data-testid="text-jobs-title">
               Browse Available Jobs
             </h2>
-            <p className="text-slate max-w-2xl mx-auto">
+            <p className="max-w-2xl mx-auto text-[#ffffff]">
               All jobs include transparent salary ranges. Apply directly via WhatsApp.
             </p>
           </div>
@@ -435,7 +435,7 @@ export default function Individuals() {
           ) : filteredJobs.length === 0 ? (
             <Card className="p-12 text-center">
               <Briefcase className="mx-auto mb-4 text-slate" size={48} />
-              <h3 className="text-xl font-semibold mb-2 text-white-brand" data-testid="text-no-jobs">
+              <h3 className="text-xl font-semibold mb-2 text-[#70787e]" data-testid="text-no-jobs">
                 {hasActiveFilters ? "No jobs match your filters" : "No jobs available yet"}
               </h3>
               <p className="text-slate mb-4">

@@ -23,7 +23,7 @@ export default function PricingTable({ plans }: PricingTableProps) {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-center gap-4">
-        <span className={`text-sm ${!isAnnual ? 'font-semibold' : 'text-muted-foreground'}`}>
+        <span className="text-sm font-semibold text-[#ffffff]">
           Monthly
         </span>
         <button
@@ -42,12 +42,11 @@ export default function PricingTable({ plans }: PricingTableProps) {
             }`}
           />
         </button>
-        <span className={`text-sm ${isAnnual ? 'font-semibold' : 'text-muted-foreground'}`}>
+        <span className="text-sm text-[#ffffff]">
           Annual
           {isAnnual && <Badge className="ml-2 bg-green/10 text-green border-0" data-testid="badge-save">Save 10%</Badge>}
         </span>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map((plan, idx) => (
           <Card

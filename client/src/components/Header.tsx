@@ -64,7 +64,7 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-charcoal-gradient border-b border-slate">
+    <header className="sticky top-0 z-50 border-b border-slate text-[#1a2328] bg-[#1a2328]">
       <a
         href="#main-content"
         data-testid="link-skip-to-content"
