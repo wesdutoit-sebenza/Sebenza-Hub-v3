@@ -249,10 +249,10 @@ export default function RecruiterJobPostings() {
         displayRange: true,
         currency: "ZAR",
         payType: "Annual",
-        commissionAvailable: "",
-        performanceBonus: "",
-        medicalAidContribution: "",
-        pensionContribution: "",
+        commissionAvailable: false,
+        performanceBonus: false,
+        medicalAidContribution: false,
+        pensionContribution: false,
       },
       application: {
         method: "in-app",
@@ -1888,24 +1888,22 @@ export default function RecruiterJobPostings() {
                       </FormItem>
                     )}
                   />
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <FormField
                     control={form.control}
                     name="compensation.commissionAvailable"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Commission Available</FormLabel>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="e.g., 10% on sales, uncapped"
-                            data-testid="input-commission-available"
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-commission-available"
                           />
                         </FormControl>
-                        <FormDescription className="text-xs">
-                          Describe commission structure if applicable
-                        </FormDescription>
-                        <FormMessage />
+                        <FormLabel className="font-normal cursor-pointer">Commission Available</FormLabel>
                       </FormItem>
                     )}
                   />
@@ -1914,19 +1912,15 @@ export default function RecruiterJobPostings() {
                     control={form.control}
                     name="compensation.performanceBonus"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Performance Bonus</FormLabel>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="e.g., Annual bonus up to 15% based on KPIs"
-                            data-testid="input-performance-bonus"
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-performance-bonus"
                           />
                         </FormControl>
-                        <FormDescription className="text-xs">
-                          Describe performance bonus structure
-                        </FormDescription>
-                        <FormMessage />
+                        <FormLabel className="font-normal cursor-pointer">Performance Bonus</FormLabel>
                       </FormItem>
                     )}
                   />
@@ -1935,19 +1929,15 @@ export default function RecruiterJobPostings() {
                     control={form.control}
                     name="compensation.medicalAidContribution"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Medical Aid Contribution</FormLabel>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="e.g., 50% of medical aid premiums"
-                            data-testid="input-medical-aid"
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-medical-aid"
                           />
                         </FormControl>
-                        <FormDescription className="text-xs">
-                          Company contribution to medical aid
-                        </FormDescription>
-                        <FormMessage />
+                        <FormLabel className="font-normal cursor-pointer">Medical Aid Contribution</FormLabel>
                       </FormItem>
                     )}
                   />
@@ -1956,19 +1946,15 @@ export default function RecruiterJobPostings() {
                     control={form.control}
                     name="compensation.pensionContribution"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Pension/Provident Fund Contributions</FormLabel>
+                      <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="e.g., 10% employer contribution"
-                            data-testid="input-pension-contribution"
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            data-testid="checkbox-pension-contribution"
                           />
                         </FormControl>
-                        <FormDescription className="text-xs">
-                          Company pension or provident fund contribution
-                        </FormDescription>
-                        <FormMessage />
+                        <FormLabel className="font-normal cursor-pointer">Pension/Provident Fund Contributions</FormLabel>
                       </FormItem>
                     )}
                   />

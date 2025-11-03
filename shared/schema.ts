@@ -239,10 +239,10 @@ export const jobCompensationSchema = z.object({
   payType: z.enum(["Annual", "Monthly", "Hourly", "Day Rate"]).default("Annual"),
   min: z.number().nonnegative().optional(), // Basic Salary minimum
   max: z.number().nonnegative().optional(), // Basic Salary maximum
-  commissionAvailable: z.string().optional(), // Commission details
-  performanceBonus: z.string().optional(), // Performance bonus details
-  medicalAidContribution: z.string().optional(), // Medical aid contribution details
-  pensionContribution: z.string().optional(), // Pension/Provident fund contribution details
+  commissionAvailable: z.boolean().default(false), // Commission available
+  performanceBonus: z.boolean().default(false), // Performance bonus available
+  medicalAidContribution: z.boolean().default(false), // Medical aid contribution available
+  pensionContribution: z.boolean().default(false), // Pension/Provident fund contribution available
 }).refine(
   (val) => {
     if (val.min == null && val.max == null) return true;
