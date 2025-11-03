@@ -385,11 +385,12 @@ export default function RecruiterJobPostings() {
         ...data,
         company: data.companyDetails?.name || "",
         location: locationParts.length > 0 ? locationParts.join(", ") : undefined,
-        salaryMin: data.compensation?.min,
-        salaryMax: data.compensation?.max,
-        description: data.core?.summary,
-        requirements: data.core?.minQualifications,
-        employmentType: data.employmentType,
+        salaryMin: data.compensation?.min || 0,
+        salaryMax: data.compensation?.max || 0,
+        description: data.core?.summary || "",
+        requirements: data.core?.minQualifications || "",
+        whatsappContact: data.application?.whatsappNumber || "",
+        employmentType: data.employmentType || "Permanent",
         industry: data.jobIndustry || "Other",
       };
       
@@ -422,11 +423,12 @@ export default function RecruiterJobPostings() {
         ...data,
         company: data.companyDetails?.name || "", // Populate legacy company field
         location: locationParts.length > 0 ? locationParts.join(", ") : undefined,
-        salaryMin: data.compensation?.min,
-        salaryMax: data.compensation?.max,
-        description: data.core?.summary,
-        requirements: data.core?.minQualifications,
-        employmentType: data.employmentType,
+        salaryMin: data.compensation?.min || 0,
+        salaryMax: data.compensation?.max || 0,
+        description: data.core?.summary || "",
+        requirements: data.core?.minQualifications || "",
+        whatsappContact: data.application?.whatsappNumber || "",
+        employmentType: data.employmentType || "Permanent",
         industry: data.jobIndustry || "Other", // Map jobIndustry to legacy industry field
       };
       
