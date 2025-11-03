@@ -242,6 +242,53 @@ async function processProfilePhoto(inputPath: string, outputPath: string): Promi
     .toFile(outputPath);
 }
 
+// Configure multer for company logo uploads
+const logoStorage = multer.diskStorage({
+  destination: async (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'uploads', 'company-logos');
+    try {
+      await fs.mkdir(uploadDir, { recursive: true });
+      cb(null, uploadDir);
+    } catch (error) {
+      cb(error as Error, uploadDir);
+    }
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `company-logo-${uniqueSuffix}${ext}`);
+  }
+});
+
+const logoUpload = multer({
+  storage: logoStorage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Only allow image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
+
+// Process company logo - resize and optimize
+async function processCompanyLogo(inputPath: string, outputPath: string): Promise<void> {
+  const sharp = (await import('sharp')).default;
+  
+  // Process the image: resize to max 300x300 while maintaining aspect ratio
+  await sharp(inputPath)
+    .resize(300, 300, {
+      fit: 'inside',
+      withoutEnlargement: true
+    })
+    .png() // Save as PNG
+    .toFile(outputPath);
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/subscribe", async (req, res) => {
     try {
@@ -1070,6 +1117,65 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       res.status(500).json({
         success: false,
         message: error.message || "Error uploading photo.",
+      });
+    }
+  });
+
+  // Upload company logo endpoint
+  app.post("/api/jobs/logo/upload", authenticateSession, logoUpload.single('logo'), async (req, res) => {
+    const authReq = req as AuthRequest;
+    
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: "No logo file provided.",
+        });
+      }
+
+      // Process the logo: resize and optimize
+      const processedFilename = `processed-${req.file.filename.replace(/\.[^.]+$/, '.png')}`;
+      const processedPath = path.join(process.cwd(), 'uploads', 'company-logos', processedFilename);
+
+      console.log(`[Company Logo] Processing: ${req.file.filename} for user ${authReq.user!.id}`);
+
+      try {
+        await processCompanyLogo(req.file.path, processedPath);
+        
+        // Delete the original uploaded file to save space
+        await fs.unlink(req.file.path);
+        
+        console.log(`[Company Logo] Processed and saved: ${processedFilename}`);
+      } catch (processError: any) {
+        console.error(`[Company Logo] Processing failed:`, processError);
+        
+        // Clean up the uploaded file
+        try {
+          await fs.unlink(req.file.path);
+        } catch (unlinkError) {
+          console.error(`[Company Logo] Failed to clean up uploaded file:`, unlinkError);
+        }
+        
+        return res.status(500).json({
+          success: false,
+          message: `Logo processing failed: ${processError?.message || 'Unknown error'}. Please try a different image.`,
+        });
+      }
+
+      // Generate a URL path for accessing the processed logo
+      const logoUrl = `/uploads/company-logos/${processedFilename}`;
+
+      res.json({
+        success: true,
+        message: "Logo uploaded and processed successfully!",
+        logoUrl,
+        filename: processedFilename,
+      });
+    } catch (error: any) {
+      console.error("Logo upload error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Error uploading logo.",
       });
     }
   });

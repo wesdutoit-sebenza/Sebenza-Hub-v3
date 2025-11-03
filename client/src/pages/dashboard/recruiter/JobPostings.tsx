@@ -259,6 +259,7 @@ export default function RecruiterJobPostings() {
         industry: "",
         recruitingAgency: "",
         website: "",
+        logoUrl: "",
         description: "",
         eeAa: false,
         contactEmail: "",
@@ -821,34 +822,113 @@ export default function RecruiterJobPostings() {
 
             {/* Company Description */}
             <FormSection title="Company Description" description="Describe the company to attract candidates">
-              <FormField
-                control={form.control}
-                name="companyDetails.website"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company Website</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="url" 
-                        onBlur={(e) => {
-                          const value = e.target.value.trim();
-                          if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
-                            // Auto-add https:// if missing
-                            const updatedValue = `https://${value}`;
-                            field.onChange(updatedValue);
-                          }
-                        }}
-                        data-testid="input-company-website" 
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Enter URL (e.g., www.example.com) - https:// will be added automatically
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="companyDetails.website"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Website</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="url" 
+                          onBlur={(e) => {
+                            const value = e.target.value.trim();
+                            if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
+                              // Auto-add https:// if missing
+                              const updatedValue = `https://${value}`;
+                              field.onChange(updatedValue);
+                            }
+                          }}
+                          data-testid="input-company-website" 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Enter URL (e.g., www.example.com) - https:// will be added automatically
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="companyDetails.logoUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company Logo</FormLabel>
+                      <FormControl>
+                        <div className="space-y-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+
+                              const formData = new FormData();
+                              formData.append('logo', file);
+
+                              try {
+                                const response = await fetch('/api/jobs/logo/upload', {
+                                  method: 'POST',
+                                  body: formData,
+                                });
+
+                                const data = await response.json();
+
+                                if (data.success) {
+                                  field.onChange(data.logoUrl);
+                                  toast({
+                                    title: "Success",
+                                    description: "Logo uploaded successfully!",
+                                  });
+                                } else {
+                                  toast({
+                                    title: "Upload failed",
+                                    description: data.message || "Failed to upload logo",
+                                    variant: "destructive",
+                                  });
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: "Upload failed",
+                                  description: "An error occurred while uploading",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                            data-testid="input-company-logo"
+                          />
+                          {field.value && (
+                            <div className="flex items-center gap-2">
+                              <img 
+                                src={field.value} 
+                                alt="Company logo" 
+                                className="h-12 w-12 object-contain border rounded"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => field.onChange("")}
+                                data-testid="button-remove-logo"
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </FormControl>
+                      <FormDescription>
+                        Upload your company logo (max 5MB)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}

@@ -279,6 +279,7 @@ export const jobCompanyDetailsSchema = z.object({
   industry: z.string().optional(), // Company Industry
   recruitingAgency: z.string().optional(), // Recruiting Agency name
   website: z.string().url().optional(), // Company website
+  logoUrl: z.string().url().optional(), // Company logo URL
   description: z.string().optional(), // Company description
   eeAa: z.boolean().default(false),
   contactEmail: z.string().email(),
