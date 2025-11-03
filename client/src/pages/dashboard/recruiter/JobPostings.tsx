@@ -261,7 +261,6 @@ export default function RecruiterJobPostings() {
         website: "",
         logoUrl: "",
         description: "",
-        physicalAddress: "",
         linkedinUrl: "",
         eeAa: false,
         contactEmail: "",
@@ -965,27 +964,6 @@ export default function RecruiterJobPostings() {
                   )}
                 />
               </div>
-
-              <FormField
-                control={form.control}
-                name="companyDetails.physicalAddress"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Physical Address</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        placeholder="123 Main Street, Johannesburg"
-                        data-testid="input-company-physical-address" 
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Company's physical location
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               <FormField
                 control={form.control}
