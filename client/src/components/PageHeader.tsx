@@ -10,7 +10,7 @@ interface PageHeaderProps {
 
 export default function PageHeader({ title, description, breadcrumb, gradientVariant = "cyan" }: PageHeaderProps) {
   return (
-    <div className="relative py-16 px-6 overflow-hidden border-b border-slate bg-charcoal-gradient">
+    <div className="relative py-16 px-6 overflow-hidden border-b border-slate bg-charcoal-gradient text-[#1a2328]">
       <div className="max-w-7xl mx-auto relative z-10">
         {breadcrumb && (
           <nav className="mb-4 flex items-center gap-2 text-sm text-slate" aria-label="Breadcrumb">
