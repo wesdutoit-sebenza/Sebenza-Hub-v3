@@ -40,7 +40,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles, AlertCircle, Play, Pause, Eye, EyeOff, Trash2, Edit, CheckCircle2, Upload, FileText as FileTextIcon, ArrowUp, ArrowDown } from "lucide-react";
+import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles, AlertCircle, Play, Pause, Eye, EyeOff, Trash2, Edit, CheckCircle2, Upload, FileText as FileTextIcon, ArrowUp, ArrowDown, Download } from "lucide-react";
 import { type Job, type RecruiterProfile, insertJobSchema } from "@shared/schema";
 import { JobDescriptionAIDialog } from "@/components/JobDescriptionAIDialog";
 import { CompanyDescriptionAIDialog } from "@/components/CompanyDescriptionAIDialog";
@@ -71,6 +71,9 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
 import { GoogleAddressSearch } from "@/components/GoogleAddressSearch";
 import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import html2pdf from "html2pdf.js";
 
 type FormData = z.infer<typeof insertJobSchema>;
 
@@ -307,6 +310,8 @@ export default function RecruiterJobPostings() {
   const [jobTitleDropdownOpen, setJobTitleDropdownOpen] = useState(false);
   const [aiDialogOpen, setAIDialogOpen] = useState(false);
   const [companyDescriptionAIDialogOpen, setCompanyDescriptionAIDialogOpen] = useState(false);
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const { data: jobsData, isLoading } = useQuery<{ success: boolean; count: number; jobs: Job[] }>({
     queryKey: ["/api/jobs"],
@@ -668,6 +673,110 @@ export default function RecruiterJobPostings() {
   const handleDeleteJob = (jobId: string, jobTitle: string) => {
     if (confirm(`Are you sure you want to delete "${jobTitle}"? This action cannot be undone.`)) {
       deleteJobMutation.mutate(jobId);
+    }
+  };
+
+  const generateJobPDFHTML = (data: FormData) => {
+    return `
+      <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.6;">
+        <h1 style="color: #D97706; border-bottom: 3px solid #D97706; padding-bottom: 10px; margin-bottom: 20px;">${data.title || 'Job Posting'}</h1>
+        
+        <div style="margin-bottom: 30px;">
+          <h2 style="color: #262626; font-size: 18px; margin-bottom: 10px;">Company Information</h2>
+          <p><strong>Company:</strong> ${data.companyDetails?.name || 'N/A'}</p>
+          <p><strong>Industry:</strong> ${data.companyDetails?.industry || 'N/A'}</p>
+          ${data.companyDetails?.website ? `<p><strong>Website:</strong> ${data.companyDetails.website}</p>` : ''}
+          ${data.companyDetails?.description ? `<p><strong>About the Company:</strong><br/>${data.companyDetails.description}</p>` : ''}
+        </div>
+
+        <div style="margin-bottom: 30px;">
+          <h2 style="color: #262626; font-size: 18px; margin-bottom: 10px;">Job Details</h2>
+          <p><strong>Location:</strong> ${data.location || 'N/A'}</p>
+          <p><strong>Employment Type:</strong> ${data.employmentType || 'N/A'}</p>
+          <p><strong>Work Arrangement:</strong> ${data.core?.workArrangement || 'N/A'}</p>
+          ${data.core?.seniority ? `<p><strong>Seniority Level:</strong> ${data.core.seniority}</p>` : ''}
+        </div>
+
+        ${data.core?.summary ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #262626; font-size: 18px; margin-bottom: 10px;">Job Summary</h2>
+            <p>${data.core.summary}</p>
+          </div>
+        ` : ''}
+
+        ${data.core?.responsibilities && data.core.responsibilities.length > 0 ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #262626; font-size: 18px; margin-bottom: 10px;">Key Responsibilities</h2>
+            <ul>
+              ${data.core.responsibilities.map(r => `<li>${r}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+
+        ${data.core?.requiredSkills && data.core.requiredSkills.length > 0 ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #262626; font-size: 18px; margin-bottom: 10px;">Required Skills</h2>
+            <ul>
+              ${data.core.requiredSkills.map((skill: any) => {
+                if (typeof skill === 'string') {
+                  return `<li>${skill}</li>`;
+                }
+                return `<li>${skill.name} - ${skill.level} (${skill.priority})</li>`;
+              }).join('')}
+            </ul>
+          </div>
+        ` : ''}
+
+        ${data.compensation?.min || data.compensation?.max ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #262626; font-size: 18px; margin-bottom: 10px;">Compensation</h2>
+            <p><strong>Salary Range:</strong> ${data.compensation.currency || 'ZAR'} ${data.compensation.min || '0'} - ${data.compensation.max || 'N/A'} ${data.compensation.payType || ''}</p>
+          </div>
+        ` : ''}
+
+        ${data.admin?.closingDate ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #262626; font-size: 18px; margin-bottom: 10px;">Application Details</h2>
+            <p><strong>Application Deadline:</strong> ${new Date(data.admin.closingDate).toLocaleDateString()}</p>
+          </div>
+        ` : ''}
+
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #E5E5E5; color: #737373; font-size: 12px;">
+          <p>Generated on ${new Date().toLocaleDateString()} - Sebenza Hub</p>
+        </div>
+      </div>
+    `;
+  };
+
+  const handleDownloadPDF = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      const formData = form.getValues();
+      const htmlContent = generateJobPDFHTML(formData);
+      
+      const opt = {
+        margin: 10,
+        filename: `job-posting-${formData.title?.replace(/\s+/g, '-').toLowerCase() || 'draft'}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(htmlContent).save();
+      
+      toast({
+        title: "PDF Downloaded",
+        description: "Job posting PDF has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -2474,16 +2583,19 @@ export default function RecruiterJobPostings() {
                     <Input 
                       type="text" 
                       value={(() => {
-                        const closingDate = form.watch("admin.closingDate");
-                        if (!closingDate) return "N/A";
+                        const closingDateStr = form.watch("admin.closingDate");
+                        if (!closingDateStr) return "N/A";
+                        
+                        // Parse the date string (YYYY-MM-DD) manually to avoid timezone issues
+                        const [year, month, day] = closingDateStr.split('-').map(Number);
+                        const closing = new Date(year, month - 1, day); // month is 0-indexed
                         
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
-                        const closing = new Date(closingDate);
                         closing.setHours(0, 0, 0, 0);
                         
                         const diffTime = closing.getTime() - today.getTime();
-                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
                         
                         if (diffDays < 0) return "Closed";
                         if (diffDays === 0) return "Today";
@@ -2647,23 +2759,46 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Form Actions */}
-            <div className="flex gap-4 justify-end sticky bottom-0 bg-background border-t pt-4 pb-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowForm(false)}
-                disabled={createJobMutation.isPending}
-                data-testid="button-cancel-form"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={createJobMutation.isPending}
-                data-testid="button-submit"
-              >
-                {createJobMutation.isPending ? "Saving..." : "Save Job"}
-              </Button>
+            <div className="flex gap-4 justify-between sticky bottom-0 bg-background border-t pt-4 pb-2">
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPreviewDialogOpen(true)}
+                  data-testid="button-preview-job"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Preview
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleDownloadPDF}
+                  disabled={isGeneratingPDF}
+                  data-testid="button-download-pdf"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  {isGeneratingPDF ? "Generating..." : "Download PDF"}
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowForm(false)}
+                  disabled={createJobMutation.isPending}
+                  data-testid="button-cancel-form"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createJobMutation.isPending}
+                  data-testid="button-submit"
+                >
+                  {createJobMutation.isPending ? "Saving..." : "Save Job"}
+                </Button>
+              </div>
             </div>
               </form>
             </Form>
@@ -2700,6 +2835,21 @@ export default function RecruiterJobPostings() {
             form.setValue("companyDetails.description", description);
           }}
         />
+
+        {/* Preview Dialog */}
+        <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh]">
+            <DialogHeader>
+              <DialogTitle>Job Posting Preview</DialogTitle>
+            </DialogHeader>
+            <ScrollArea className="h-[70vh]">
+              <div 
+                className="p-6"
+                dangerouslySetInnerHTML={{ __html: generateJobPDFHTML(form.getValues()) }}
+              />
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
