@@ -314,13 +314,12 @@ export default function AutoJobSearch() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="seniority">Seniority Level</Label>
+              <Label htmlFor="seniority">Seniority Level (Optional)</Label>
               <Select value={seniorityTarget} onValueChange={setSeniorityTarget}>
                 <SelectTrigger data-testid="select-seniority">
-                  <SelectValue placeholder="Select seniority level" />
+                  <SelectValue placeholder="Any seniority level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any Level</SelectItem>
                   {SENIORITY_LEVELS.map((level) => (
                     <SelectItem key={level} value={level}>{level}</SelectItem>
                   ))}
