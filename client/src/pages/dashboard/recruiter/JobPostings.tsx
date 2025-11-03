@@ -403,6 +403,10 @@ export default function RecruiterJobPostings() {
         eeAa: false,
         contactEmail: "",
       },
+      contract: undefined,
+      benefits: undefined,
+      attachments: undefined,
+      accessibility: undefined,
       vetting: {
         criminal: false,
         credit: false,
