@@ -804,10 +804,22 @@ export default function RecruiterJobPostings() {
                   <FormItem>
                     <FormLabel>Company Website</FormLabel>
                     <FormControl>
-                      <Input {...field} type="url" data-testid="input-company-website" />
+                      <Input 
+                        {...field} 
+                        type="url" 
+                        onBlur={(e) => {
+                          const value = e.target.value.trim();
+                          if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
+                            // Auto-add https:// if missing
+                            const updatedValue = `https://${value}`;
+                            field.onChange(updatedValue);
+                          }
+                        }}
+                        data-testid="input-company-website" 
+                      />
                     </FormControl>
                     <FormDescription>
-                      Full URL including https:// (e.g., https://www.example.com)
+                      Enter URL (e.g., www.example.com) - https:// will be added automatically
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
