@@ -823,6 +823,37 @@ export default function RecruiterJobPostings() {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="companyDetails.linkedinUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company LinkedIn Page</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="url"
+                        placeholder="https://www.linkedin.com/company/yourcompany"
+                        onBlur={(e) => {
+                          field.onBlur(); // Preserve RHF touched-state
+                          const value = e.target.value.trim();
+                          if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
+                            // Auto-add https:// if missing
+                            const updatedValue = `https://${value}`;
+                            field.onChange(updatedValue);
+                          }
+                        }}
+                        data-testid="input-company-linkedin" 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Link to company's LinkedIn profile
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </FormSection>
 
             {/* Company Description */}
@@ -950,37 +981,6 @@ export default function RecruiterJobPostings() {
                     </FormControl>
                     <FormDescription>
                       Company's physical location
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="companyDetails.linkedinUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Company LinkedIn Page</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="url"
-                        placeholder="https://www.linkedin.com/company/yourcompany"
-                        onBlur={(e) => {
-                          field.onBlur(); // Preserve RHF touched-state
-                          const value = e.target.value.trim();
-                          if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
-                            // Auto-add https:// if missing
-                            const updatedValue = `https://${value}`;
-                            field.onChange(updatedValue);
-                          }
-                        }}
-                        data-testid="input-company-linkedin" 
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Link to company's LinkedIn profile
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
