@@ -247,7 +247,7 @@ export default function Recruiters() {
         </div>
 
         <div className="bg-card rounded-2xl p-8 mb-16">
-          <h3 className="text-2xl font-serif font-semibold mb-8 text-center text-white-brand" data-testid="text-stats-title">
+          <h3 className="text-2xl font-serif font-semibold mb-8 text-center text-[#70787e]" data-testid="text-stats-title">
             Real results from SA recruiters
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
