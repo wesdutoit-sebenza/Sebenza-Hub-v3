@@ -587,7 +587,7 @@ export default function Recruiters() {
           ) : filteredJobs.length === 0 ? (
             <Card className="p-12 text-center">
               <Briefcase className="mx-auto mb-4 text-slate" size={48} />
-              <h3 className="text-xl font-semibold mb-2 text-white-brand" data-testid="text-no-jobs">
+              <h3 className="text-xl font-semibold mb-2 text-[#70787e]" data-testid="text-no-jobs">
                 {searchTerm ? "No jobs found" : "No jobs posted yet"}
               </h3>
               <p className="text-slate mb-4">
