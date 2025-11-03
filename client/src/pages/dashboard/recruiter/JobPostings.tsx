@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -186,6 +186,8 @@ const FORM_SECTIONS = [
 
 function JobFormNavigation() {
   const [activeSection, setActiveSection] = useState<string>(FORM_SECTIONS[0].id);
+  const navRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observerOptions = {
@@ -215,7 +217,21 @@ function JobFormNavigation() {
     return () => observer.disconnect();
   }, []);
 
+  // Scroll active nav item into view when it changes
+  useEffect(() => {
+    const activeNavButton = navRefs.current[activeSection];
+    if (activeNavButton && scrollContainerRef.current) {
+      activeNavButton.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [activeSection]);
+
   const scrollToSection = (sectionId: string) => {
+    // Immediately update active section when clicking
+    setActiveSection(sectionId);
+    
     const element = document.getElementById(sectionId);
     if (element) {
       const offset = 80; // Adjust for sticky header
@@ -230,15 +246,19 @@ function JobFormNavigation() {
   };
 
   return (
-    <div className="sticky top-20 h-fit">
-      <Card>
-        <CardHeader className="pb-3">
+    <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-hidden">
+      <Card className="h-full flex flex-col">
+        <CardHeader className="pb-3 flex-shrink-0">
           <CardTitle className="text-sm font-medium">Quick Navigation</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-1">
+        <CardContent 
+          ref={scrollContainerRef}
+          className="space-y-1 overflow-y-auto flex-1 pr-2"
+        >
           {FORM_SECTIONS.map((section) => (
             <button
               key={section.id}
+              ref={(el) => { navRefs.current[section.id] = el; }}
               onClick={() => scrollToSection(section.id)}
               className={`
                 w-full text-left px-3 py-2 rounded-md text-sm transition-colors
