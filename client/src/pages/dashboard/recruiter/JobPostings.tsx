@@ -1413,8 +1413,12 @@ export default function RecruiterJobPostings() {
                               className="cursor-pointer hover-elevate active-elevate-2"
                               onClick={() => {
                                 const currentSkills = form.getValues("core.requiredSkills") || [];
-                                if (!currentSkills.includes(skill) && currentSkills.length < 20) {
-                                  form.setValue("core.requiredSkills", [...currentSkills, skill]);
+                                const skillNames = currentSkills.map(s => s.skill);
+                                if (!skillNames.includes(skill) && currentSkills.length < 20) {
+                                  form.setValue("core.requiredSkills", [
+                                    ...currentSkills,
+                                    { skill, level: "Intermediate" as const, priority: "Must-Have" as const }
+                                  ]);
                                 }
                               }}
                               data-testid={`button-suggested-skill-${index}`}

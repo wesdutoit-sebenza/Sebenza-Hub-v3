@@ -6,6 +6,12 @@ import { Sparkles, Loader2, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
+interface SkillWithDetails {
+  skill: string;
+  level: string;
+  priority: string;
+}
+
 interface JobDescriptionAIDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -18,7 +24,7 @@ interface JobDescriptionAIDialogProps {
     employmentType?: string;
     workArrangement?: string;
     responsibilities?: string[];
-    requiredSkills?: string[];
+    requiredSkills?: SkillWithDetails[];
   };
   onInsert: (description: string) => void;
 }
@@ -66,7 +72,7 @@ export function JobDescriptionAIDialog({
         employmentType: jobContext.employmentType,
         workArrangement: jobContext.workArrangement,
         responsibilities: jobContext.responsibilities,
-        requiredSkills: jobContext.requiredSkills,
+        requiredSkills: jobContext.requiredSkills?.map(s => s.skill),
         tone,
       });
 
@@ -177,7 +183,7 @@ export function JobDescriptionAIDialog({
                 <div className="flex gap-2">
                   <span className="text-muted-foreground min-w-[140px]">Required Skills:</span>
                   <span className="font-medium">
-                    {jobContext.requiredSkills.slice(0, 5).join(", ")}
+                    {jobContext.requiredSkills.slice(0, 5).map(s => s.skill).join(", ")}
                     {jobContext.requiredSkills.length > 5 && ` +${jobContext.requiredSkills.length - 5} more`}
                   </span>
                 </div>
