@@ -40,7 +40,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles, AlertCircle, Play, Pause, Eye, EyeOff, Trash2, Edit, CheckCircle2, Upload, FileText as FileTextIcon } from "lucide-react";
+import { Search, Plus, X, Briefcase, MapPin, DollarSign, Calendar, Building2, FileText, Sparkles, AlertCircle, Play, Pause, Eye, EyeOff, Trash2, Edit, CheckCircle2, Upload, FileText as FileTextIcon, ArrowUp, ArrowDown } from "lucide-react";
 import { type Job, type RecruiterProfile, insertJobSchema } from "@shared/schema";
 import { JobDescriptionAIDialog } from "@/components/JobDescriptionAIDialog";
 import { CompanyDescriptionAIDialog } from "@/components/CompanyDescriptionAIDialog";
@@ -289,6 +289,7 @@ export default function RecruiterJobPostings() {
     fields: respFields,
     append: respAppend,
     remove: respRemove,
+    move: respMove,
   } = useFieldArray({ control: form.control, name: "core.responsibilities" });
 
   const {
@@ -1235,17 +1236,42 @@ export default function RecruiterJobPostings() {
                           {...form.register(`core.responsibilities.${idx}`)}
                           data-testid={`input-responsibility-${idx}`}
                         />
-                        {idx > 0 && (
+                        <div className="flex gap-1">
+                          {/* Move Up Button */}
                           <Button
                             type="button"
                             variant="outline"
                             size="icon"
-                            onClick={() => respRemove(idx)}
-                            data-testid={`button-remove-responsibility-${idx}`}
+                            onClick={() => respMove(idx, idx - 1)}
+                            disabled={idx === 0}
+                            data-testid={`button-move-up-responsibility-${idx}`}
                           >
-                            <X className="h-4 w-4" />
+                            <ArrowUp className="h-4 w-4" />
                           </Button>
-                        )}
+                          {/* Move Down Button */}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon"
+                            onClick={() => respMove(idx, idx + 1)}
+                            disabled={idx === respFields.length - 1}
+                            data-testid={`button-move-down-responsibility-${idx}`}
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                          {/* Remove Button */}
+                          {idx > 0 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => respRemove(idx)}
+                              data-testid={`button-remove-responsibility-${idx}`}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                     <Button
