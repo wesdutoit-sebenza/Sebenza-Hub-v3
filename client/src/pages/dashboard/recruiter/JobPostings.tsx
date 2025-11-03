@@ -155,9 +155,9 @@ function MultiAdd({
 }
 
 // Section wrapper component
-function FormSection({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+function FormSection({ title, description, children, id }: { title: string; description?: string; children: React.ReactNode; id?: string }) {
   return (
-    <Card className="mb-6">
+    <Card className="mb-6" id={id}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
@@ -643,7 +643,7 @@ export default function RecruiterJobPostings() {
             )}
 
             {/* Company Information */}
-            <FormSection title="Company Information" description="Recruiting agency and company details">
+            <FormSection id="company-info" title="Company Information" description="Recruiting agency and company details">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
@@ -939,7 +939,7 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Company Description */}
-            <FormSection title="Company Description" description="Describe the company to attract candidates">
+            <FormSection id="company-description" title="Company Description" description="Describe the company to attract candidates">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -1096,7 +1096,7 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Core Details */}
-            <FormSection title="Core Details" description="Essential job information">
+            <FormSection id="core-details" title="Core Details" description="Essential job information">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Row 1: Job Title, Department */}
                 <FormField
@@ -1341,7 +1341,7 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Responsibilities & Requirements */}
-            <FormSection title="Responsibilities & Requirements" description="What the role entails and who we're looking for">
+            <FormSection id="responsibilities" title="Responsibilities & Requirements" description="What the role entails and who we're looking for">
               <div className="space-y-6">
                 {/* Key Responsibilities - Full Width */}
                 <div>
@@ -1491,7 +1491,7 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Job Summary */}
-            <FormSection title="Job Summary" description="Provide a compelling overview of this opportunity">
+            <FormSection id="job-summary" title="Job Summary" description="Provide a compelling overview of this opportunity">
               <div className="space-y-4">
                 <div className="flex items-start justify-between gap-4">
                   <FormField
@@ -1531,7 +1531,7 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Qualifications & Experience Required */}
-            <FormSection title="Qualifications & Experience Required" description="Specify the required qualifications and experience for this role">
+            <FormSection id="qualifications" title="Qualifications & Experience Required" description="Specify the required qualifications and experience for this role">
               <div className="space-y-6">
                 {/* Qualifications */}
                 <div>
@@ -1833,7 +1833,7 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Compensation */}
-            <FormSection title="Compensation & Perks" description="Salary range and additional benefits">
+            <FormSection id="compensation" title="Compensation & Perks" description="Salary range and additional benefits">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <FormField
                   control={form.control}
@@ -1998,7 +1998,7 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Application Details */}
-            <FormSection title="Application Details" description="How candidates should apply">
+            <FormSection id="application-details" title="Application Details" description="How candidates should apply">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -2142,7 +2142,7 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Company & Compliance */}
-            <FormSection title="Compliance & Contact" description="Legal requirements and contact information">
+            <FormSection id="compliance" title="Compliance & Contact" description="Legal requirements and contact information">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -2248,7 +2248,7 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Admin & Status */}
-            <FormSection title="Admin & Publishing" description="Job visibility and status settings">
+            <FormSection id="admin-publishing" title="Admin & Publishing" description="Job visibility and status settings">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
@@ -2419,7 +2419,7 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* Legal Consents */}
-            <FormSection title="Legal Consents" description="Required for Live jobs">
+            <FormSection id="legal-consents" title="Legal Consents" description="Required for Live jobs">
               <div className="space-y-3">
                 <FormField
                   control={form.control}
