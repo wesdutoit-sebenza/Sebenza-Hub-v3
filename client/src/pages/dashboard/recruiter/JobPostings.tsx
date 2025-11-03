@@ -1855,6 +1855,54 @@ export default function RecruiterJobPostings() {
                   )}
                 />
               </div>
+
+              <div className="mt-6 border-t pt-6">
+                <h4 className="text-sm font-medium mb-4">Competency Test</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="application.competencyTestRequired"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pre-Screening Competency Test Required</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-competency-test-required">
+                              <SelectValue placeholder="Select..." />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Yes">Yes</SelectItem>
+                            <SelectItem value="No">No</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="application.competencyTestReference"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Competency Test Reference</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            placeholder="e.g., TEST-ABC123"
+                            data-testid="input-competency-test-reference"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Enter the test reference number (e.g., TEST-ABC123)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             </FormSection>
 
             {/* Company & Compliance */}
