@@ -261,7 +261,7 @@ export default function Home() {
                   className="w-full aspect-video object-cover"
                 />
               </div>
-              <h3 className="text-2xl font-serif font-semibold mb-2 text-white-brand" data-testid="text-teaser-title">For Businesses</h3>
+              <h3 className="text-2xl font-serif font-semibold mb-2 text-[#70787e]" data-testid="text-teaser-title">For Businesses</h3>
               <p className="text-slate mb-4">
                 SME-friendly hiring with POPIA/EE compliance built-in.
               </p>
