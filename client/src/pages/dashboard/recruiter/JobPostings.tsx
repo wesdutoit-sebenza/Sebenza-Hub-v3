@@ -1951,7 +1951,15 @@ export default function RecruiterJobPostings() {
         onOpenChange={setShowImportDialog}
         onJobImported={(jobData) => {
           // Populate form with imported data and show form
-          form.reset(jobData);
+          // Preserve recruitingAgency from profile
+          const mergedData = {
+            ...jobData,
+            companyDetails: {
+              ...jobData.companyDetails,
+              recruitingAgency: recruiterProfile?.agencyName || jobData.companyDetails?.recruitingAgency || "",
+            },
+          };
+          form.reset(mergedData);
           setShowForm(true);
         }}
       />
