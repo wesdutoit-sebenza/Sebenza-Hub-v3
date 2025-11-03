@@ -261,6 +261,8 @@ export default function RecruiterJobPostings() {
         website: "",
         logoUrl: "",
         description: "",
+        physicalAddress: "",
+        linkedinUrl: "",
         eeAa: false,
         contactEmail: "",
       },
@@ -932,6 +934,58 @@ export default function RecruiterJobPostings() {
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="companyDetails.physicalAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Physical Address</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        placeholder="123 Main Street, Johannesburg"
+                        data-testid="input-company-physical-address" 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Company's physical location
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="companyDetails.linkedinUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company LinkedIn Page</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="url"
+                        placeholder="https://www.linkedin.com/company/yourcompany"
+                        onBlur={(e) => {
+                          field.onBlur(); // Preserve RHF touched-state
+                          const value = e.target.value.trim();
+                          if (value && !value.startsWith('http://') && !value.startsWith('https://')) {
+                            // Auto-add https:// if missing
+                            const updatedValue = `https://${value}`;
+                            field.onChange(updatedValue);
+                          }
+                        }}
+                        data-testid="input-company-linkedin" 
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Link to company's LinkedIn profile
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

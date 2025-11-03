@@ -281,6 +281,8 @@ export const jobCompanyDetailsSchema = z.object({
   website: z.string().url().optional(), // Company website
   logoUrl: z.string().url().optional(), // Company logo URL
   description: z.string().optional(), // Company description
+  physicalAddress: z.string().optional(), // Physical address
+  linkedinUrl: z.string().url().optional(), // Company LinkedIn page
   eeAa: z.boolean().default(false),
   contactEmail: z.string().email(),
 });
