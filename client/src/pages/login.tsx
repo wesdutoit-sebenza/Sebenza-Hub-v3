@@ -170,7 +170,7 @@ export default function Login() {
 
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full bg-[#ae6d0f]" 
               disabled={isLoading || !email}
               data-testid="button-send-magic-link"
             >
