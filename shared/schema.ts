@@ -1670,3 +1670,149 @@ export const insertAutoSearchResultSchema = createInsertSchema(autoSearchResults
 
 export type InsertAutoSearchResult = z.infer<typeof insertAutoSearchResultSchema>;
 export type AutoSearchResult = typeof autoSearchResults.$inferSelect;
+
+// Connected Accounts - OAuth integrations for calendar providers
+export const connectedAccounts = pgTable("connected_accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  provider: text("provider").notNull(), // 'google', 'microsoft', 'zoom'
+  providerAccountId: text("provider_account_id").notNull(), // Email or account ID from provider
+  email: text("email").notNull(), // Calendar email
+  scopes: text("scopes").array().default(sql`'{}'::text[]`), // Granted OAuth scopes
+  accessToken: text("access_token").notNull(), // Encrypted access token
+  refreshToken: text("refresh_token"), // Encrypted refresh token
+  expiresAt: timestamp("expires_at"), // Access token expiry
+  isPrimary: integer("is_primary").default(0), // 0 = secondary, 1 = primary calendar
+  isActive: integer("is_active").default(1), // 0 = disconnected, 1 = active
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_connected_user").on(table.userId),
+  uniqueIndex("idx_connected_unique").on(table.userId, table.provider, table.providerAccountId),
+]);
+
+export const insertConnectedAccountSchema = createInsertSchema(connectedAccounts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertConnectedAccount = z.infer<typeof insertConnectedAccountSchema>;
+export type ConnectedAccount = typeof connectedAccounts.$inferSelect;
+
+// Interview Pools - Groups of interviewers with routing rules
+export const interviewPools = pgTable("interview_pools", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull(),
+  name: text("name").notNull(), // "Technical Interviews", "HR Screening", etc.
+  description: text("description"),
+  routing: text("routing").notNull().default('roundRobin'), // 'roundRobin', 'allAvailable', 'bestFit'
+  bufferMinsBefore: integer("buffer_mins_before").default(15), // Buffer before meeting (mins)
+  bufferMinsAfter: integer("buffer_mins_after").default(15), // Buffer after meeting (mins)
+  workingHours: jsonb("working_hours").notNull().default(sql`'{"start":9,"end":17,"days":[1,2,3,4,5],"timezone":"Africa/Johannesburg"}'::jsonb`), // Working hours config
+  meetingDuration: integer("meeting_duration").default(60), // Default meeting length (mins)
+  slotInterval: integer("slot_interval").default(30), // Slot granularity (mins)
+  minNoticeHours: integer("min_notice_hours").default(24), // Minimum notice period (hours)
+  provider: text("provider").default('google'), // 'google', 'microsoft', 'zoom'
+  isActive: integer("is_active").default(1), // 0 = inactive, 1 = active
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_pool_org").on(table.organizationId),
+]);
+
+export const insertInterviewPoolSchema = createInsertSchema(interviewPools).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertInterviewPool = z.infer<typeof insertInterviewPoolSchema>;
+export type InterviewPool = typeof interviewPools.$inferSelect;
+
+// Pool Members - Links interviewers to pools
+export const poolMembers = pgTable("pool_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  poolId: varchar("pool_id").notNull(),
+  userId: varchar("user_id").notNull(), // Interviewer (recruiter)
+  weight: integer("weight").default(1), // For load balancing (higher = more assignments)
+  isActive: integer("is_active").default(1), // 0 = paused, 1 = active
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_pool_member_pool").on(table.poolId),
+  index("idx_pool_member_user").on(table.userId),
+  uniqueIndex("idx_pool_member_unique").on(table.poolId, table.userId),
+]);
+
+export const insertPoolMemberSchema = createInsertSchema(poolMembers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertPoolMember = z.infer<typeof insertPoolMemberSchema>;
+export type PoolMember = typeof poolMembers.$inferSelect;
+
+// Interviews - Scheduled interview sessions
+export const interviews = pgTable("interviews", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar("organization_id").notNull(),
+  poolId: varchar("pool_id"), // Can be null if booked directly
+  jobId: varchar("job_id"), // Optional link to job posting
+  candidateUserId: varchar("candidate_user_id"), // Link to user if registered
+  candidateName: text("candidate_name").notNull(),
+  candidateEmail: text("candidate_email").notNull(),
+  candidatePhone: text("candidate_phone"),
+  interviewerUserId: varchar("interviewer_user_id").notNull(), // Assigned recruiter
+  title: text("title").notNull(),
+  description: text("description"),
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  timezone: text("timezone").default('Africa/Johannesburg'),
+  provider: text("provider").notNull(), // 'google', 'microsoft', 'zoom'
+  providerEventId: text("provider_event_id"), // Calendar event ID
+  meetingJoinUrl: text("meeting_join_url"), // Video meeting link
+  location: text("location"), // For on-site interviews
+  status: text("status").notNull().default('scheduled'), // 'scheduled', 'confirmed', 'rescheduled', 'cancelled', 'completed', 'no_show'
+  reminderSent: integer("reminder_sent").default(0), // 0 = no, 1 = yes
+  feedback: text("feedback"), // Post-interview notes
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_interview_org").on(table.organizationId),
+  index("idx_interview_candidate").on(table.candidateEmail),
+  index("idx_interview_interviewer").on(table.interviewerUserId),
+  index("idx_interview_time").on(table.startTime),
+  index("idx_interview_status").on(table.status),
+]);
+
+export const insertInterviewSchema = createInsertSchema(interviews).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertInterview = z.infer<typeof insertInterviewSchema>;
+export type Interview = typeof interviews.$inferSelect;
+
+// Holds - Time blocks for unavailability or buffers
+export const holds = pgTable("holds", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(), // Recruiter
+  startTime: timestamp("start_time").notNull(),
+  endTime: timestamp("end_time").notNull(),
+  reason: text("reason"), // 'buffer', 'out_of_office', 'personal', etc.
+  isRecurring: integer("is_recurring").default(0), // 0 = one-time, 1 = recurring
+  recurrenceRule: text("recurrence_rule"), // RRULE format for recurring holds
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_hold_user").on(table.userId),
+  index("idx_hold_time").on(table.startTime, table.endTime),
+]);
+
+export const insertHoldSchema = createInsertSchema(holds).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertHold = z.infer<typeof insertHoldSchema>;
+export type Hold = typeof holds.$inferSelect;
