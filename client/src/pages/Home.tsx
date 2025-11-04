@@ -101,9 +101,7 @@ export default function Home() {
               className="bg-amber-gradient text-charcoal hover:opacity-90"
               data-testid="button-hero-access"
               onClick={() => document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Get early access
-            </Button>
+            >I’m a Recruiter</Button>
             <Button
               size="lg"
               variant="outline"
