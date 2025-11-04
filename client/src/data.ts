@@ -278,23 +278,23 @@ export const tourSlides = [
 
 export const valueProps = [
   {
-    title: "Trust Layer",
-    description: "Mandatory salary ranges and verified company profiles end the guessing game.",
-    icon: "Shield"
+    title: "AI-Powered Hiring",
+    description: "Instantly screen candidates, detect fraud, and generate competency tests — all automatically.",
+    icon: "Sparkles"
   },
   {
-    title: "Mini-ATS for SMEs",
-    description: "Kanban pipeline, structured interviews, and EE reporting without enterprise complexity.",
-    icon: "Layout"
-  },
-  {
-    title: "WhatsApp-First Apply",
-    description: "Candidates apply where they already are. You get structured data. Everyone wins.",
+    title: "WhatsApp First",
+    description: "Candidates apply, chat, and interview directly through WhatsApp — where South Africans already are.",
     icon: "MessageCircle"
   },
   {
-    title: "Skills Proof",
-    description: "2-minute assessments and portfolio uploads replace guesswork with evidence.",
-    icon: "Award"
+    title: "Built for South Africa",
+    description: "POPIA compliant, BEE & EEA reporting ready, and adapted to local job markets.",
+    icon: "MapPin"
+  },
+  {
+    title: "End-to-End Automation",
+    description: "From job posting to hiring, Sebenza Hub does the heavy lifting so you can focus on people.",
+    icon: "Zap"
   }
 ];

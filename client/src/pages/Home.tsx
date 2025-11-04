@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, Layout, MessageCircle, Award, ArrowRight } from "lucide-react";
+import { Sparkles, MessageCircle, MapPin, Zap, ArrowRight } from "lucide-react";
 import Section from "@/components/Section";
 import Modal from "@/components/Modal";
 import FAQAccordion from "@/components/FAQAccordion";
@@ -63,10 +63,10 @@ export default function Home() {
   };
 
   const iconMap = {
-    Shield,
-    Layout,
+    Sparkles,
     MessageCircle,
-    Award,
+    MapPin,
+    Zap,
   };
 
   return (
