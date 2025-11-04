@@ -15,7 +15,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Technical Implementations
 - **Frontend**: Developed with React and TypeScript (Vite), using Wouter for routing and TanStack React Query for state management.
-    - **Recruiters Portal**: Includes job posting forms with WhatsApp integration, an AI Job Description Generator, and a status-based workflow (Draft, Live, Paused, Closed, Filled) with conditional validation. Features interactive sticky form navigation, enhanced skills structure with level/priority attributes, a job import feature (document upload/text paste with AI extraction), an AI Company Description Assistant, PDF export and preview functionality, automatic "Days Left" calculator for job closing dates, and **Interview Scheduling** (November 2025) with Google Calendar integration for managing candidate interviews.
+    - **Recruiters Portal**: Includes job posting forms with WhatsApp integration, an AI Job Description Generator, and a status-based workflow (Draft, Live, Paused, Closed, Filled) with conditional validation. Features interactive sticky form navigation, enhanced skills structure with level/priority attributes, a job import feature (document upload/text paste with AI extraction), an AI Company Description Assistant, PDF export and preview functionality, automatic "Days Left" calculator for job closing dates, and **Interview Scheduling** (November 2025) with multi-provider calendar integration (Google Calendar/Meet, Microsoft Teams/Outlook, Zoom) for managing candidate interviews with automatic video meeting links.
     - **Individuals Portal**: Supports multiple CV management (with AI-powered circular cropping for photos and PDF previews), profile management, competency test access, **Interview Booking** capability, and an AI Interview Coach.
         - **Job Searches Collapsible Tree** (November 2025): Reorganized Job Searches section into a collapsible sidebar tree structure with four sub-sections:
             - **All Jobs** (`/dashboard/individual/jobs/all`): Comprehensive search and filter interface with search bar, location/industry/type filters. Shows all job postings (any status) with total count and full metadata. Includes client-side filtering for refined results
@@ -29,7 +29,7 @@ Preferred communication style: Simple, everyday language.
     - **Organization Settings**: Provides multi-tenant configuration for teams, pipelines, and compliance.
     - **Location & Job Data**: Incorporates comprehensive South African city/town and job title systems with auto-fill capabilities.
 - **Backend**: Built with Express.js and TypeScript.
-    - **API Endpoints**: Manages subscriptions, job postings, CVs, roles/screening, ATS, organization settings, competency testing, and interview coach interactions, including specific endpoints for job status management and conditional validation. CV endpoints include authorization checks.
+    - **API Endpoints**: Manages subscriptions, job postings, CVs, roles/screening, ATS, organization settings, competency testing, interview scheduling (OAuth flows for Google/Microsoft/Zoom, availability checking, interview booking/rescheduling/canceling), and interview coach interactions, including specific endpoints for job status management and conditional validation. CV endpoints include authorization checks.
     - **AI Integration**: Powers CV screening, resume ingestion, interview coaching, fraud detection, and competency test generation. It includes hybrid document parsing for PDF (text + OCR fallback), DOCX, DOC, and TXT formats using various libraries and OpenAI Vision API (GPT-4o) for OCR.
     - **Background Job Processing**: Uses BullMQ with Redis for asynchronous tasks like candidate screening.
     - **Authentication & Authorization**: Implements passwordless magic link authentication via Resend, Express-session with a PostgreSQL store, and a single-role system with role-based access control.
@@ -37,7 +37,7 @@ Preferred communication style: Simple, everyday language.
     - **Admin Setup**: Features a secure admin creation system via an endpoint protected by `ADMIN_SETUP_SECRET`.
 - **Data Storage**: Utilizes PostgreSQL (Neon) with Drizzle ORM and the pgvector extension, employing UUID primary keys.
     - **Competency Testing Database**: Features a five-table schema (`competency_tests`, `test_sections`, `test_items`, `test_attempts`, `test_responses`) with JSONB for flexible configuration and anti-cheat event tracking.
-    - **Interview Scheduling Database** (November 2025): Five-table schema (`connected_accounts`, `interview_pools`, `pool_members`, `interviews`, `holds`) supporting per-recruiter Google Calendar OAuth, availability management, interview booking, and calendar sync.
+    - **Interview Scheduling Database** (November 2025): Five-table schema (`connected_accounts`, `interview_pools`, `pool_members`, `interviews`, `holds`) supporting per-recruiter OAuth for Google Calendar, Microsoft Teams/Outlook, and Zoom. Features multi-provider support with automatic video meeting link generation (Google Meet, Teams, or Zoom), availability management across providers, interview booking with provider selection, and calendar synchronization.
 
 ### System Design Choices
 - **Monorepo Structure**: Organized into `client/`, `server/`, and `shared/` directories.
@@ -52,3 +52,4 @@ Preferred communication style: Simple, everyday language.
 - **AI**: OpenAI GPT-4o, OpenAI GPT-4o-mini, OpenAI text-embedding-3-small.
 - **Email**: Resend.
 - **Maps & Geolocation**: Google Maps JavaScript API.
+- **Calendar & Video Conferencing**: Google Calendar API, Microsoft Graph API (Teams/Outlook), Zoom API.

@@ -9,6 +9,7 @@
  */
 
 import { getCalendarClientForUser } from './google-oauth';
+import { getMicrosoftFreeBusy } from './microsoft-oauth';
 import type { IStorage } from '../storage';
 
 export interface WorkingHours {
@@ -127,7 +128,11 @@ function generateSlotsForDay(
 }
 
 /**
- * Get available time slots for a single calendar
+ * Get available time slots based on calendar availability
+ * 
+ * Note: This function checks Google Calendar and Microsoft Outlook for busy times.
+ * Zoom does not provide calendar/availability data - it only creates meetings.
+ * Users must connect Google or Microsoft to get availability slots.
  * 
  * @param userId - User ID of the calendar owner
  * @param startDate - Start of date range
@@ -143,28 +148,58 @@ export async function getAvailableSlots(
   config: AvailabilityConfig,
   storage: IStorage
 ): Promise<TimeSlot[]> {
-  // Get calendar client for this specific user
-  const calendar = await getCalendarClientForUser(userId, storage);
+  // Check all connected calendar providers and merge busy times
+  // Note: Zoom is NOT checked here - it only creates meetings, not calendars
+  const googleAccount = await storage.getConnectedAccount(userId, 'google');
+  const microsoftAccount = await storage.getConnectedAccount(userId, 'microsoft');
   
-  // Get user's calendar email
-  const account = await storage.getConnectedAccount(userId, 'google');
-  if (!account) {
-    throw new Error('Calendar not connected for user');
+  if (!googleAccount && !microsoftAccount) {
+    throw new Error('No calendar connected for user. Please connect Google Calendar or Microsoft Outlook to check availability.');
   }
   
-  // Get busy times from Google Calendar using user's credentials
-  const response = await calendar.freebusy.query({
-    requestBody: {
-      timeMin: startDate.toISOString(),
-      timeMax: endDate.toISOString(),
-      items: [{ id: account.email }],
-    }
-  });
+  const busyWindows: { start: string; end: string }[] = [];
   
-  const busyWindows = response.data.calendars?.[account.email]?.busy?.map(b => ({
-    start: b.start as string,
-    end: b.end as string,
-  })) || [];
+  // Fetch busy times from Google Calendar if connected
+  if (googleAccount) {
+    try {
+      const calendar = await getCalendarClientForUser(userId, storage);
+      
+      const response = await calendar.freebusy.query({
+        requestBody: {
+          timeMin: startDate.toISOString(),
+          timeMax: endDate.toISOString(),
+          items: [{ id: googleAccount.email }],
+        }
+      });
+      
+      const googleBusy = response.data.calendars?.[googleAccount.email]?.busy?.map(b => ({
+        start: b.start as string,
+        end: b.end as string,
+      })) || [];
+      
+      busyWindows.push(...googleBusy);
+    } catch (error) {
+      console.error('Failed to fetch Google Calendar busy times:', error);
+      // Continue with other providers
+    }
+  }
+  
+  // Fetch busy times from Microsoft Calendar if connected
+  if (microsoftAccount) {
+    try {
+      const microsoftBusy = await getMicrosoftFreeBusy(
+        userId,
+        startDate.toISOString(),
+        endDate.toISOString(),
+        storage
+      );
+      
+      busyWindows.push(...microsoftBusy);
+    } catch (error) {
+      console.error('Failed to fetch Microsoft Calendar busy times:', error);
+      // Continue with other providers
+    }
+  }
   
   // Generate slots for each day in range
   const allSlots: TimeSlot[] = [];
@@ -242,6 +277,8 @@ export async function getAvailableSlotsMultiple(
  * Validate that a specific time slot is still available
  * Call this right before booking to prevent double-bookings
  * 
+ * Checks ALL connected calendar providers and ensures the slot is free on all calendars
+ * 
  * @param userId - User ID of calendar owner
  * @param slotStart - Proposed slot start time
  * @param slotEnd - Proposed slot end time
@@ -256,30 +293,61 @@ export async function validateSlot(
   config: AvailabilityConfig,
   storage: IStorage
 ): Promise<boolean> {
-  // Get calendar client for this specific user
-  const calendar = await getCalendarClientForUser(userId, storage);
-  const account = await storage.getConnectedAccount(userId, 'google');
+  // Check all connected calendar providers and merge busy times
+  const googleAccount = await storage.getConnectedAccount(userId, 'google');
+  const microsoftAccount = await storage.getConnectedAccount(userId, 'microsoft');
   
-  if (!account) {
-    throw new Error('Calendar not connected for user');
+  if (!googleAccount && !microsoftAccount) {
+    throw new Error('No calendar connected for user');
   }
   
   // Check slightly wider window to catch any conflicts
   const checkStart = addMinutes(slotStart, -30);
   const checkEnd = addMinutes(slotEnd, 30);
   
-  const response = await calendar.freebusy.query({
-    requestBody: {
-      timeMin: checkStart.toISOString(),
-      timeMax: checkEnd.toISOString(),
-      items: [{ id: account.email }],
-    }
-  });
+  const busyWindows: { start: string; end: string }[] = [];
   
-  const busyWindows = response.data.calendars?.[account.email]?.busy?.map(b => ({
-    start: b.start as string,
-    end: b.end as string,
-  })) || [];
+  // Fetch busy times from Google Calendar if connected
+  if (googleAccount) {
+    try {
+      const calendar = await getCalendarClientForUser(userId, storage);
+      
+      const response = await calendar.freebusy.query({
+        requestBody: {
+          timeMin: checkStart.toISOString(),
+          timeMax: checkEnd.toISOString(),
+          items: [{ id: googleAccount.email }],
+        }
+      });
+      
+      const googleBusy = response.data.calendars?.[googleAccount.email]?.busy?.map(b => ({
+        start: b.start as string,
+        end: b.end as string,
+      })) || [];
+      
+      busyWindows.push(...googleBusy);
+    } catch (error) {
+      console.error('Failed to fetch Google Calendar busy times for validation:', error);
+      // Continue with other providers
+    }
+  }
+  
+  // Fetch busy times from Microsoft Calendar if connected
+  if (microsoftAccount) {
+    try {
+      const microsoftBusy = await getMicrosoftFreeBusy(
+        userId,
+        checkStart.toISOString(),
+        checkEnd.toISOString(),
+        storage
+      );
+      
+      busyWindows.push(...microsoftBusy);
+    } catch (error) {
+      console.error('Failed to fetch Microsoft Calendar busy times for validation:', error);
+      // Continue with other providers
+    }
+  }
   
   const slot = { start: slotStart, end: slotEnd };
   

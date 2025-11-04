@@ -1700,6 +1700,27 @@ export const insertConnectedAccountSchema = createInsertSchema(connectedAccounts
 export type InsertConnectedAccount = z.infer<typeof insertConnectedAccountSchema>;
 export type ConnectedAccount = typeof connectedAccounts.$inferSelect;
 
+// OAuth State Tokens - For CSRF protection in OAuth flows
+export const oauthStateTokens = pgTable("oauth_state_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  state: text("state").notNull().unique(), // Cryptographically random state token
+  userId: varchar("user_id").notNull(), // User initiating OAuth
+  provider: text("provider").notNull(), // 'google', 'microsoft', 'zoom'
+  expiresAt: timestamp("expires_at").notNull(), // Token expiry (5 minutes)
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_oauth_state").on(table.state),
+  index("idx_oauth_expires").on(table.expiresAt),
+]);
+
+export const insertOAuthStateTokenSchema = createInsertSchema(oauthStateTokens).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertOAuthStateToken = z.infer<typeof insertOAuthStateTokenSchema>;
+export type OAuthStateToken = typeof oauthStateTokens.$inferSelect;
+
 // Interview Pools - Groups of interviewers with routing rules
 export const interviewPools = pgTable("interview_pools", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),

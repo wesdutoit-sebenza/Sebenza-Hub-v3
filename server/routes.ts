@@ -6479,17 +6479,145 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
     }
   });
 
-  // Get calendar connection status
+  // Microsoft Teams/Outlook OAuth - Initiate connection
+  app.get("/api/calendar/microsoft/connect", authenticateSession, async (req, res) => {
+    try {
+      const userId = req.user!.user!.id;
+      const baseUrl = `https://${req.get('host')}`;
+      
+      const { getMicrosoftAuthUrl } = await import('./calendar/microsoft-oauth');
+      const authUrl = getMicrosoftAuthUrl(userId, baseUrl);
+      
+      res.json({ success: true, authUrl });
+    } catch (error: any) {
+      console.error("[Calendar] Error initiating Microsoft OAuth:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to initiate Microsoft connection",
+      });
+    }
+  });
+
+  // Microsoft Teams/Outlook OAuth - Callback handler
+  app.get("/api/calendar/microsoft/callback", async (req, res) => {
+    try {
+      const { code, state } = req.query;
+      
+      if (!code || !state) {
+        return res.redirect('/dashboard/recruiter/settings?calendar=error');
+      }
+      
+      const baseUrl = `https://${req.get('host')}`;
+      
+      const { handleMicrosoftCallback } = await import('./calendar/microsoft-oauth');
+      const result = await handleMicrosoftCallback(code as string, state as string, baseUrl, dbStorage);
+      
+      res.redirect('/dashboard/recruiter/settings?calendar=success');
+    } catch (error: any) {
+      console.error("[Calendar] Microsoft OAuth callback error:", error);
+      res.redirect('/dashboard/recruiter/settings?calendar=error');
+    }
+  });
+
+  // Disconnect Microsoft Teams/Outlook
+  app.delete("/api/calendar/microsoft/disconnect", authenticateSession, async (req, res) => {
+    try {
+      const userId = req.user!.user!.id;
+      
+      const { disconnectMicrosoft } = await import('./calendar/microsoft-oauth');
+      await disconnectMicrosoft(userId, dbStorage);
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("[Calendar] Error disconnecting Microsoft:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to disconnect Microsoft",
+      });
+    }
+  });
+
+  // Zoom OAuth - Initiate connection
+  app.get("/api/calendar/zoom/connect", authenticateSession, async (req, res) => {
+    try {
+      const userId = req.user!.user!.id;
+      const baseUrl = `https://${req.get('host')}`;
+      
+      const { getZoomAuthUrl } = await import('./calendar/zoom-oauth');
+      const authUrl = getZoomAuthUrl(userId, baseUrl);
+      
+      res.json({ success: true, authUrl });
+    } catch (error: any) {
+      console.error("[Calendar] Error initiating Zoom OAuth:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to initiate Zoom connection",
+      });
+    }
+  });
+
+  // Zoom OAuth - Callback handler
+  app.get("/api/calendar/zoom/callback", async (req, res) => {
+    try {
+      const { code, state } = req.query;
+      
+      if (!code || !state) {
+        return res.redirect('/dashboard/recruiter/settings?calendar=error');
+      }
+      
+      const baseUrl = `https://${req.get('host')}`;
+      
+      const { handleZoomCallback } = await import('./calendar/zoom-oauth');
+      const result = await handleZoomCallback(code as string, state as string, baseUrl, dbStorage);
+      
+      res.redirect('/dashboard/recruiter/settings?calendar=success');
+    } catch (error: any) {
+      console.error("[Calendar] Zoom OAuth callback error:", error);
+      res.redirect('/dashboard/recruiter/settings?calendar=error');
+    }
+  });
+
+  // Disconnect Zoom
+  app.delete("/api/calendar/zoom/disconnect", authenticateSession, async (req, res) => {
+    try {
+      const userId = req.user!.user!.id;
+      
+      const { disconnectZoom } = await import('./calendar/zoom-oauth');
+      await disconnectZoom(userId, dbStorage);
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("[Calendar] Error disconnecting Zoom:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to disconnect Zoom",
+      });
+    }
+  });
+
+  // Get calendar connection status (all providers)
   app.get("/api/calendar/status", authenticateSession, async (req, res) => {
     try {
       const userId = req.user!.user!.id;
       
-      const account = await dbStorage.getConnectedAccount(userId, 'google');
+      const googleAccount = await dbStorage.getConnectedAccount(userId, 'google');
+      const microsoftAccount = await dbStorage.getConnectedAccount(userId, 'microsoft');
+      const zoomAccount = await dbStorage.getConnectedAccount(userId, 'zoom');
       
       res.json({
         success: true,
-        connected: !!account,
-        email: account?.email || null,
+        google: {
+          connected: !!googleAccount,
+          email: googleAccount?.email || null,
+        },
+        microsoft: {
+          connected: !!microsoftAccount,
+          email: microsoftAccount?.email || null,
+        },
+        zoom: {
+          connected: !!zoomAccount,
+          email: zoomAccount?.email || null,
+        },
       });
     } catch (error: any) {
       console.error("[Calendar] Error getting status:", error);
