@@ -435,8 +435,8 @@ function StepOne({ form }: { form: any }) {
                   type="number" 
                   min={5}
                   max={240}
-                  {...field} 
-                  onChange={(e) => field.onChange(parseInt(e.target.value))}
+                  value={field.value || ""} 
+                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                   data-testid="input-duration"
                 />
               </FormControl>
@@ -654,8 +654,8 @@ function SectionEditor({ form, sectionIndex, section, isExpanded, onToggle, onRe
                     <Input 
                       type="number" 
                       min={1}
-                      {...field} 
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                       data-testid={`input-section-time-${sectionIndex}`}
                     />
                   </FormControl>
@@ -675,8 +675,8 @@ function SectionEditor({ form, sectionIndex, section, isExpanded, onToggle, onRe
                       type="number" 
                       min={0}
                       max={100}
-                      {...field} 
-                      onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      value={field.value || ""}
+                      onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                       data-testid={`input-section-weight-${sectionIndex}`}
                     />
                   </FormControl>
@@ -890,8 +890,8 @@ function QuestionEditor({ form, sectionIndex, questionIndex, onRemove }: any) {
                   <Input 
                     type="number" 
                     min={1}
-                    {...field} 
-                    onChange={(e) => field.onChange(parseInt(e.target.value))}
+                    value={field.value || ""}
+                    onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                     data-testid={`input-max-points-${sectionIndex}-${questionIndex}`}
                   />
                 </FormControl>
@@ -981,13 +981,13 @@ function StepThree({ form }: { form: any }) {
                 step={0.05}
                 min={0}
                 max={1}
-                {...field} 
-                onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                value={field.value || ""}
+                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                 data-testid="input-weight-skills"
               />
             </FormControl>
             <FormDescription className="text-xs">
-              Percentage: {(field.value * 100).toFixed(0)}%
+              Percentage: {((field.value || 0) * 100).toFixed(0)}%
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -1006,13 +1006,13 @@ function StepThree({ form }: { form: any }) {
                 step={0.05}
                 min={0}
                 max={1}
-                {...field} 
-                onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                value={field.value || ""}
+                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                 data-testid="input-weight-aptitude"
               />
             </FormControl>
             <FormDescription className="text-xs">
-              Percentage: {(field.value * 100).toFixed(0)}%
+              Percentage: {((field.value || 0) * 100).toFixed(0)}%
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -1031,13 +1031,13 @@ function StepThree({ form }: { form: any }) {
                 step={0.05}
                 min={0}
                 max={1}
-                {...field} 
-                onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                value={field.value || ""}
+                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
                 data-testid="input-weight-work-style"
               />
             </FormControl>
             <FormDescription className="text-xs">
-              Percentage: {(field.value * 100).toFixed(0)}%
+              Percentage: {((field.value || 0) * 100).toFixed(0)}%
             </FormDescription>
             <FormMessage />
           </FormItem>
@@ -1079,8 +1079,8 @@ function StepFour({ form }: { form: any }) {
                 type="number" 
                 min={0}
                 max={100}
-                {...field} 
-                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                value={field.value || ""}
+                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                 data-testid="input-cut-score-overall"
               />
             </FormControl>
@@ -1103,8 +1103,8 @@ function StepFour({ form }: { form: any }) {
                 type="number" 
                 min={0}
                 max={100}
-                {...field} 
-                onChange={(e) => field.onChange(parseInt(e.target.value))}
+                value={field.value || ""}
+                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
                 data-testid="input-cut-score-skills"
               />
             </FormControl>
