@@ -75,8 +75,8 @@ export default function AutoJobSearch() {
     enabled: !!userId,
   });
 
-  const { data: resultsData, refetch: refetchResults } = useQuery<{ success: boolean; results: MatchResult[] }>({
-    queryKey: ["/api/auto-search/results", userId],
+  const { data: resultsData, refetch: refetchResults, isError, error, isLoading: isLoadingResults } = useQuery<{ success: boolean; results: MatchResult[] }>({
+    queryKey: [`/api/auto-search/results/${userId}`],
     enabled: !!userId,
   });
 
@@ -84,6 +84,9 @@ export default function AutoJobSearch() {
   console.log('[Auto Search] Results data:', resultsData);
   console.log('[Auto Search] Results array:', resultsData?.results);
   console.log('[Auto Search] Results length:', resultsData?.results?.length);
+  console.log('[Auto Search] Is loading:', isLoadingResults);
+  console.log('[Auto Search] Is error:', isError);
+  console.log('[Auto Search] Error:', error);
 
   useEffect(() => {
     if (preferencesData?.preferences) {
