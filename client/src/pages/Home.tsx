@@ -108,9 +108,7 @@ export default function Home() {
               className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
               data-testid="button-hero-tour"
               onClick={() => setShowTourModal(true)}
-            >
-              View product tour
-            </Button>
+            >I’m Looking for Work</Button>
           </div>
         </div>
       </section>
