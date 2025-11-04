@@ -421,12 +421,12 @@ export default function AutoJobSearch() {
                 {isMatching ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Finding Matches...
+                    {jobTitles.trim() ? 'Finding AI Matches...' : 'Searching Jobs...'}
                   </>
                 ) : (
                   <>
                     <Brain className="h-4 w-4 mr-2" />
-                    Find AI Matches
+                    {jobTitles.trim() ? 'Find AI Matches' : 'Browse Jobs'}
                   </>
                 )}
               </Button>
@@ -446,13 +446,22 @@ export default function AutoJobSearch() {
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" />
-                AI Match Results
-              </CardTitle>
-              <CardDescription>
-                Jobs matched using AI-powered semantic search and scoring
-              </CardDescription>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <CardTitle className="flex items-center gap-2 mb-2">
+                    <Zap className="h-5 w-5 text-primary" />
+                    AI Match Results
+                  </CardTitle>
+                  <CardDescription>
+                    {jobTitles.trim() 
+                      ? 'AI-powered semantic matching based on your desired roles and skills' 
+                      : 'Browsing all jobs based on your selected filters'}
+                  </CardDescription>
+                </div>
+                <Badge variant={jobTitles.trim() ? 'default' : 'secondary'} className="shrink-0">
+                  {jobTitles.trim() ? '🧠 AI Matching' : '🔍 Filter Mode'}
+                </Badge>
+              </div>
             </CardHeader>
             <CardContent>
               {!resultsData?.results || resultsData.results.length === 0 ? (
