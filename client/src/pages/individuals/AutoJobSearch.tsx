@@ -54,7 +54,7 @@ const WORK_ARRANGEMENTS = ["Onsite", "Hybrid", "Remote"];
 const SENIORITY_LEVELS = ["Entry", "Intermediate", "Senior", "Executive", "Lead"];
 
 export default function AutoJobSearch() {
-  const { user } = useAuth();
+  const { user, isLoading: isLoadingAuth } = useAuth();
   const { toast } = useToast();
   const [isMatching, setIsMatching] = useState(false);
   
@@ -190,13 +190,15 @@ export default function AutoJobSearch() {
     window.open(whatsappUrl, '_blank');
   };
 
-  if (loadingPreferences) {
+  if (isLoadingAuth || loadingPreferences) {
     return (
       <div className="container mx-auto p-6 max-w-6xl">
         <Card>
           <CardContent className="p-8 text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-muted-foreground">Loading preferences...</p>
+            <p className="text-muted-foreground">
+              {isLoadingAuth ? "Authenticating..." : "Loading preferences..."}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -352,7 +354,7 @@ export default function AutoJobSearch() {
             <div className="flex gap-2">
               <Button
                 onClick={() => runMatchingMutation.mutate()}
-                disabled={isMatching || !jobTitles.trim()}
+                disabled={isLoadingAuth || !userId || isMatching || !jobTitles.trim()}
                 className="flex-1"
                 data-testid="button-find-matches"
               >
@@ -372,7 +374,7 @@ export default function AutoJobSearch() {
               <Button
                 variant="outline"
                 onClick={() => savePreferencesMutation.mutate()}
-                disabled={savePreferencesMutation.isPending}
+                disabled={isLoadingAuth || !userId || savePreferencesMutation.isPending}
                 data-testid="button-save-preferences"
               >
                 <Save className="h-4 w-4" />
