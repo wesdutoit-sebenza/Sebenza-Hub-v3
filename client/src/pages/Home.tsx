@@ -169,9 +169,7 @@ export default function Home() {
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Let our AI do the heavy lifting.</h3>
-                <p className="text-slate">
-                  Our AI evaluates candidates against your criteria, ranking them by fit and highlighting top matches.
-                </p>
+                <p className="text-slate">Sebenza Hub’s AI-powered engine scans every CV, matches top candidates to your role, and explains why they’re a great fit—saving you hours of manual screening.</p>
               </div>
             </div>
           </Card>
