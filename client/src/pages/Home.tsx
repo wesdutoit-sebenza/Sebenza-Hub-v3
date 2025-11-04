@@ -92,7 +92,7 @@ export default function Home() {
           style={{ backgroundImage: `url(${teamCollabImg})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-black/50" />
-        <div className="max-w-4xl mx-auto text-center relative z-10 py-20">
+        <div className="max-w-6xl mx-auto text-center relative z-10 py-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-semibold mb-6 text-white" data-testid="text-hero-title">
             Hiring that actually moves.
           </h1>
