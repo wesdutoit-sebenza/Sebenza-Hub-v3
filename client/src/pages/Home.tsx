@@ -149,7 +149,7 @@ export default function Home() {
                 <span className="text-lg font-semibold text-amber">1</span>
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Post Your Job</h3>
+                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Find the right talent—fast.</h3>
                 <p className="text-slate">Publish your job instantly with transparent salaries, WhatsApp integration, and smart compliance checks—because great hiring starts with clarity.</p>
               </div>
             </div>
