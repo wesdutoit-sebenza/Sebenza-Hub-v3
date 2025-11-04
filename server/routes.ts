@@ -6345,40 +6345,59 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
     try {
       const user = req.user as any;
 
-      // Get latest results
+      // Get latest results (deduplicated by job_id, keep highest score)
       const results = await db
         .select()
         .from(autoSearchResults)
         .where(eq(autoSearchResults.userId, user.id))
-        .orderBy(sql`${autoSearchResults.finalScore} DESC`)
+        .orderBy(sql`${autoSearchResults.finalScore} DESC, ${autoSearchResults.generatedAt} DESC`)
         .limit(50);
 
+      // Deduplicate by jobId (keep first/highest score)
+      const seenJobIds = new Set<string>();
+      const uniqueResults = results.filter((r: any) => {
+        if (seenJobIds.has(r.jobId)) return false;
+        seenJobIds.add(r.jobId);
+        return true;
+      });
+
+      if (uniqueResults.length === 0) {
+        return res.json({
+          success: true,
+          results: [],
+        });
+      }
+
       // Get full job details for each result
-      const jobIds = results.map((r: any) => r.jobId);
+      const jobIds = uniqueResults.map((r: any) => r.jobId);
       const jobsData = await db
         .select()
         .from(jobs)
         .where(inArray(jobs.id, jobIds));
 
-      // Combine results with job data
-      const enrichedResults = results.map((result: any) => {
-        const job = jobsData.find((j: any) => j.id === result.jobId);
-        return {
-          job: job || {}, // Frontend expects nested job object
-          heuristicScore: result.heuristicScore,
-          llmScore: result.llmScore,
-          finalScore: result.finalScore,
-          vecSimilarity: result.vecSimilarity ? parseFloat(result.vecSimilarity) : undefined,
-          skillsJaccard: result.skillsJaccard ? parseFloat(result.skillsJaccard) : undefined,
-          titleSimilarity: result.titleSimilarity ? parseFloat(result.titleSimilarity) : undefined,
-          distanceKm: result.distanceKm ? parseFloat(result.distanceKm) : undefined,
-          salaryAlignment: result.salaryAlignment ? parseFloat(result.salaryAlignment) : undefined,
-          seniorityAlignment: result.seniorityAlignment ? parseFloat(result.seniorityAlignment) : undefined,
-          explanation: result.explanation,
-          risks: result.risks,
-          highlightedSkills: result.highlightedSkills,
-        };
-      });
+      // Combine results with job data (filter out any missing jobs)
+      const enrichedResults = uniqueResults
+        .map((result: any) => {
+          const job = jobsData.find((j: any) => j.id === result.jobId);
+          if (!job) return null; // Skip if job not found
+          
+          return {
+            job, // Frontend expects nested job object
+            heuristicScore: result.heuristicScore,
+            llmScore: result.llmScore,
+            finalScore: result.finalScore,
+            vecSimilarity: result.vecSimilarity ? parseFloat(result.vecSimilarity) : undefined,
+            skillsJaccard: result.skillsJaccard ? parseFloat(result.skillsJaccard) : undefined,
+            titleSimilarity: result.titleSimilarity ? parseFloat(result.titleSimilarity) : undefined,
+            distanceKm: result.distanceKm ? parseFloat(result.distanceKm) : undefined,
+            salaryAlignment: result.salaryAlignment ? parseFloat(result.salaryAlignment) : undefined,
+            seniorityAlignment: result.seniorityAlignment ? parseFloat(result.seniorityAlignment) : undefined,
+            explanation: result.explanation,
+            risks: result.risks,
+            highlightedSkills: result.highlightedSkills,
+          };
+        })
+        .filter((r: any) => r !== null); // Remove any nulls
 
       res.json({
         success: true,

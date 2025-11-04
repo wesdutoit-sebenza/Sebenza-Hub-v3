@@ -80,6 +80,11 @@ export default function AutoJobSearch() {
     enabled: !!userId,
   });
 
+  // Debug logging
+  console.log('[Auto Search] Results data:', resultsData);
+  console.log('[Auto Search] Results array:', resultsData?.results);
+  console.log('[Auto Search] Results length:', resultsData?.results?.length);
+
   useEffect(() => {
     if (preferencesData?.preferences) {
       const prefs = preferencesData.preferences;
