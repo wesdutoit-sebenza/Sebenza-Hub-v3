@@ -8,8 +8,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Home from "@/pages/Home";
 import Recruiters from "@/pages/Recruiters";
-import Businesses from "@/pages/Businesses";
 import Individuals from "@/pages/Individuals";
+import ContactUs from "@/pages/ContactUs";
 import JobDetail from "@/pages/JobDetail";
 import Screening from "@/pages/screening";
 import Login from "@/pages/login";
@@ -152,10 +152,10 @@ function Router() {
       <Route path="/onboarding/business" component={OnboardingBusiness} />
       <Route path="/onboarding/recruiter" component={OnboardingRecruiter} />
       <Route path="/recruiters" component={Recruiters} />
-      <Route path="/businesses" component={Businesses} />
+      <Route path="/individuals" component={Individuals} />
+      <Route path="/contact" component={ContactUs} />
       <Route path="/jobs/:id" component={JobDetail} />
       <Route path="/individuals/job-searches" component={IndividualDashboardManualJobSearch} />
-      <Route path="/individuals" component={Individuals} />
       <Route path="/screening" component={Screening} />
       <Route path="/candidates/new" component={CandidateAdd} />
       <Route path="/candidates/:id" component={CandidateProfile} />

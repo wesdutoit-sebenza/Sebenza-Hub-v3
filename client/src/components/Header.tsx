@@ -59,8 +59,8 @@ export default function Header() {
   const navLinks = [
     { path: "/", label: "Home" },
     { path: "/recruiters", label: "For Recruiters" },
-    { path: "/businesses", label: "For Businesses" },
     { path: "/individuals", label: "For Individuals" },
+    { path: "/contact", label: "Contact Us" },
   ];
 
   return (
