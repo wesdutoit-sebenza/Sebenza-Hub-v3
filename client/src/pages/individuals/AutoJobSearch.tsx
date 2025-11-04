@@ -76,7 +76,7 @@ export default function AutoJobSearch() {
   });
 
   const { data: resultsData, refetch: refetchResults, isError, error, isLoading: isLoadingResults } = useQuery<{ success: boolean; results: MatchResult[] }>({
-    queryKey: [`/api/auto-search/results/${userId}`],
+    queryKey: ["/api/auto-search/results"],
     enabled: !!userId,
   });
 
