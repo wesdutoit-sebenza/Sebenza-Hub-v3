@@ -292,7 +292,7 @@ export default function Recruiters() {
             <h2 className="text-3xl font-serif font-semibold mb-6 text-white-brand" data-testid="text-section-title">
               {organizationType === "agency" 
                 ? "Everything you need to recruit smarter" 
-                : "Enterprise hiring made simple"}
+                : "Corporate hiring made simple"}
             </h2>
             <div className="space-y-6">
               {features.map((feature, idx) => (
