@@ -414,7 +414,7 @@ export default function AutoJobSearch() {
             <div className="flex gap-2">
               <Button
                 onClick={() => runMatchingMutation.mutate()}
-                disabled={isLoadingAuth || !userId || isMatching || !jobTitles.trim()}
+                disabled={isLoadingAuth || !userId || isMatching}
                 className="flex-1"
                 data-testid="button-find-matches"
               >
