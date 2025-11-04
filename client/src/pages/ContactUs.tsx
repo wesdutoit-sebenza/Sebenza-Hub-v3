@@ -115,7 +115,7 @@ export default function ContactUs() {
   ];
 
   return (
-    <div id="main-content" className="bg-charcoal">
+    <div id="main-content">
       <PageHeader
         title="Contact Us"
         description="Get in touch with our team. We're here to help with your recruitment needs."
@@ -127,10 +127,10 @@ export default function ContactUs() {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
             <div>
-              <h2 className="text-3xl font-serif font-semibold mb-4 text-white-brand" data-testid="text-contact-heading">
+              <h2 className="text-3xl font-serif font-semibold mb-4" data-testid="text-contact-heading">
                 We'd love to hear from you
               </h2>
-              <p className="text-[#ffffff] mb-8">
+              <p className="text-foreground mb-8">
                 Whether you're a recruiting agency looking to streamline your hiring, 
                 a company seeking top talent, or a job seeker ready to find your next opportunity, 
                 we're here to help. Reach out and let's start a conversation.
@@ -138,33 +138,33 @@ export default function ContactUs() {
 
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-xl font-semibold mb-4 text-white-brand flex items-center gap-2">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                     <Briefcase size={20} className="text-amber" />
                     For Recruiting Agencies
                   </h3>
-                  <p className="text-sm text-[#ffffff]">
+                  <p className="text-sm text-foreground">
                     Discover how our platform can help you reduce time-to-hire, 
                     improve candidate quality, and maintain POPIA compliance with ease.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-semibold mb-4 text-white-brand flex items-center gap-2">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                     <Users size={20} className="text-green" />
                     For Corporate Companies
                   </h3>
-                  <p className="text-sm text-[#ffffff]">
+                  <p className="text-sm text-foreground">
                     Learn how we can support your in-house recruitment with EE/AA tracking, 
                     department workflows, and transparent hiring processes.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-semibold mb-4 text-white-brand flex items-center gap-2">
+                  <h3 className="text-xl font-semibold mb-4 flex items-center gap-2">
                     <UserCircle size={20} className="text-cyan" />
                     For Job Seekers
                   </h3>
-                  <p className="text-sm text-[#ffffff]">
+                  <p className="text-sm text-foreground">
                     Get support with your job search, CV optimization, competency tests, 
                     and access to opportunities with transparent salary ranges.
                   </p>
@@ -173,7 +173,7 @@ export default function ContactUs() {
             </div>
 
             <Card className="p-8">
-              <h3 className="text-2xl font-semibold mb-6 text-white-brand" data-testid="text-form-heading">
+              <h3 className="text-2xl font-semibold mb-6" data-testid="text-form-heading">
                 Send us a message
               </h3>
               <Form {...form}>
@@ -324,7 +324,7 @@ export default function ContactUs() {
                 data-testid={`card-contact-${idx}`}
               >
                 <div className="flex justify-center mb-4">{method.icon}</div>
-                <h3 className="font-semibold mb-2 text-white-brand" data-testid="text-contact-title">
+                <h3 className="font-semibold mb-2" data-testid="text-contact-title">
                   {method.title}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-3">
@@ -349,21 +349,21 @@ export default function ContactUs() {
 
           <Card className="p-8 bg-gradient-to-br from-amber/5 to-transparent">
             <div className="text-center max-w-2xl mx-auto">
-              <h3 className="text-2xl font-serif font-semibold mb-4 text-white-brand" data-testid="text-hours-heading">
+              <h3 className="text-2xl font-serif font-semibold mb-4" data-testid="text-hours-heading">
                 Business Hours
               </h3>
-              <p className="text-[#ffffff] mb-6">
+              <p className="text-foreground mb-6">
                 Our support team is available Monday to Friday, 8:00 AM - 5:00 PM SAST. 
                 We aim to respond to all inquiries within 24 hours during business days.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="font-semibold text-white-brand">Weekdays</p>
-                  <p className="text-[#ffffff]">8:00 AM - 5:00 PM SAST</p>
+                  <p className="font-semibold">Weekdays</p>
+                  <p className="text-foreground">8:00 AM - 5:00 PM SAST</p>
                 </div>
                 <div>
-                  <p className="font-semibold text-white-brand">Weekends</p>
-                  <p className="text-[#ffffff]">Emergency support only</p>
+                  <p className="font-semibold">Weekends</p>
+                  <p className="text-foreground">Emergency support only</p>
                 </div>
               </div>
             </div>
