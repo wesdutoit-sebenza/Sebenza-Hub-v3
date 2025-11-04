@@ -68,7 +68,7 @@ export default function AutoJobSearch() {
   const [salaryMin, setSalaryMin] = useState("");
   const [salaryMax, setSalaryMax] = useState("");
 
-  const userId = (user as any)?.id;
+  const userId = (user as any)?.user?.id;
 
   const { data: preferencesData, isLoading: loadingPreferences } = useQuery<{ success: boolean; preferences: AutoSearchPreferences | null }>({
     queryKey: ["/api/auto-search/preferences", userId],
