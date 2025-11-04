@@ -6364,25 +6364,19 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       const enrichedResults = results.map((result: any) => {
         const job = jobsData.find((j: any) => j.id === result.jobId);
         return {
-          jobId: result.jobId,
-          company: job?.company,
-          title: job?.title,
-          location: job?.location,
-          salary: {
-            min: job?.salaryMin,
-            max: job?.salaryMax,
-          },
-          scores: {
-            heuristic: result.heuristicScore,
-            llm: result.llmScore,
-            final: result.finalScore,
-          },
+          job: job || {}, // Frontend expects nested job object
+          heuristicScore: result.heuristicScore,
+          llmScore: result.llmScore,
+          finalScore: result.finalScore,
+          vecSimilarity: result.vecSimilarity ? parseFloat(result.vecSimilarity) : undefined,
+          skillsJaccard: result.skillsJaccard ? parseFloat(result.skillsJaccard) : undefined,
+          titleSimilarity: result.titleSimilarity ? parseFloat(result.titleSimilarity) : undefined,
+          distanceKm: result.distanceKm ? parseFloat(result.distanceKm) : undefined,
+          salaryAlignment: result.salaryAlignment ? parseFloat(result.salaryAlignment) : undefined,
+          seniorityAlignment: result.seniorityAlignment ? parseFloat(result.seniorityAlignment) : undefined,
           explanation: result.explanation,
           risks: result.risks,
           highlightedSkills: result.highlightedSkills,
-          viewed: result.viewed,
-          applied: result.applied,
-          generatedAt: result.generatedAt,
         };
       });
 
