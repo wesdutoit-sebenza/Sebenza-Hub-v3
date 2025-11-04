@@ -188,9 +188,7 @@ export default function Home() {
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Interview smarter, not harder.</h3>
-                <p className="text-slate">
-                  Reach candidates via WhatsApp or email, schedule interviews, and collaborate with your team.
-                </p>
+                <p className="text-slate">Chat, schedule, and interview directly via WhatsApp or Teams—all from your dashboard. Real-time collaboration keeps your team aligned and candidates engaged.</p>
               </div>
             </div>
           </Card>
