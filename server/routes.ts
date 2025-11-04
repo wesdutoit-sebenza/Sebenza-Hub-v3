@@ -6399,6 +6399,12 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
         })
         .filter((r: any) => r !== null); // Remove any nulls
 
+      console.log("[Auto Search Results] Order:", enrichedResults.map((r: any) => ({
+        jobId: r.job.id,
+        title: r.job.core?.jobTitle,
+        finalScore: r.finalScore
+      })));
+
       res.json({
         success: true,
         results: enrichedResults,
