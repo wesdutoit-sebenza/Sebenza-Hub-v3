@@ -145,7 +145,7 @@ export default function Home() {
               />
             </div>
             <div className="flex items-start gap-6">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-amber/10">
+              <div className="flex h-16 w-16 mt-2 shrink-0 items-center justify-center rounded-full bg-amber/10">
                 <Briefcase className="text-amber" size={32} />
               </div>
               <div>
@@ -164,7 +164,7 @@ export default function Home() {
               />
             </div>
             <div className="flex items-start gap-6">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-amber/10">
+              <div className="flex h-16 w-16 mt-2 shrink-0 items-center justify-center rounded-full bg-amber/10">
                 <Brain className="text-amber" size={32} />
               </div>
               <div>
@@ -183,7 +183,7 @@ export default function Home() {
               />
             </div>
             <div className="flex items-start gap-6">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-amber/10">
+              <div className="flex h-16 w-16 mt-2 shrink-0 items-center justify-center rounded-full bg-amber/10">
                 <Video className="text-amber" size={32} />
               </div>
               <div>
@@ -202,7 +202,7 @@ export default function Home() {
               />
             </div>
             <div className="flex items-start gap-6">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-amber/10">
+              <div className="flex h-16 w-16 mt-2 shrink-0 items-center justify-center rounded-full bg-amber/10">
                 <CheckCircle className="text-amber" size={32} />
               </div>
               <div>
