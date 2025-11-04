@@ -206,7 +206,7 @@ export default function Home() {
                 <span className="text-lg font-semibold text-amber">4</span>
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Make the Hire</h3>
+                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Make the offer in one click.</h3>
                 <p className="text-slate">
                   Send offers, track acceptances, and onboard your new team member—all in one place.
                 </p>
