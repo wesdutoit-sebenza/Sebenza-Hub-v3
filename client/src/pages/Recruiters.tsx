@@ -28,7 +28,17 @@ import Section from "@/components/Section";
 import Stat from "@/components/Stat";
 import FAQAccordion from "@/components/FAQAccordion";
 import PricingTable from "@/components/PricingTable";
-import { CheckCircle, FileText, Kanban, Download, Briefcase, MapPin, DollarSign, MessageCircle, Search } from "lucide-react";
+import {
+  CheckCircle,
+  FileText,
+  Kanban,
+  Download,
+  Briefcase,
+  MapPin,
+  DollarSign,
+  MessageCircle,
+  Search,
+} from "lucide-react";
 import { type Job } from "@shared/schema";
 import { recruiterPricingPlans } from "@/data";
 import { useToast } from "@/hooks/use-toast";
@@ -37,34 +47,37 @@ import { z } from "zod";
 import { JOB_TITLES } from "@shared/jobTitles";
 import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
 
-const formSchema = z.object({
-  title: z.string().min(1, "Please select a job title"),
-  customTitle: z.string().optional(),
-  company: z.string().min(1, "Company name is required"),
-  location: z.string().min(1, "Location is required"),
-  salaryMin: z.coerce.number().positive("Minimum salary must be positive"),
-  salaryMax: z.coerce.number().positive("Maximum salary must be positive"),
-  description: z.string().min(1, "Description is required"),
-  requirements: z.string().min(1, "Requirements are required"),
-  countryCode: z.string().default(DEFAULT_COUNTRY_CODE),
-  whatsappContact: z.string().min(1, "WhatsApp number is required"),
-  employmentType: z.string().min(1, "Employment type is required"),
-  industry: z.string().min(1, "Industry is required"),
-}).refine(
-  (data) => data.salaryMin <= data.salaryMax,
-  {
+const formSchema = z
+  .object({
+    title: z.string().min(1, "Please select a job title"),
+    customTitle: z.string().optional(),
+    company: z.string().min(1, "Company name is required"),
+    location: z.string().min(1, "Location is required"),
+    salaryMin: z.coerce.number().positive("Minimum salary must be positive"),
+    salaryMax: z.coerce.number().positive("Maximum salary must be positive"),
+    description: z.string().min(1, "Description is required"),
+    requirements: z.string().min(1, "Requirements are required"),
+    countryCode: z.string().default(DEFAULT_COUNTRY_CODE),
+    whatsappContact: z.string().min(1, "WhatsApp number is required"),
+    employmentType: z.string().min(1, "Employment type is required"),
+    industry: z.string().min(1, "Industry is required"),
+  })
+  .refine((data) => data.salaryMin <= data.salaryMax, {
     message: "Minimum salary must be less than or equal to maximum salary",
     path: ["salaryMax"],
-  }
-).refine((data) => {
-  if (data.title === "Other" && !data.customTitle) {
-    return false;
-  }
-  return true;
-}, {
-  message: "Please specify the job title",
-  path: ["customTitle"],
-});
+  })
+  .refine(
+    (data) => {
+      if (data.title === "Other" && !data.customTitle) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Please specify the job title",
+      path: ["customTitle"],
+    },
+  );
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -72,13 +85,19 @@ export default function Recruiters() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [organizationType, setOrganizationType] = useState<"agency" | "corporate">("agency");
+  const [organizationType, setOrganizationType] = useState<
+    "agency" | "corporate"
+  >("agency");
 
   useEffect(() => {
     document.title = "For Recruiters | Reduce noise. Faster shortlists.";
   }, []);
 
-  const { data: jobsData, isLoading } = useQuery<{ success: boolean; count: number; jobs: Job[] }>({
+  const { data: jobsData, isLoading } = useQuery<{
+    success: boolean;
+    count: number;
+    jobs: Job[];
+  }>({
     queryKey: ["/api/jobs"],
   });
 
@@ -104,15 +123,18 @@ export default function Recruiters() {
 
   const mutation = useMutation({
     mutationFn: async (data: FormData) => {
-      const finalTitle = data.title === "Other" ? data.customTitle || "" : data.title;
-      
+      const finalTitle =
+        data.title === "Other" ? data.customTitle || "" : data.title;
+
       // Remove leading 0 from WhatsApp number before combining with country code
       let whatsappNumber = data.whatsappContact.trim();
       if (whatsappNumber.startsWith("0")) {
         whatsappNumber = whatsappNumber.substring(1);
       }
-      const fullWhatsApp = whatsappNumber ? `${data.countryCode} ${whatsappNumber}` : "";
-      
+      const fullWhatsApp = whatsappNumber
+        ? `${data.countryCode} ${whatsappNumber}`
+        : "";
+
       const { customTitle, countryCode, whatsappContact, ...restData } = data;
       const response = await apiRequest("POST", "/api/jobs", {
         ...restData,
@@ -147,49 +169,58 @@ export default function Recruiters() {
     {
       icon: <CheckCircle className="text-amber" size={24} />,
       title: "Verify employers & ads",
-      description: "All job posts verified. No more time wasted on fake listings."
+      description:
+        "All job posts verified. No more time wasted on fake listings.",
     },
     {
       icon: <FileText className="text-amber" size={24} />,
       title: "Required salary ranges",
-      description: "Every job includes transparent salary info. Build trust, save time."
+      description:
+        "Every job includes transparent salary info. Build trust, save time.",
     },
     {
       icon: <Download className="text-amber" size={24} />,
       title: "Export to Pnet/CJ/Adzuna",
-      description: "One-click export to all major SA job boards. Post once, reach everywhere."
+      description:
+        "One-click export to all major SA job boards. Post once, reach everywhere.",
     },
     {
       icon: <Kanban className="text-amber" size={24} />,
       title: "Pipeline Kanban",
-      description: "Visual pipeline with drag-and-drop. Track every candidate at a glance."
-    }
+      description:
+        "Visual pipeline with drag-and-drop. Track every candidate at a glance.",
+    },
   ];
 
   const corporateFeatures = [
     {
       icon: <CheckCircle className="text-amber" size={24} />,
       title: "Internal talent pool",
-      description: "Build and maintain your company's talent database for future openings."
+      description:
+        "Build and maintain your company's talent database for future openings.",
     },
     {
       icon: <FileText className="text-amber" size={24} />,
       title: "EE/AA compliance",
-      description: "Automated Employment Equity reporting and BBBEE scorecard tracking."
+      description:
+        "Automated Employment Equity reporting and BBBEE scorecard tracking.",
     },
     {
       icon: <Download className="text-amber" size={24} />,
       title: "Department workflows",
-      description: "Custom hiring workflows for each department with approval chains."
+      description:
+        "Custom hiring workflows for each department with approval chains.",
     },
     {
       icon: <Kanban className="text-amber" size={24} />,
       title: "Multi-role tracking",
-      description: "Manage multiple open positions across departments simultaneously."
-    }
+      description:
+        "Manage multiple open positions across departments simultaneously.",
+    },
   ];
 
-  const features = organizationType === "agency" ? agencyFeatures : corporateFeatures;
+  const features =
+    organizationType === "agency" ? agencyFeatures : corporateFeatures;
 
   const saLocations = [
     "Johannesburg",
@@ -202,7 +233,7 @@ export default function Recruiters() {
     "Polokwane",
     "Nelspruit",
     "Kimberley",
-    "Remote"
+    "Remote",
   ];
 
   const employmentTypes = [
@@ -210,7 +241,7 @@ export default function Recruiters() {
     "Contract",
     "Temporary",
     "Part-time",
-    "Internship"
+    "Internship",
   ];
 
   const industries = [
@@ -224,19 +255,20 @@ export default function Recruiters() {
     "Construction",
     "Legal",
     "Marketing",
-    "Other"
+    "Other",
   ];
 
-  const filteredJobs = jobsData?.jobs?.filter((job) => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    return (
-      job.title.toLowerCase().includes(search) ||
-      job.company.toLowerCase().includes(search) ||
-      job.location.toLowerCase().includes(search) ||
-      job.industry.toLowerCase().includes(search)
-    );
-  }) || [];
+  const filteredJobs =
+    jobsData?.jobs?.filter((job) => {
+      if (!searchTerm) return true;
+      const search = searchTerm.toLowerCase();
+      return (
+        job.title.toLowerCase().includes(search) ||
+        job.company.toLowerCase().includes(search) ||
+        job.location.toLowerCase().includes(search) ||
+        job.industry.toLowerCase().includes(search)
+      );
+    }) || [];
 
   return (
     <main id="main-content">
@@ -245,7 +277,7 @@ export default function Recruiters() {
         description="Purpose-built tools for SA recruiters. Verify employers, require salary transparency, and export to all major job boards."
         breadcrumb="For Recruiters"
       />
-      
+
       {/* Organization Type Toggle */}
       <Section className="py-8">
         <div className="max-w-4xl mx-auto">
@@ -256,9 +288,10 @@ export default function Recruiters() {
                 variant={organizationType === "agency" ? "default" : "ghost"}
                 className={`
                   px-8 py-6 text-lg font-semibold rounded-lg transition-all
-                  ${organizationType === "agency" 
-                    ? "bg-amber-gradient text-charcoal hover:opacity-90 shadow-md" 
-                    : "text-muted-foreground hover:text-foreground hover-elevate"
+                  ${
+                    organizationType === "agency"
+                      ? "bg-amber-gradient text-charcoal hover:opacity-90 shadow-md"
+                      : "text-muted-foreground hover:text-foreground hover-elevate"
                   }
                 `}
                 onClick={() => setOrganizationType("agency")}
@@ -271,9 +304,10 @@ export default function Recruiters() {
                 variant={organizationType === "corporate" ? "default" : "ghost"}
                 className={`
                   px-8 py-6 text-lg font-semibold rounded-lg transition-all
-                  ${organizationType === "corporate" 
-                    ? "bg-amber-gradient text-charcoal hover:opacity-90 shadow-md" 
-                    : "text-muted-foreground hover:text-foreground hover-elevate"
+                  ${
+                    organizationType === "corporate"
+                      ? "bg-amber-gradient text-charcoal hover:opacity-90 shadow-md"
+                      : "text-muted-foreground hover:text-foreground hover-elevate"
                   }
                 `}
                 onClick={() => setOrganizationType("corporate")}
@@ -289,18 +323,33 @@ export default function Recruiters() {
       <Section>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
           <div>
-            <h2 className="text-3xl font-serif font-semibold mb-6 text-white-brand" data-testid="text-section-title">
-              {organizationType === "agency" 
-                ? "Everything you need to recruit smarter" 
+            <h2
+              className="text-3xl font-serif font-semibold mb-6 text-white-brand"
+              data-testid="text-section-title"
+            >
+              {organizationType === "agency"
+                ? "Everything you need to recruit smarter"
                 : "Enterprise hiring made simple"}
             </h2>
             <div className="space-y-6">
               {features.map((feature, idx) => (
-                <div key={idx} className="flex gap-4" data-testid={`feature-${idx}`}>
+                <div
+                  key={idx}
+                  className="flex gap-4"
+                  data-testid={`feature-${idx}`}
+                >
                   <div className="flex-shrink-0">{feature.icon}</div>
                   <div>
-                    <h3 className="font-semibold mb-1 text-white-brand" data-testid="text-feature-title">{feature.title}</h3>
-                    <p className="text-sm text-[#ffffff]" data-testid="text-feature-description">
+                    <h3
+                      className="font-semibold mb-1 text-white-brand"
+                      data-testid="text-feature-title"
+                    >
+                      {feature.title}
+                    </h3>
+                    <p
+                      className="text-sm text-[#ffffff]"
+                      data-testid="text-feature-description"
+                    >
                       {feature.description}
                     </p>
                   </div>
@@ -311,8 +360,8 @@ export default function Recruiters() {
           <Card className="p-8">
             <div className="aspect-video bg-gradient-to-br from-amber/10 to-transparent rounded-lg flex items-center justify-center border">
               <p className="text-slate" data-testid="text-mock-ui">
-                {organizationType === "agency" 
-                  ? "[Kanban Pipeline Mock UI]" 
+                {organizationType === "agency"
+                  ? "[Kanban Pipeline Mock UI]"
                   : "[Department Workflow Mock UI]"}
               </p>
             </div>
@@ -320,21 +369,44 @@ export default function Recruiters() {
         </div>
 
         <div className="bg-card rounded-2xl p-8 mb-16">
-          <h3 className="text-2xl font-serif font-semibold mb-8 text-center text-[#70787e]" data-testid="text-stats-title">
-            {organizationType === "agency" 
-              ? "Real results from SA recruiters" 
+          <h3
+            className="text-2xl font-serif font-semibold mb-8 text-center text-[#70787e]"
+            data-testid="text-stats-title"
+          >
+            {organizationType === "agency"
+              ? "Real results from SA recruiters"
               : "Real results from SA companies"}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {organizationType === "agency" ? (
               <>
-                <Stat value="↓50%" label="Time-to-shortlist" trend="down" color="amber" />
-                <Stat value="↓22%" label="Cost-per-hire" trend="down" color="amber" />
+                <Stat
+                  value="↓50%"
+                  label="Time-to-shortlist"
+                  trend="down"
+                  color="amber"
+                />
+                <Stat
+                  value="↓22%"
+                  label="Cost-per-hire"
+                  trend="down"
+                  color="amber"
+                />
               </>
             ) : (
               <>
-                <Stat value="↓45%" label="Time-to-hire" trend="down" color="amber" />
-                <Stat value="↑30%" label="EE/AA compliance" trend="up" color="amber" />
+                <Stat
+                  value="↓45%"
+                  label="Time-to-hire"
+                  trend="down"
+                  color="amber"
+                />
+                <Stat
+                  value="↑30%"
+                  label="EE/AA compliance"
+                  trend="up"
+                  color="amber"
+                />
               </>
             )}
           </div>
@@ -344,12 +416,15 @@ export default function Recruiters() {
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
             <div>
-              <h2 className="text-3xl font-serif font-semibold mb-2 text-white-brand" data-testid="text-jobs-title">
+              <h2
+                className="text-3xl font-serif font-semibold mb-2 text-white-brand"
+                data-testid="text-jobs-title"
+              >
                 Job Postings
               </h2>
               <p className="text-[#ffffff]">
-                {organizationType === "agency" 
-                  ? "Post jobs with mandatory salary ranges and WhatsApp contact" 
+                {organizationType === "agency"
+                  ? "Post jobs with mandatory salary ranges and WhatsApp contact"
                   : "Post internal roles with EE/AA tracking and department workflows"}
               </p>
             </div>
@@ -365,9 +440,17 @@ export default function Recruiters() {
 
           {showForm && (
             <Card className="p-8 mb-8">
-              <h3 className="text-xl font-semibold mb-6 text-white-brand" data-testid="text-form-title">Create Job Posting</h3>
+              <h3
+                className="text-xl font-semibold mb-6 text-white-brand"
+                data-testid="text-form-title"
+              >
+                Create Job Posting
+              </h3>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-6"
+                >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
@@ -375,7 +458,10 @@ export default function Recruiters() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Job Title *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-job-title">
                                 <SelectValue placeholder="Select job title" />
@@ -438,7 +524,10 @@ export default function Recruiters() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Location *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-location">
                                 <SelectValue placeholder="Select location" />
@@ -463,7 +552,10 @@ export default function Recruiters() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Employment Type *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-employment-type">
                                 <SelectValue placeholder="Select type" />
@@ -494,7 +586,11 @@ export default function Recruiters() {
                               placeholder="e.g. 500000"
                               data-testid="input-salary-min"
                               {...field}
-                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value ? Number(e.target.value) : 0,
+                                )
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -514,7 +610,11 @@ export default function Recruiters() {
                               placeholder="e.g. 700000"
                               data-testid="input-salary-max"
                               {...field}
-                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : 0)}
+                              onChange={(e) =>
+                                field.onChange(
+                                  e.target.value ? Number(e.target.value) : 0,
+                                )
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -528,7 +628,10 @@ export default function Recruiters() {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Industry *</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
                             <FormControl>
                               <SelectTrigger data-testid="select-industry">
                                 <SelectValue placeholder="Select industry" />
@@ -555,7 +658,10 @@ export default function Recruiters() {
                           name="countryCode"
                           render={({ field }) => (
                             <FormItem className="w-[180px]">
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select
+                                onValueChange={field.onChange}
+                                defaultValue={field.value}
+                              >
                                 <FormControl>
                                   <SelectTrigger data-testid="select-country-code">
                                     <SelectValue placeholder="Code" />
@@ -563,7 +669,10 @@ export default function Recruiters() {
                                 </FormControl>
                                 <SelectContent className="max-h-[300px]">
                                   {COUNTRY_CODES.map((cc) => (
-                                    <SelectItem key={cc.code} value={cc.dialCode}>
+                                    <SelectItem
+                                      key={cc.code}
+                                      value={cc.dialCode}
+                                    >
                                       {cc.dialCode} {cc.country}
                                     </SelectItem>
                                   ))}
@@ -655,7 +764,10 @@ export default function Recruiters() {
 
           <div className="mb-6">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
               <Input
                 placeholder="Search jobs by title, company, location, or industry..."
                 className="pl-10"
@@ -673,7 +785,10 @@ export default function Recruiters() {
           ) : filteredJobs.length === 0 ? (
             <Card className="p-12 text-center">
               <Briefcase className="mx-auto mb-4 text-slate" size={48} />
-              <h3 className="text-xl font-semibold mb-2 text-[#70787e]" data-testid="text-no-jobs">
+              <h3
+                className="text-xl font-semibold mb-2 text-[#70787e]"
+                data-testid="text-no-jobs"
+              >
                 {searchTerm ? "No jobs found" : "No jobs posted yet"}
               </h3>
               <p className="text-slate mb-4">
@@ -682,7 +797,11 @@ export default function Recruiters() {
                   : "Be the first to post a job with transparent salary ranges"}
               </p>
               {!showForm && !searchTerm && (
-                <Button className="bg-amber-gradient text-charcoal hover:opacity-90" onClick={() => setShowForm(true)} data-testid="button-post-first">
+                <Button
+                  className="bg-amber-gradient text-charcoal hover:opacity-90"
+                  onClick={() => setShowForm(true)}
+                  data-testid="button-post-first"
+                >
                   Post the first job
                 </Button>
               )}
@@ -690,17 +809,30 @@ export default function Recruiters() {
           ) : (
             <div className="grid grid-cols-1 gap-6">
               {filteredJobs.map((job) => (
-                <Card key={job.id} className="p-6 hover-elevate" data-testid={`card-job-${job.id}`}>
+                <Card
+                  key={job.id}
+                  className="p-6 hover-elevate"
+                  data-testid={`card-job-${job.id}`}
+                >
                   <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
                     <div>
-                      <h3 className="text-xl font-semibold mb-2 text-white-brand" data-testid="text-job-title">
+                      <h3
+                        className="text-xl font-semibold mb-2 text-white-brand"
+                        data-testid="text-job-title"
+                      >
                         {job.title}
                       </h3>
-                      <p className="text-lg text-slate mb-3" data-testid="text-job-company">
+                      <p
+                        className="text-lg text-slate mb-3"
+                        data-testid="text-job-company"
+                      >
                         {job.company}
                       </p>
                     </div>
-                    <Badge className="bg-amber/10 text-amber border-0 text-sm" data-testid="badge-employment-type">
+                    <Badge
+                      className="bg-amber/10 text-amber border-0 text-sm"
+                      data-testid="badge-employment-type"
+                    >
                       {job.employmentType}
                     </Badge>
                   </div>
@@ -708,21 +840,29 @@ export default function Recruiters() {
                   <div className="flex flex-wrap gap-4 mb-4 text-sm text-slate">
                     <div className="flex items-center gap-2">
                       <MapPin size={16} />
-                      <span data-testid="text-job-location">{job.location}</span>
+                      <span data-testid="text-job-location">
+                        {job.location}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <DollarSign size={16} />
                       <span data-testid="text-job-salary">
-                        R{job.salaryMin.toLocaleString()} - R{job.salaryMax.toLocaleString()}
+                        R{job.salaryMin.toLocaleString()} - R
+                        {job.salaryMax.toLocaleString()}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Briefcase size={16} />
-                      <span data-testid="text-job-industry">{job.industry}</span>
+                      <span data-testid="text-job-industry">
+                        {job.industry}
+                      </span>
                     </div>
                   </div>
 
-                  <p className="text-slate mb-4 line-clamp-3" data-testid="text-job-description">
+                  <p
+                    className="text-slate mb-4 line-clamp-3"
+                    data-testid="text-job-description"
+                  >
                     {job.description}
                   </p>
 
@@ -730,7 +870,12 @@ export default function Recruiters() {
                     <Button
                       className="bg-amber-gradient text-charcoal hover:opacity-90"
                       size="sm"
-                      onClick={() => window.open(`https://wa.me/${job.whatsappContact.replace(/\D/g, '')}`, '_blank')}
+                      onClick={() =>
+                        window.open(
+                          `https://wa.me/${job.whatsappContact.replace(/\D/g, "")}`,
+                          "_blank",
+                        )
+                      }
                       data-testid="button-whatsapp"
                     >
                       <MessageCircle size={16} className="mr-2" />
@@ -760,11 +905,16 @@ export default function Recruiters() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
           <Card className="p-6">
             <div className="aspect-video bg-gradient-to-br from-violet/10 to-transparent rounded-lg flex items-center justify-center border mb-4">
-              <p className="text-muted-foreground text-sm">[Salary Transparency Mock]</p>
+              <p className="text-muted-foreground text-sm">
+                [Salary Transparency Mock]
+              </p>
             </div>
-            <h3 className="font-semibold mb-2" data-testid="text-mock-title">Post with mandatory salary ranges</h3>
+            <h3 className="font-semibold mb-2" data-testid="text-mock-title">
+              Post with mandatory salary ranges
+            </h3>
             <p className="text-sm text-muted-foreground">
-              Build trust and reduce time-wasters with transparent salary info on every post.
+              Build trust and reduce time-wasters with transparent salary info
+              on every post.
             </p>
           </Card>
           <Card className="p-6">
@@ -774,7 +924,9 @@ export default function Recruiters() {
                 <p className="text-muted-foreground text-sm">CSV Export</p>
               </div>
             </div>
-            <h3 className="font-semibold mb-2" data-testid="text-mock-title">EE Report Export</h3>
+            <h3 className="font-semibold mb-2" data-testid="text-mock-title">
+              EE Report Export
+            </h3>
             <p className="text-sm text-muted-foreground">
               One-click Employment Equity reports ready for submission.
             </p>
@@ -801,20 +953,26 @@ export default function Recruiters() {
         </div>
       </Section>
       <Section id="pricing">
-        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-pricing-title">
-          {organizationType === "agency" 
-            ? "Pricing for Recruiting Agencies" 
+        <h2
+          className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand"
+          data-testid="text-pricing-title"
+        >
+          {organizationType === "agency"
+            ? "Pricing for Recruiting Agencies"
             : "Pricing for Corporate Companies"}
         </h2>
         <p className="text-center mb-12 max-w-2xl mx-auto text-[#ffffff]">
-          {organizationType === "agency" 
-            ? "Choose the plan that fits your recruitment needs. All plans include POPIA compliance and WhatsApp integration." 
+          {organizationType === "agency"
+            ? "Choose the plan that fits your recruitment needs. All plans include POPIA compliance and WhatsApp integration."
             : "Enterprise-grade hiring solutions with EE/AA compliance and multi-department support. All plans include POPIA compliance."}
         </p>
         <PricingTable plans={recruiterPricingPlans} />
       </Section>
       <Section className="bg-graphite" id="faq">
-        <h2 className="text-3xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-faq-title">
+        <h2
+          className="text-3xl font-serif font-semibold text-center mb-12 text-white-brand"
+          data-testid="text-faq-title"
+        >
           Recruiter FAQs
         </h2>
         <div className="max-w-3xl mx-auto">
