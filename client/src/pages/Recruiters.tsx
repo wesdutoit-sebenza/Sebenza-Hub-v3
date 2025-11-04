@@ -146,46 +146,46 @@ export default function Recruiters() {
   const agencyFeatures = [
     {
       icon: <CheckCircle className="text-amber" size={24} />,
-      title: "Your custom agency feature 1",
-      description: "Your custom description for recruiting agencies feature 1."
+      title: "Verify employers & ads",
+      description: "All job posts verified. No more time wasted on fake listings."
     },
     {
       icon: <FileText className="text-amber" size={24} />,
-      title: "Your custom agency feature 2",
-      description: "Your custom description for recruiting agencies feature 2."
+      title: "Required salary ranges",
+      description: "Every job includes transparent salary info. Build trust, save time."
     },
     {
       icon: <Download className="text-amber" size={24} />,
-      title: "Your custom agency feature 3",
-      description: "Your custom description for recruiting agencies feature 3."
+      title: "Export to Pnet/CJ/Adzuna",
+      description: "One-click export to all major SA job boards. Post once, reach everywhere."
     },
     {
       icon: <Kanban className="text-amber" size={24} />,
-      title: "Your custom agency feature 4",
-      description: "Your custom description for recruiting agencies feature 4."
+      title: "Pipeline Kanban",
+      description: "Visual pipeline with drag-and-drop. Track every candidate at a glance."
     }
   ];
 
   const corporateFeatures = [
     {
       icon: <CheckCircle className="text-amber" size={24} />,
-      title: "Your custom corporate feature 1",
-      description: "Your custom description for corporate companies feature 1."
+      title: "Internal talent pool",
+      description: "Build and maintain your company's talent database for future openings."
     },
     {
       icon: <FileText className="text-amber" size={24} />,
-      title: "Your custom corporate feature 2",
-      description: "Your custom description for corporate companies feature 2."
+      title: "EE/AA compliance",
+      description: "Automated Employment Equity reporting and BBBEE scorecard tracking."
     },
     {
       icon: <Download className="text-amber" size={24} />,
-      title: "Your custom corporate feature 3",
-      description: "Your custom description for corporate companies feature 3."
+      title: "Department workflows",
+      description: "Custom hiring workflows for each department with approval chains."
     },
     {
       icon: <Kanban className="text-amber" size={24} />,
-      title: "Your custom corporate feature 4",
-      description: "Your custom description for corporate companies feature 4."
+      title: "Multi-role tracking",
+      description: "Manage multiple open positions across departments simultaneously."
     }
   ];
 
@@ -292,7 +292,7 @@ export default function Recruiters() {
             <h2 className="text-3xl font-serif font-semibold mb-6 text-white-brand" data-testid="text-section-title">
               {organizationType === "agency" 
                 ? "Everything you need to recruit smarter" 
-                : "Enterprise hiring made simple"}
+                : "Corporate hiring made simple"}
             </h2>
             <div className="space-y-6">
               {features.map((feature, idx) => (
