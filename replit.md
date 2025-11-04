@@ -15,8 +15,8 @@ Preferred communication style: Simple, everyday language.
 
 ### Technical Implementations
 - **Frontend**: Developed with React and TypeScript (Vite), using Wouter for routing and TanStack React Query for state management.
-    - **Recruiters Portal**: Includes job posting forms with WhatsApp integration, an AI Job Description Generator, and a status-based workflow (Draft, Live, Paused, Closed, Filled) with conditional validation. Features interactive sticky form navigation, enhanced skills structure with level/priority attributes, a job import feature (document upload/text paste with AI extraction), an AI Company Description Assistant, PDF export and preview functionality, and an automatic "Days Left" calculator for job closing dates.
-    - **Individuals Portal**: Supports multiple CV management (with AI-powered circular cropping for photos and PDF previews), profile management, competency test access, and an AI Interview Coach.
+    - **Recruiters Portal**: Includes job posting forms with WhatsApp integration, an AI Job Description Generator, and a status-based workflow (Draft, Live, Paused, Closed, Filled) with conditional validation. Features interactive sticky form navigation, enhanced skills structure with level/priority attributes, a job import feature (document upload/text paste with AI extraction), an AI Company Description Assistant, PDF export and preview functionality, automatic "Days Left" calculator for job closing dates, and **Interview Scheduling** (November 2025) with Google Calendar integration for managing candidate interviews.
+    - **Individuals Portal**: Supports multiple CV management (with AI-powered circular cropping for photos and PDF previews), profile management, competency test access, **Interview Booking** capability, and an AI Interview Coach.
         - **Job Searches Collapsible Tree** (November 2025): Reorganized Job Searches section into a collapsible sidebar tree structure with four sub-sections:
             - **All Jobs** (`/dashboard/individual/jobs/all`): Comprehensive search and filter interface with search bar, location/industry/type filters. Shows all job postings (any status) with total count and full metadata. Includes client-side filtering for refined results
             - **Auto Job Search** (`/dashboard/individual/jobs/auto`): AI-powered automatic job matching where users configure preferences (job titles, locations, industries, employment type, minimum salary) for automatic notifications when jobs match their criteria
@@ -37,6 +37,7 @@ Preferred communication style: Simple, everyday language.
     - **Admin Setup**: Features a secure admin creation system via an endpoint protected by `ADMIN_SETUP_SECRET`.
 - **Data Storage**: Utilizes PostgreSQL (Neon) with Drizzle ORM and the pgvector extension, employing UUID primary keys.
     - **Competency Testing Database**: Features a five-table schema (`competency_tests`, `test_sections`, `test_items`, `test_attempts`, `test_responses`) with JSONB for flexible configuration and anti-cheat event tracking.
+    - **Interview Scheduling Database** (November 2025): Five-table schema (`connected_accounts`, `interview_pools`, `pool_members`, `interviews`, `holds`) supporting per-recruiter Google Calendar OAuth, availability management, interview booking, and calendar sync.
 
 ### System Design Choices
 - **Monorepo Structure**: Organized into `client/`, `server/`, and `shared/` directories.

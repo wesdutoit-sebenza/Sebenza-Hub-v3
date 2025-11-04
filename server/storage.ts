@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type UpsertUser, type Subscriber, type InsertSubscriber, type Job, type InsertJob, type CV, type InsertCV, type RefreshToken, type InsertRefreshToken } from "@shared/schema";
+import { type User, type InsertUser, type UpsertUser, type Subscriber, type InsertSubscriber, type Job, type InsertJob, type CV, type InsertCV, type RefreshToken, type InsertRefreshToken, type ConnectedAccount, type InsertConnectedAccount, type InterviewPool, type InsertInterviewPool, type Interview, type InsertInterview } from "@shared/schema";
 import { randomUUID } from "crypto";
 
 export interface IStorage {
@@ -24,6 +24,27 @@ export interface IStorage {
   deleteRefreshToken(hashedToken: string): Promise<void>;
   deleteUserRefreshTokens(userId: string): Promise<void>;
   cleanupExpiredTokens(): Promise<void>;
+  
+  // Connected Accounts
+  saveConnectedAccount(account: InsertConnectedAccount): Promise<ConnectedAccount>;
+  getConnectedAccount(userId: string, provider: string): Promise<ConnectedAccount | undefined>;
+  updateConnectedAccount(id: string, updates: Partial<InsertConnectedAccount>): Promise<void>;
+  getUserConnectedAccounts(userId: string): Promise<ConnectedAccount[]>;
+  
+  // Interview Pools
+  createInterviewPool(pool: InsertInterviewPool): Promise<InterviewPool>;
+  getInterviewPool(id: string): Promise<InterviewPool | undefined>;
+  getOrganizationPools(organizationId: string): Promise<InterviewPool[]>;
+  updateInterviewPool(id: string, updates: Partial<InsertInterviewPool>): Promise<void>;
+  
+  // Interviews
+  createInterview(interview: InsertInterview): Promise<Interview>;
+  getInterview(id: string): Promise<Interview | undefined>;
+  getInterviewsByOrganization(organizationId: string): Promise<Interview[]>;
+  getInterviewsByCandidate(candidateEmail: string): Promise<Interview[]>;
+  getInterviewsByInterviewer(interviewerUserId: string): Promise<Interview[]>;
+  updateInterview(id: string, updates: Partial<InsertInterview>): Promise<void>;
+  getUpcomingInterviews(organizationId: string, limit?: number): Promise<Interview[]>;
 }
 
 export class MemStorage implements IStorage {

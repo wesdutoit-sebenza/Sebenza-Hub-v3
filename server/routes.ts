@@ -6416,6 +6416,303 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
     }
   });
 
+  // ============================================================================
+  // INTERVIEW SCHEDULING ROUTES
+  // ============================================================================
+
+  // Google Calendar OAuth - Initiate connection
+  app.get("/api/calendar/google/connect", authenticateSession, async (req, res) => {
+    try {
+      const userId = req.user!.user!.id;
+      const baseUrl = `https://${req.get('host')}`;
+      
+      const { getAuthorizationUrl } = await import('./calendar/google-oauth');
+      const authUrl = getAuthorizationUrl(userId, baseUrl);
+      
+      res.json({ success: true, authUrl });
+    } catch (error: any) {
+      console.error("[Calendar] Error initiating Google OAuth:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to initiate calendar connection",
+      });
+    }
+  });
+
+  // Google Calendar OAuth - Callback handler
+  app.get("/api/calendar/google/callback", async (req, res) => {
+    try {
+      const { code, state } = req.query;
+      
+      if (!code || !state) {
+        return res.redirect('/dashboard/recruiter/settings?calendar=error');
+      }
+      
+      const userId = state as string;
+      const baseUrl = `https://${req.get('host')}`;
+      
+      const { handleCallback } = await import('./calendar/google-oauth');
+      const result = await handleCallback(code as string, userId, baseUrl, dbStorage);
+      
+      res.redirect('/dashboard/recruiter/settings?calendar=success');
+    } catch (error: any) {
+      console.error("[Calendar] OAuth callback error:", error);
+      res.redirect('/dashboard/recruiter/settings?calendar=error');
+    }
+  });
+
+  // Disconnect Google Calendar
+  app.delete("/api/calendar/google/disconnect", authenticateSession, async (req, res) => {
+    try {
+      const userId = req.user!.user!.id;
+      
+      const { disconnectCalendar } = await import('./calendar/google-oauth');
+      await disconnectCalendar(userId, dbStorage);
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("[Calendar] Error disconnecting calendar:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to disconnect calendar",
+      });
+    }
+  });
+
+  // Get calendar connection status
+  app.get("/api/calendar/status", authenticateSession, async (req, res) => {
+    try {
+      const userId = req.user!.user!.id;
+      
+      const account = await dbStorage.getConnectedAccount(userId, 'google');
+      
+      res.json({
+        success: true,
+        connected: !!account,
+        email: account?.email || null,
+      });
+    } catch (error: any) {
+      console.error("[Calendar] Error getting status:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get calendar status",
+      });
+    }
+  });
+
+  // Get available interview slots
+  app.post("/api/interviews/availability", authenticateSession, async (req, res) => {
+    try {
+      const { interviewerUserId, startDate, endDate, workingHours, slotInterval, meetingDuration } = req.body;
+      
+      const { getInterviewAvailability } = await import('./calendar/booking-service');
+      
+      const slots = await getInterviewAvailability(
+        {
+          interviewerUserId,
+          startDate: new Date(startDate),
+          endDate: new Date(endDate),
+          workingHours,
+          slotInterval,
+          meetingDuration,
+        },
+        dbStorage
+      );
+      
+      res.json({
+        success: true,
+        slots: slots.map(s => ({
+          start: s.start.toISOString(),
+          end: s.end.toISOString(),
+        })),
+      });
+    } catch (error: any) {
+      console.error("[Interviews] Error getting availability:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get availability",
+      });
+    }
+  });
+
+  // Book an interview
+  app.post("/api/interviews", authenticateSession, async (req, res) => {
+    try {
+      const {
+        organizationId,
+        interviewerUserId,
+        candidateName,
+        candidateEmail,
+        candidatePhone,
+        jobId,
+        poolId,
+        title,
+        description,
+        startTime,
+        endTime,
+        timezone,
+      } = req.body;
+      
+      const { bookInterview } = await import('./calendar/booking-service');
+      
+      const interview = await bookInterview(
+        {
+          organizationId,
+          interviewerUserId,
+          candidateName,
+          candidateEmail,
+          candidatePhone,
+          jobId,
+          poolId,
+          title,
+          description,
+          startTime: new Date(startTime),
+          endTime: new Date(endTime),
+          timezone,
+        },
+        dbStorage
+      );
+      
+      res.json({
+        success: true,
+        interview,
+      });
+    } catch (error: any) {
+      console.error("[Interviews] Error booking interview:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to book interview",
+      });
+    }
+  });
+
+  // Get interviews for organization
+  app.get("/api/interviews/organization/:organizationId", authenticateSession, async (req, res) => {
+    try {
+      const { organizationId } = req.params;
+      
+      const interviews = await dbStorage.getInterviewsByOrganization(organizationId);
+      
+      res.json({
+        success: true,
+        interviews,
+      });
+    } catch (error: any) {
+      console.error("[Interviews] Error getting interviews:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get interviews",
+      });
+    }
+  });
+
+  // Get upcoming interviews for organization
+  app.get("/api/interviews/upcoming/:organizationId", authenticateSession, async (req, res) => {
+    try {
+      const { organizationId } = req.params;
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      
+      const interviews = await dbStorage.getUpcomingInterviews(organizationId, limit);
+      
+      res.json({
+        success: true,
+        interviews,
+      });
+    } catch (error: any) {
+      console.error("[Interviews] Error getting upcoming interviews:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get upcoming interviews",
+      });
+    }
+  });
+
+  // Get interviews for candidate
+  app.get("/api/interviews/candidate/:email", authenticateSession, async (req, res) => {
+    try {
+      const { email } = req.params;
+      
+      const interviews = await dbStorage.getInterviewsByCandidate(email);
+      
+      res.json({
+        success: true,
+        interviews,
+      });
+    } catch (error: any) {
+      console.error("[Interviews] Error getting candidate interviews:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get candidate interviews",
+      });
+    }
+  });
+
+  // Get interviews for interviewer
+  app.get("/api/interviews/interviewer/:userId", authenticateSession, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      const interviews = await dbStorage.getInterviewsByInterviewer(userId);
+      
+      res.json({
+        success: true,
+        interviews,
+      });
+    } catch (error: any) {
+      console.error("[Interviews] Error getting interviewer interviews:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to get interviewer interviews",
+      });
+    }
+  });
+
+  // Reschedule interview
+  app.patch("/api/interviews/:id/reschedule", authenticateSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { startTime, endTime } = req.body;
+      
+      const { rescheduleInterview } = await import('./calendar/booking-service');
+      
+      const interview = await rescheduleInterview(
+        id,
+        new Date(startTime),
+        new Date(endTime),
+        dbStorage
+      );
+      
+      res.json({
+        success: true,
+        interview,
+      });
+    } catch (error: any) {
+      console.error("[Interviews] Error rescheduling interview:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to reschedule interview",
+      });
+    }
+  });
+
+  // Cancel interview
+  app.delete("/api/interviews/:id", authenticateSession, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const { cancelInterview } = await import('./calendar/booking-service');
+      await cancelInterview(id, dbStorage);
+      
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("[Interviews] Error cancelling interview:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to cancel interview",
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

@@ -8,7 +8,8 @@
  * - Minimum notice periods
  */
 
-import { getFreeBusy } from './google-calendar';
+import { getCalendarClientForUser } from './google-oauth';
+import type { IStorage } from '../storage';
 
 export interface WorkingHours {
   start: number; // Hour (0-23)
@@ -128,26 +129,42 @@ function generateSlotsForDay(
 /**
  * Get available time slots for a single calendar
  * 
- * @param email - Calendar email to check
+ * @param userId - User ID of the calendar owner
  * @param startDate - Start of date range
  * @param endDate - End of date range
  * @param config - Availability configuration
+ * @param storage - Storage instance
  * @returns Array of available time slots
  */
 export async function getAvailableSlots(
-  email: string,
+  userId: string,
   startDate: Date,
   endDate: Date,
-  config: AvailabilityConfig
+  config: AvailabilityConfig,
+  storage: IStorage
 ): Promise<TimeSlot[]> {
-  // Get busy times from Google Calendar
-  const busyData = await getFreeBusy(
-    [email],
-    startDate.toISOString(),
-    endDate.toISOString()
-  );
+  // Get calendar client for this specific user
+  const calendar = await getCalendarClientForUser(userId, storage);
   
-  const busyWindows = busyData[email] || [];
+  // Get user's calendar email
+  const account = await storage.getConnectedAccount(userId, 'google');
+  if (!account) {
+    throw new Error('Calendar not connected for user');
+  }
+  
+  // Get busy times from Google Calendar using user's credentials
+  const response = await calendar.freebusy.query({
+    requestBody: {
+      timeMin: startDate.toISOString(),
+      timeMax: endDate.toISOString(),
+      items: [{ id: account.email }],
+    }
+  });
+  
+  const busyWindows = response.data.calendars?.[account.email]?.busy?.map(b => ({
+    start: b.start as string,
+    end: b.end as string,
+  })) || [];
   
   // Generate slots for each day in range
   const allSlots: TimeSlot[] = [];
@@ -173,29 +190,31 @@ export async function getAvailableSlots(
  * Get available slots for multiple calendars (intersection)
  * For panel interviews where multiple interviewers must be available
  * 
- * @param emails - Calendar emails to check
+ * @param userIds - User IDs of calendar owners
  * @param startDate - Start of date range
  * @param endDate - End of date range
  * @param config - Availability configuration
+ * @param storage - Storage instance
  * @returns Array of time slots where ALL calendars are available
  */
 export async function getAvailableSlotsMultiple(
-  emails: string[],
+  userIds: string[],
   startDate: Date,
   endDate: Date,
-  config: AvailabilityConfig
+  config: AvailabilityConfig,
+  storage: IStorage
 ): Promise<TimeSlot[]> {
-  if (emails.length === 0) {
+  if (userIds.length === 0) {
     return [];
   }
   
-  if (emails.length === 1) {
-    return getAvailableSlots(emails[0], startDate, endDate, config);
+  if (userIds.length === 1) {
+    return getAvailableSlots(userIds[0], startDate, endDate, config, storage);
   }
   
   // Get all availability for each calendar
   const allAvailability = await Promise.all(
-    emails.map(email => getAvailableSlots(email, startDate, endDate, config))
+    userIds.map(userId => getAvailableSlots(userId, startDate, endDate, config, storage))
   );
   
   // Find intersection: slots available for ALL calendars
@@ -223,29 +242,44 @@ export async function getAvailableSlotsMultiple(
  * Validate that a specific time slot is still available
  * Call this right before booking to prevent double-bookings
  * 
- * @param email - Calendar email
+ * @param userId - User ID of calendar owner
  * @param slotStart - Proposed slot start time
  * @param slotEnd - Proposed slot end time
  * @param config - Availability configuration
+ * @param storage - Storage instance
  * @returns true if slot is available, false otherwise
  */
 export async function validateSlot(
-  email: string,
+  userId: string,
   slotStart: Date,
   slotEnd: Date,
-  config: AvailabilityConfig
+  config: AvailabilityConfig,
+  storage: IStorage
 ): Promise<boolean> {
+  // Get calendar client for this specific user
+  const calendar = await getCalendarClientForUser(userId, storage);
+  const account = await storage.getConnectedAccount(userId, 'google');
+  
+  if (!account) {
+    throw new Error('Calendar not connected for user');
+  }
+  
   // Check slightly wider window to catch any conflicts
   const checkStart = addMinutes(slotStart, -30);
   const checkEnd = addMinutes(slotEnd, 30);
   
-  const busyData = await getFreeBusy(
-    [email],
-    checkStart.toISOString(),
-    checkEnd.toISOString()
-  );
+  const response = await calendar.freebusy.query({
+    requestBody: {
+      timeMin: checkStart.toISOString(),
+      timeMax: checkEnd.toISOString(),
+      items: [{ id: account.email }],
+    }
+  });
   
-  const busyWindows = busyData[email] || [];
+  const busyWindows = response.data.calendars?.[account.email]?.busy?.map(b => ({
+    start: b.start as string,
+    end: b.end as string,
+  })) || [];
   
   const slot = { start: slotStart, end: slotEnd };
   
