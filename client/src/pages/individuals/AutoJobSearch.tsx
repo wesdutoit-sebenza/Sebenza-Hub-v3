@@ -472,7 +472,9 @@ export default function AutoJobSearch() {
 
           {resultsData?.results && resultsData.results.length > 0 && (
             <div className="space-y-4">
-              {resultsData.results.map((match) => (
+              {[...resultsData.results]
+                .sort((a, b) => b.finalScore - a.finalScore)
+                .map((match) => (
                 <Card key={match.job.id} className="hover-elevate" data-testid={`match-card-${match.job.id}`}>
                   <CardHeader>
                     <div className="flex items-start justify-between gap-4">
@@ -591,7 +593,8 @@ export default function AutoJobSearch() {
                     </Button>
                   </CardContent>
                 </Card>
-              ))}
+              ))
+              }
             </div>
           )}
         </div>
