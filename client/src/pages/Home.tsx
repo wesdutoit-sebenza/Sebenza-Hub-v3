@@ -133,9 +133,7 @@ export default function Home() {
         </div>
       </Section>
       <Section className="bg-graphite" id="how-it-works">
-        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-how-it-works-title">
-          Hiring made simple
-        </h2>
+        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-how-it-works-title">Hiring, Simplified. Powered by Sebenza Hub.</h2>
         <p className="text-center mb-12 max-w-2xl mx-auto text-[#ffffff]">
           From posting to placement, Sebenza Hub streamlines every step of the recruitment journey.
         </p>
