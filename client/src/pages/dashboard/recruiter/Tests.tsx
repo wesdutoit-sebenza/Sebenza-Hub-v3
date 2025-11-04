@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Sparkles, FileText, Library, Loader2, Clock, Target, Users, Sliders } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -98,6 +98,24 @@ export default function RecruiterTests() {
       },
     },
   });
+
+  // Watch form values for reactive totals
+  const weights = useWatch({ control: form.control, name: "weights" });
+  const questionCounts = useWatch({ control: form.control, name: "questionCounts" });
+  const timeAllocations = useWatch({ control: form.control, name: "timeAllocations" });
+
+  // Calculate totals
+  const totalWeight = useMemo(() => {
+    return (weights?.skills || 0) + (weights?.aptitude || 0) + (weights?.workStyle || 0);
+  }, [weights]);
+
+  const totalQuestions = useMemo(() => {
+    return (questionCounts?.skills || 0) + (questionCounts?.aptitude || 0) + (questionCounts?.workStyle || 0);
+  }, [questionCounts]);
+
+  const totalTime = useMemo(() => {
+    return (timeAllocations?.skills || 0) + (timeAllocations?.aptitude || 0) + (timeAllocations?.workStyle || 0);
+  }, [timeAllocations]);
 
   // Generate and create test
   const handleGenerateTest = async (values: GenerateTestInput) => {
@@ -315,8 +333,8 @@ export default function RecruiterTests() {
                         <CardHeader className="pb-3">
                           <CardTitle className="text-base">Section Weights</CardTitle>
                           <CardDescription>
-                            Total: {form.watch("weights.skills") + form.watch("weights.aptitude") + form.watch("weights.workStyle")}% 
-                            {(form.watch("weights.skills") + form.watch("weights.aptitude") + form.watch("weights.workStyle")) > 100 && (
+                            Total: {totalWeight}% 
+                            {totalWeight > 100 && (
                               <span className="text-destructive ml-2">Exceeds 100%</span>
                             )}
                           </CardDescription>
@@ -404,7 +422,7 @@ export default function RecruiterTests() {
                         <CardHeader className="pb-3">
                           <CardTitle className="text-base">Number of Questions</CardTitle>
                           <CardDescription>
-                            Total: {form.watch("questionCounts.skills") + form.watch("questionCounts.aptitude") + form.watch("questionCounts.workStyle")} questions
+                            Total: {totalQuestions} questions
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="grid grid-cols-3 gap-3">
@@ -544,7 +562,7 @@ export default function RecruiterTests() {
                         <CardHeader className="pb-3">
                           <CardTitle className="text-base">Time Allocation (minutes)</CardTitle>
                           <CardDescription>
-                            Total: {form.watch("timeAllocations.skills") + form.watch("timeAllocations.aptitude") + form.watch("timeAllocations.workStyle")} minutes
+                            Total: {totalTime} minutes
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="grid grid-cols-3 gap-3">
