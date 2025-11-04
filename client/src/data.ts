@@ -79,7 +79,7 @@ export const recruiterPricingPlans = [
   },
   {
     name: "Recruiter Standard",
-    price: { monthly: 999, annual: 8990 },
+    price: { monthly: 799, annual: 7190 },
     description: "For growing recruitment agencies",
     features: [
       "Feature to be confirmed",
@@ -93,7 +93,7 @@ export const recruiterPricingPlans = [
   },
   {
     name: "Recruiter Premium",
-    price: { monthly: 2999, annual: 26990 },
+    price: { monthly: 1999, annual: 17990 },
     description: "Advanced features for professional recruiters",
     features: [
       "Feature to be confirmed",
