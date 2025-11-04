@@ -90,15 +90,15 @@ export async function rerankMatches(
     skills: candidateProfile.skills || [],
     experienceLevel: preferences.seniorityTarget || candidateProfile.experienceLevel,
     location: {
-      city: preferences.location?.city || candidateProfile.city,
-      province: preferences.location?.province || candidateProfile.province,
-      radiusKm: preferences.location?.radiusKm || 50
+      city: preferences.locationCity || candidateProfile.city,
+      province: preferences.locationProvince || candidateProfile.province,
+      radiusKm: preferences.radiusKm || 50
     },
     employmentTypes: preferences.employmentTypes || [],
     workArrangements: preferences.workArrangements || [],
     salary: {
-      min: preferences.salary?.min,
-      max: preferences.salary?.max
+      min: preferences.salaryMin,
+      max: preferences.salaryMax
     }
   };
 
