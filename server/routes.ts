@@ -6232,7 +6232,11 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
         preferences.topK || 10
       );
 
-      // Step 4: Save results to cache
+      // Step 4: Clear old results and save new ones
+      // First, delete all existing results for this user
+      await db.delete(autoSearchResults).where(eq(autoSearchResults.userId, user.id));
+
+      // Then insert the new results
       const resultInserts = rerankedMatches.map((match: any) => ({
         userId: user.id,
         jobId: match.jobId,
