@@ -5563,6 +5563,90 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
     }
   });
 
+  // Update test (including status changes for publish/archive)
+  app.patch("/api/competency-tests/:id", authenticateSession, async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      const testId = req.params.id;
+      const { status, title, jobTitle } = req.body;
+
+      // Get the test
+      const [test] = await db
+        .select()
+        .from(competencyTests)
+        .where(eq(competencyTests.id, testId))
+        .limit(1);
+
+      if (!test) {
+        return res.status(404).json({ success: false, message: "Test not found" });
+      }
+
+      // Verify user has access - either created it or has access via organization
+      const membership = await db
+        .select()
+        .from(memberships)
+        .where(and(
+          eq(memberships.userId, userId),
+          eq(memberships.organizationId, test.organizationId)
+        ))
+        .limit(1);
+
+      const hasOrgAccess = membership.length > 0;
+      const isCreator = test.createdByUserId === userId;
+
+      if (!hasOrgAccess && !isCreator) {
+        return res.status(403).json({ success: false, message: "Access denied" });
+      }
+
+      // Build update object
+      const updates: any = {
+        updatedAt: new Date(),
+      };
+
+      if (status !== undefined) {
+        if (!['draft', 'active', 'archived'].includes(status)) {
+          return res.status(400).json({ 
+            success: false, 
+            message: "Invalid status. Must be 'draft', 'active', or 'archived'" 
+          });
+        }
+        updates.status = status;
+      }
+
+      if (title !== undefined) {
+        updates.title = title;
+      }
+
+      if (jobTitle !== undefined) {
+        updates.jobTitle = jobTitle;
+      }
+
+      // Update the test
+      const [updatedTest] = await db
+        .update(competencyTests)
+        .set(updates)
+        .where(eq(competencyTests.id, testId))
+        .returning();
+
+      console.log(`[Test Updated] ${testId} - Status: ${updatedTest.status}`);
+
+      res.json({
+        success: true,
+        test: updatedTest
+      });
+    } catch (error: any) {
+      console.error("[Update Test] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to update test"
+      });
+    }
+  });
+
   // ===========================
   // Candidate Test-Taking Routes
   // ===========================
