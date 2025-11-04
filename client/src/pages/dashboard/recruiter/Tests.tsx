@@ -103,8 +103,13 @@ export default function RecruiterTests() {
   const handleGenerateTest = async (values: GenerateTestInput) => {
     setGeneratingTest(true);
     try {
-      // Step 1: Generate blueprint
-      const blueprintResponse = await apiRequest('POST', '/api/competency-tests/generate', values);
+      // Step 1: Generate blueprint with custom parameters
+      const blueprintResponse = await apiRequest('POST', '/api/competency-tests/generate', {
+        ...values,
+        weights: values.weights,
+        questionCounts: values.questionCounts,
+        timeAllocations: values.timeAllocations,
+      });
 
       const { blueprint } = await blueprintResponse.json();
 

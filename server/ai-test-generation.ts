@@ -178,6 +178,21 @@ export interface GenerateTestInput {
   industry?: string;
   seniority?: 'entry' | 'mid' | 'senior' | 'executive';
   languages?: string[];
+  weights?: {
+    skills: number;
+    aptitude: number;
+    workStyle: number;
+  };
+  questionCounts?: {
+    skills: number;
+    aptitude: number;
+    workStyle: number;
+  };
+  timeAllocations?: {
+    skills: number;
+    aptitude: number;
+    workStyle: number;
+  };
 }
 
 /**
@@ -185,6 +200,13 @@ export interface GenerateTestInput {
  */
 export async function generateTestBlueprint(input: GenerateTestInput): Promise<TestBlueprint> {
   const openai = getOpenAIClient();
+
+  // Calculate normalized weights (percentages to decimals)
+  const weights = input.weights ? {
+    skills: input.weights.skills / 100,
+    aptitude: input.weights.aptitude / 100,
+    work_style: input.weights.workStyle / 100,
+  } : { skills: 0.5, aptitude: 0.3, work_style: 0.2 };
 
   // Build the user prompt with all available context
   const userPrompt = `Generate a competency test blueprint for the following role:
@@ -197,6 +219,25 @@ ${input.companyValues ? `COMPANY VALUES:\n${input.companyValues}\n` : ''}
 ${input.industry ? `INDUSTRY: ${input.industry}\n` : ''}
 ${input.seniority ? `SENIORITY: ${input.seniority}\n` : ''}
 ${input.languages ? `LANGUAGES: ${input.languages.join(', ')}\n` : ''}
+
+${input.weights ? `SECTION WEIGHTS (must match exactly):
+- Skills: ${weights.skills} (${input.weights.skills}%)
+- Aptitude: ${weights.aptitude} (${input.weights.aptitude}%)
+- Work-Style: ${weights.work_style} (${input.weights.workStyle}%)
+` : ''}
+
+${input.questionCounts ? `QUESTION COUNTS (generate exactly this many):
+- Skills: ${input.questionCounts.skills} questions
+- Aptitude: ${input.questionCounts.aptitude} questions
+- Work-Style: ${input.questionCounts.workStyle} questions
+` : ''}
+
+${input.timeAllocations ? `TIME ALLOCATIONS (set section time limits):
+- Skills: ${input.timeAllocations.skills} minutes
+- Aptitude: ${input.timeAllocations.aptitude} minutes
+- Work-Style: ${input.timeAllocations.workStyle} minutes
+Total test duration: ${input.timeAllocations.skills + input.timeAllocations.aptitude + input.timeAllocations.workStyle} minutes
+` : ''}
 
 Generate a comprehensive, South African-compliant competency test with realistic scenarios and questions.`;
 
