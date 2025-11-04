@@ -1016,8 +1016,12 @@ export default function Recruiters() {
             ? "Choose the plan that fits your recruitment needs. All plans include POPIA compliance and WhatsApp integration."
             : "Enterprise-grade hiring solutions with EE/AA compliance and multi-department support. All plans include POPIA compliance."}
         </p>
-        <PricingTable 
-          plans={organizationType === "agency" ? recruiterPricingPlans : corporatePricingPlans} 
+        <PricingTable
+          plans={
+            organizationType === "agency"
+              ? recruiterPricingPlans
+              : corporatePricingPlans
+          }
         />
       </Section>
       <Section className="bg-graphite" id="faq">
