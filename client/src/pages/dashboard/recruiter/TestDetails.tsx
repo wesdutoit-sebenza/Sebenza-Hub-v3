@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { ArrowLeft, Clock, Users, Target, FileText, Shield, Calendar, Edit, Rocket, Archive, Share2, Copy, Check } from "lucide-react";
+import { ArrowLeft, Clock, Users, Target, FileText, Shield, Calendar, Edit, Rocket, Archive, Share2, Copy, Check, MessageCircle } from "lucide-react";
 import { Loader2 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -94,6 +94,14 @@ export default function TestDetails() {
       description: "Test link copied to clipboard",
     });
     setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const shareViaWhatsApp = () => {
+    if (!test) return;
+    const testUrl = `${window.location.origin}/test/${test.referenceNumber}`;
+    const message = `Hello! Please complete this competency test: ${test.title}\n\nTest Link: ${testUrl}\nReference Number: ${test.referenceNumber}\n\nDuration: ${test.durationMinutes} minutes`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   if (isLoading) {
@@ -317,6 +325,22 @@ export default function TestDetails() {
               <div>
                 <span className="font-medium">Reference Number:</span>{' '}
                 <span className="font-mono">{test.referenceNumber}</span>
+              </div>
+            </div>
+            <Separator />
+            <div>
+              <div className="text-sm font-medium mb-3">Share via</div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={shareViaWhatsApp}
+                  className="gap-2"
+                  data-testid="button-share-whatsapp"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  WhatsApp
+                </Button>
               </div>
             </div>
           </CardContent>
