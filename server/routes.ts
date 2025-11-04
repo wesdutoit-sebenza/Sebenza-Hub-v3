@@ -6452,7 +6452,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       const baseUrl = `https://${req.get('host')}`;
       
       const { handleCallback } = await import('./calendar/google-oauth');
-      const result = await handleCallback(code as string, userId, baseUrl, dbStorage);
+      const result = await handleCallback(code as string, userId, baseUrl, storage);
       
       res.redirect('/dashboard/recruiter/settings?calendar=success');
     } catch (error: any) {
@@ -6467,7 +6467,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       const userId = (req as any).user.id;
       
       const { disconnectCalendar } = await import('./calendar/google-oauth');
-      await disconnectCalendar(userId, dbStorage);
+      await disconnectCalendar(userId, storage);
       
       res.json({ success: true });
     } catch (error: any) {
@@ -6510,7 +6510,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       const baseUrl = `https://${req.get('host')}`;
       
       const { handleMicrosoftCallback } = await import('./calendar/microsoft-oauth');
-      const result = await handleMicrosoftCallback(code as string, state as string, baseUrl, dbStorage);
+      const result = await handleMicrosoftCallback(code as string, state as string, baseUrl, storage);
       
       res.redirect('/dashboard/recruiter/settings?calendar=success');
     } catch (error: any) {
@@ -6525,7 +6525,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       const userId = (req as any).user.id;
       
       const { disconnectMicrosoft } = await import('./calendar/microsoft-oauth');
-      await disconnectMicrosoft(userId, dbStorage);
+      await disconnectMicrosoft(userId, storage);
       
       res.json({ success: true });
     } catch (error: any) {
@@ -6568,7 +6568,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       const baseUrl = `https://${req.get('host')}`;
       
       const { handleZoomCallback } = await import('./calendar/zoom-oauth');
-      const result = await handleZoomCallback(code as string, state as string, baseUrl, dbStorage);
+      const result = await handleZoomCallback(code as string, state as string, baseUrl, storage);
       
       res.redirect('/dashboard/recruiter/settings?calendar=success');
     } catch (error: any) {
@@ -6583,7 +6583,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       const userId = (req as any).user.id;
       
       const { disconnectZoom } = await import('./calendar/zoom-oauth');
-      await disconnectZoom(userId, dbStorage);
+      await disconnectZoom(userId, storage);
       
       res.json({ success: true });
     } catch (error: any) {
@@ -6600,9 +6600,9 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
     try {
       const userId = (req as any).user.id;
       
-      const googleAccount = await dbStorage.getConnectedAccount(userId, 'google');
-      const microsoftAccount = await dbStorage.getConnectedAccount(userId, 'microsoft');
-      const zoomAccount = await dbStorage.getConnectedAccount(userId, 'zoom');
+      const googleAccount = await storage.getConnectedAccount(userId, 'google');
+      const microsoftAccount = await storage.getConnectedAccount(userId, 'microsoft');
+      const zoomAccount = await storage.getConnectedAccount(userId, 'zoom');
       
       res.json({
         success: true,
