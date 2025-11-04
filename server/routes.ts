@@ -5400,7 +5400,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
               description: sectionData.description || null,
               timeMinutes: sectionData.time_minutes || sectionData.timeMinutes,
               weight: sectionData.weight,
-              orderIndex: sectionData.order_index || sectionData.orderIndex
+              orderIndex: sectionData.order_index ?? sectionData.orderIndex ?? 0
             })
             .returning();
 
@@ -5418,7 +5418,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
                 competencies: itemData.competencies || [],
                 difficulty: itemData.difficulty || 'M',
                 timeSeconds: itemData.time_seconds || itemData.timeSeconds || null,
-                orderIndex: itemData.order_index || itemData.orderIndex
+                orderIndex: itemData.order_index ?? itemData.orderIndex ?? 0
               });
             }
           }
