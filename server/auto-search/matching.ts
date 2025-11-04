@@ -109,49 +109,27 @@ export async function matchJobs(preferences: SearchPreferences): Promise<JobMatc
 
   // 2. Build query embedding from preferences + candidate profile
   const queryText = buildQueryText(candidateProfile, preferences);
-  
-  // If no meaningful query text (no titles, no skills, no experience), use a generic approach
-  const useSemanticSearch = queryText.trim().length > 0;
-  
-  let queryEmbedding: number[] = [];
-  if (useSemanticSearch) {
-    queryEmbedding = await generateEmbedding(queryText);
-    console.log(`[Matching] Using semantic search with query: ${queryText.substring(0, 100)}...`);
-  } else {
-    console.log(`[Matching] No search criteria - using filter-only mode`);
-  }
+  const queryEmbedding = await generateEmbedding(queryText);
 
   // 3. Fetch all job embeddings and jobs
   const allJobEmbeddings = await db.select().from(jobEmbeddings);
   
   console.log(`[Matching] Found ${allJobEmbeddings.length} job embeddings`);
 
-  // 4. Calculate vector similarities (or use all jobs in filter-only mode)
+  // 4. Calculate vector similarities and apply hard filters
   const jobSimilarities: Array<{ jobId: string; similarity: number }> = [];
-  let topJobIds: string[] = [];
 
-  if (useSemanticSearch) {
-    // Semantic search mode: calculate cosine similarity
-    for (const jobEmb of allJobEmbeddings) {
-      const jobEmbVector = JSON.parse(jobEmb.embedding);
-      const similarity = cosineSimilarity(queryEmbedding, jobEmbVector);
-      jobSimilarities.push({ jobId: jobEmb.jobId, similarity });
-    }
-
-    // Sort by similarity and take top 200
-    jobSimilarities.sort((a, b) => b.similarity - a.similarity);
-    topJobIds = jobSimilarities.slice(0, 200).map(j => j.jobId);
-    
-    console.log(`[Matching] Top 200 jobs by vector similarity`);
-  } else {
-    // Filter-only mode: use all jobs, assign neutral similarity
-    topJobIds = allJobEmbeddings.map(j => j.jobId);
-    for (const jobId of topJobIds) {
-      jobSimilarities.push({ jobId, similarity: 0.5 }); // Neutral similarity
-    }
-    
-    console.log(`[Matching] Filter-only mode: considering all ${topJobIds.length} jobs`);
+  for (const jobEmb of allJobEmbeddings) {
+    const jobEmbVector = JSON.parse(jobEmb.embedding);
+    const similarity = cosineSimilarity(queryEmbedding, jobEmbVector);
+    jobSimilarities.push({ jobId: jobEmb.jobId, similarity });
   }
+
+  // Sort by similarity and take top 200
+  jobSimilarities.sort((a, b) => b.similarity - a.similarity);
+  const topJobIds = jobSimilarities.slice(0, 200).map(j => j.jobId);
+
+  console.log(`[Matching] Top 200 jobs by vector similarity`);
 
   // 5. Fetch job details with filters
   const whereConditions: any[] = [
