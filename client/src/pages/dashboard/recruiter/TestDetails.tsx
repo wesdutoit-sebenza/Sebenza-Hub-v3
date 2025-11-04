@@ -1,11 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Clock, Users, Target, FileText, Shield, Calendar, Edit } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ArrowLeft, Clock, Users, Target, FileText, Shield, Calendar, Edit, Rocket, Archive, Share2, Copy, Check } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 interface TestSection {
   id: string;
@@ -50,10 +54,47 @@ interface TestDetails {
 export default function TestDetails() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const { data, isLoading } = useQuery<{ success: boolean; test: TestDetails }>({
     queryKey: ['/api/competency-tests', id],
   });
+
+  // Mutation to update test status
+  const updateStatusMutation = useMutation({
+    mutationFn: async (newStatus: 'draft' | 'active' | 'archived') => {
+      const response = await apiRequest('PATCH', `/api/competency-tests/${id}`, { status: newStatus });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/competency-tests', id] });
+      queryClient.invalidateQueries({ queryKey: ['/api/competency-tests'] });
+      toast({
+        title: "Status Updated",
+        description: `Test has been ${data.test.status === 'active' ? 'published and is now live' : data.test.status === 'archived' ? 'archived' : 'moved to draft'}.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to Update Status",
+        description: error.message || "An error occurred while updating the test status.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const copyTestLink = () => {
+    if (!test) return;
+    const testUrl = `${window.location.origin}/test/${test.referenceNumber}`;
+    navigator.clipboard.writeText(testUrl);
+    setCopiedLink(true);
+    toast({
+      title: "Link Copied",
+      description: "Test link copied to clipboard",
+    });
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
 
   if (isLoading) {
     return (
@@ -123,12 +164,164 @@ export default function TestDetails() {
             <h1 className="text-3xl font-bold mb-2" data-testid="heading-test-title">{test.title}</h1>
             <p className="text-muted-foreground">{test.jobTitle}</p>
           </div>
-          <Button variant="outline" data-testid="button-edit-test">
-            <Edit className="w-4 h-4 mr-2" />
-            Edit Test
-          </Button>
+          <div className="flex gap-2">
+            {test.status === 'draft' && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="default" data-testid="button-publish-test">
+                    <Rocket className="w-4 h-4 mr-2" />
+                    Publish Test
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Publish Test?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will make the test live and available to candidates via the test link. 
+                      You can unpublish it later if needed.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => updateStatusMutation.mutate('active')}
+                      data-testid="button-confirm-publish"
+                    >
+                      Publish
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+            
+            {test.status === 'active' && (
+              <>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" data-testid="button-unpublish-test">
+                      <Edit className="w-4 h-4 mr-2" />
+                      Unpublish
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Unpublish Test?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will move the test back to draft status. Candidates will no longer be able to access it via the test link.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={() => updateStatusMutation.mutate('draft')}
+                        data-testid="button-confirm-unpublish"
+                      >
+                        Unpublish
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" data-testid="button-archive-test">
+                      <Archive className="w-4 h-4 mr-2" />
+                      Archive
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Archive Test?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will archive the test and make it unavailable to candidates. You can reactivate it later.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction 
+                        onClick={() => updateStatusMutation.mutate('archived')}
+                        data-testid="button-confirm-archive"
+                      >
+                        Archive
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
+            
+            {test.status === 'archived' && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="default" data-testid="button-reactivate-test">
+                    <Rocket className="w-4 h-4 mr-2" />
+                    Reactivate
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reactivate Test?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will make the test active and available to candidates again.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={() => updateStatusMutation.mutate('active')}
+                      data-testid="button-confirm-reactivate"
+                    >
+                      Reactivate
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
       </div>
+
+      {test.status === 'active' && (
+        <Card className="mb-6 bg-primary/5 border-primary/20">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <Share2 className="w-5 h-5" />
+              Share Test with Candidates
+            </CardTitle>
+            <CardDescription>
+              This test is live. Share the link below with candidates to give them access.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <div className="text-sm font-medium text-muted-foreground mb-2">Test Link</div>
+              <div className="flex gap-2">
+                <div className="flex-1 px-3 py-2 bg-background border rounded-md font-mono text-sm">
+                  {window.location.origin}/test/{test.referenceNumber}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={copyTestLink}
+                  data-testid="button-copy-link"
+                >
+                  {copiedLink ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            </div>
+            <div className="flex gap-4 text-sm text-muted-foreground">
+              <div>
+                <span className="font-medium">Reference Number:</span>{' '}
+                <span className="font-mono">{test.referenceNumber}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-6 md:grid-cols-3 mb-6">
         <Card>
