@@ -40,58 +40,8 @@ import {
   Search,
 } from "lucide-react";
 import { type Job } from "@shared/schema";
-import { recruiterPricingPlans } from "@/data";
+import { recruiterPricingPlans, corporatePricingPlans } from "@/data";
 import { useToast } from "@/hooks/use-toast";
-
-const corporatePricingPlans = [
-  {
-    name: "Recruiter Free",
-    description: "Get started with essential tools",
-    price: "R0",
-    period: "/month",
-    features: [
-      "Feature to be confirmed",
-      "Feature to be confirmed",
-      "Feature to be confirmed",
-      "Feature to be confirmed",
-    ],
-    cta: "Get started",
-    ctaVariant: "outline" as const,
-    popular: false,
-  },
-  {
-    name: "Recruiter Standard",
-    description: "For growing recruitment agencies",
-    price: "R999",
-    period: "/month",
-    features: [
-      "Feature to be confirmed",
-      "Feature to be confirmed",
-      "Feature to be confirmed",
-      "Feature to be confirmed",
-      "Feature to be confirmed",
-    ],
-    cta: "Start free trial",
-    ctaVariant: "default" as const,
-    popular: true,
-  },
-  {
-    name: "Recruiter Premium",
-    description: "Advanced features for professional recruiters",
-    price: "R2999",
-    period: "/month",
-    features: [
-      "Feature to be confirmed",
-      "Feature to be confirmed",
-      "Feature to be confirmed",
-      "Feature to be confirmed",
-      "Feature to be confirmed",
-    ],
-    cta: "Contact sales",
-    ctaVariant: "outline" as const,
-    popular: false,
-  },
-];
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
 import { JOB_TITLES } from "@shared/jobTitles";
