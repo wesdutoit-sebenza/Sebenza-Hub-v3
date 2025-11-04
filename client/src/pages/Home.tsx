@@ -150,9 +150,7 @@ export default function Home() {
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Post Your Job</h3>
-                <p className="text-slate">
-                  Create compliant job listings with transparent salary ranges and clear requirements.
-                </p>
+                <p className="text-slate">Publish your job instantly with transparent salaries, WhatsApp integration, and smart compliance checks—because great hiring starts with clarity.</p>
               </div>
             </div>
           </Card>
