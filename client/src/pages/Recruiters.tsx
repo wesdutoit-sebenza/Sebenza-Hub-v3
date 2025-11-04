@@ -328,7 +328,7 @@ export default function Recruiters() {
             ? "Pricing for Recruiting Agencies"
             : "Pricing for Corporate Companies"}
         </h2>
-        <p className="text-center mb-12 max-w-2xl mx-auto text-foreground">
+        <p className="text-center mb-12 max-w-2xl mx-auto text-[#ffffff]">
           {organizationType === "agency"
             ? "Choose the plan that fits your recruitment needs. All plans include POPIA compliance and WhatsApp integration."
             : "Enterprise-grade hiring solutions with EE/AA compliance and multi-department support. All plans include POPIA compliance."}
