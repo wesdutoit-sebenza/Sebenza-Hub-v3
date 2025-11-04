@@ -9,12 +9,13 @@ Preferred communication style: Simple, everyday language.
 ## System Architecture
 
 ### UI/UX Decisions
-- **Design System**: Utilizes a Charcoal/Amber color palette, Montserrat typography, custom theming, and mobile-first responsive design built with shadcn/ui (Radix UI) and Tailwind CSS.
+- **Design System**: Utilizes a Charcoal/Amber color palette, Montserrat typography, custom theming, and mobile-first responsive design built with shadcn/ui (Radix UI) and Tailwind CSS. Section component uses semantic color tokens (bg-background, text-foreground) for consistent warm beige background palette across marketing pages.
 - **Accessibility & Performance**: Prioritizes ARIA labels, semantic HTML, keyboard navigation, code splitting, and lazy loading.
 - **Mobile Dashboard Navigation**: Features sticky headers with a hamburger menu for mobile sidebar toggling; the sidebar acts as a modal overlay on mobile and appears alongside content on desktop with collapse/expand options.
 
 ### Technical Implementations
 - **Frontend**: Developed with React and TypeScript (Vite), using Wouter for routing and TanStack React Query for state management.
+    - **Marketing Pages**: Contact Us page (`/contact`) with contact form (inquiry types, name, email, WhatsApp), office information cards, and business hours. Navigation updated: "For Businesses" page removed, replaced with "Contact Us" after "For Individuals".
     - **Recruiters Portal**: Includes job posting forms with WhatsApp integration, an AI Job Description Generator, and a status-based workflow (Draft, Live, Paused, Closed, Filled) with conditional validation. Features interactive sticky form navigation, enhanced skills structure with level/priority attributes, a job import feature (document upload/text paste with AI extraction), an AI Company Description Assistant, PDF export and preview functionality, automatic "Days Left" calculator for job closing dates, and **Interview Scheduling** (November 2025) with multi-provider calendar integration (Google Calendar/Meet, Microsoft Teams/Outlook, Zoom) for managing candidate interviews with automatic video meeting links.
     - **Individuals Portal**: Supports multiple CV management (with AI-powered circular cropping for photos and PDF previews), profile management, competency test access, **Interview Booking** capability, and an AI Interview Coach.
         - **Job Searches Collapsible Tree** (November 2025): Reorganized Job Searches section into a collapsible sidebar tree structure with four sub-sections:
@@ -29,7 +30,7 @@ Preferred communication style: Simple, everyday language.
     - **Organization Settings**: Provides multi-tenant configuration for teams, pipelines, and compliance.
     - **Location & Job Data**: Incorporates comprehensive South African city/town and job title systems with auto-fill capabilities.
 - **Backend**: Built with Express.js and TypeScript.
-    - **API Endpoints**: Manages subscriptions, job postings, CVs, roles/screening, ATS, organization settings, competency testing, interview scheduling (OAuth flows for Google/Microsoft/Zoom, availability checking, interview booking/rescheduling/canceling), and interview coach interactions, including specific endpoints for job status management and conditional validation. CV endpoints include authorization checks.
+    - **API Endpoints**: Manages subscriptions, job postings, CVs, roles/screening, ATS, organization settings, competency testing, interview scheduling (OAuth flows for Google/Microsoft/Zoom, availability checking, interview booking/rescheduling/canceling), contact form inquiries, and interview coach interactions, including specific endpoints for job status management and conditional validation. CV endpoints include authorization checks.
     - **AI Integration**: Powers CV screening, resume ingestion, interview coaching, fraud detection, and competency test generation. It includes hybrid document parsing for PDF (text + OCR fallback), DOCX, DOC, and TXT formats using various libraries and OpenAI Vision API (GPT-4o) for OCR.
     - **Background Job Processing**: Uses BullMQ with Redis for asynchronous tasks like candidate screening.
     - **Authentication & Authorization**: Implements passwordless magic link authentication via Resend, Express-session with a PostgreSQL store, and a single-role system with role-based access control.
