@@ -64,6 +64,7 @@ const manualTestSchema = z.object({
     sections: z.object({
       skills: z.number().min(0).max(100),
       aptitude: z.number().min(0).max(100).optional(),
+      workStyle: z.number().min(0).max(100).optional(),
     }),
   }),
   
@@ -129,6 +130,7 @@ export default function ManualTestBuilder({ onComplete, onCancel }: ManualTestBu
         sections: {
           skills: 50,
           aptitude: 50,
+          workStyle: 50,
         },
       },
       antiCheat: {
@@ -183,6 +185,21 @@ export default function ManualTestBuilder({ onComplete, onCancel }: ManualTestBu
   const handleSubmit = async (data: ManualTestFormData) => {
     setCreating(true);
     try {
+      // Determine which section types are present
+      const sectionTypes = [...new Set(data.sections.map(s => s.type))];
+      
+      // Build cut scores sections object with only present section types
+      const cutScoreSections: Record<string, number> = {};
+      if (sectionTypes.includes("skills") && data.cutScores.sections.skills != null) {
+        cutScoreSections.skills = data.cutScores.sections.skills;
+      }
+      if (sectionTypes.includes("aptitude") && data.cutScores.sections.aptitude != null) {
+        cutScoreSections.aptitude = data.cutScores.sections.aptitude;
+      }
+      if (sectionTypes.includes("work_style") && data.cutScores.sections.workStyle != null) {
+        cutScoreSections.work_style = data.cutScores.sections.workStyle;
+      }
+
       // Transform the form data to match the API format
       const testData = {
         title: data.title,
@@ -200,10 +217,7 @@ export default function ManualTestBuilder({ onComplete, onCancel }: ManualTestBu
         },
         cutScores: {
           overall: data.cutScores.overall,
-          sections: {
-            skills: data.cutScores.sections.skills,
-            aptitude: data.cutScores.sections.aptitude,
-          },
+          sections: cutScoreSections,
         },
         antiCheatConfig: {
           shuffle: data.antiCheat.shuffle,
@@ -1056,6 +1070,14 @@ function StepThree({ form }: { form: any }) {
 }
 
 function StepFour({ form }: { form: any }) {
+  const sections = form.watch("sections") || [];
+  
+  // Determine which section types are present
+  const sectionTypes = [...new Set(sections.map((s: any) => s.type))];
+  const hasSkills = sectionTypes.includes("skills");
+  const hasAptitude = sectionTypes.includes("aptitude");
+  const hasWorkStyle = sectionTypes.includes("work_style");
+
   return (
     <div className="space-y-4">
       <div>
@@ -1092,53 +1114,91 @@ function StepFour({ form }: { form: any }) {
         )}
       />
 
-      <FormField
-        control={form.control}
-        name="cutScores.sections.skills"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Skills Section Minimum (%)</FormLabel>
-            <FormControl>
-              <Input 
-                type="number" 
-                min={0}
-                max={100}
-                value={field.value || ""}
-                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                data-testid="input-cut-score-skills"
-              />
-            </FormControl>
-            <FormDescription className="text-xs">
-              Minimum skills section score (0-100%)
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {hasSkills && (
+        <FormField
+          control={form.control}
+          name="cutScores.sections.skills"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Skills Section Minimum (%)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  min={0}
+                  max={100}
+                  value={field.value || ""}
+                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                  data-testid="input-cut-score-skills"
+                />
+              </FormControl>
+              <FormDescription className="text-xs">
+                Minimum skills section score (0-100%)
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
 
-      <FormField
-        control={form.control}
-        name="cutScores.sections.aptitude"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Aptitude Section Minimum (%) - Optional</FormLabel>
-            <FormControl>
-              <Input 
-                type="number" 
-                min={0}
-                max={100}
-                {...field} 
-                onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                data-testid="input-cut-score-aptitude"
-              />
-            </FormControl>
-            <FormDescription className="text-xs">
-              Optional minimum aptitude score
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {hasAptitude && (
+        <FormField
+          control={form.control}
+          name="cutScores.sections.aptitude"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Aptitude Section Minimum (%)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  min={0}
+                  max={100}
+                  value={field.value || ""}
+                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                  data-testid="input-cut-score-aptitude"
+                />
+              </FormControl>
+              <FormDescription className="text-xs">
+                Minimum aptitude section score (0-100%)
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {hasWorkStyle && (
+        <FormField
+          control={form.control}
+          name="cutScores.sections.workStyle"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Work Style Section Minimum (%)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="number" 
+                  min={0}
+                  max={100}
+                  value={field.value || ""}
+                  onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                  data-testid="input-cut-score-work-style"
+                />
+              </FormControl>
+              <FormDescription className="text-xs">
+                Minimum work style section score (0-100%)
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      )}
+
+      {sectionTypes.length === 0 && (
+        <Alert>
+          <AlertDescription>
+            No sections added yet. Go back to Step 2 to add sections before configuring cut scores.
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }
