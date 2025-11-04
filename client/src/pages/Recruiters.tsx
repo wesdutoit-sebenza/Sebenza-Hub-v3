@@ -143,7 +143,7 @@ export default function Recruiters() {
     mutation.mutate(data);
   };
 
-  const features = [
+  const agencyFeatures = [
     {
       icon: <CheckCircle className="text-amber" size={24} />,
       title: "Verify employers & ads",
@@ -165,6 +165,31 @@ export default function Recruiters() {
       description: "Visual pipeline with drag-and-drop. Track every candidate at a glance."
     }
   ];
+
+  const corporateFeatures = [
+    {
+      icon: <CheckCircle className="text-amber" size={24} />,
+      title: "Internal talent pool",
+      description: "Build and maintain your company's talent database for future openings."
+    },
+    {
+      icon: <FileText className="text-amber" size={24} />,
+      title: "EE/AA compliance",
+      description: "Automated Employment Equity reporting and BBBEE scorecard tracking."
+    },
+    {
+      icon: <Download className="text-amber" size={24} />,
+      title: "Department workflows",
+      description: "Custom hiring workflows for each department with approval chains."
+    },
+    {
+      icon: <Kanban className="text-amber" size={24} />,
+      title: "Multi-role tracking",
+      description: "Manage multiple open positions across departments simultaneously."
+    }
+  ];
+
+  const features = organizationType === "agency" ? agencyFeatures : corporateFeatures;
 
   const saLocations = [
     "Johannesburg",
@@ -265,7 +290,9 @@ export default function Recruiters() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
           <div>
             <h2 className="text-3xl font-serif font-semibold mb-6 text-white-brand" data-testid="text-section-title">
-              Everything you need to recruit smarter
+              {organizationType === "agency" 
+                ? "Everything you need to recruit smarter" 
+                : "Enterprise hiring made simple"}
             </h2>
             <div className="space-y-6">
               {features.map((feature, idx) => (
@@ -283,18 +310,33 @@ export default function Recruiters() {
           </div>
           <Card className="p-8">
             <div className="aspect-video bg-gradient-to-br from-amber/10 to-transparent rounded-lg flex items-center justify-center border">
-              <p className="text-slate" data-testid="text-mock-ui">[Kanban Pipeline Mock UI]</p>
+              <p className="text-slate" data-testid="text-mock-ui">
+                {organizationType === "agency" 
+                  ? "[Kanban Pipeline Mock UI]" 
+                  : "[Department Workflow Mock UI]"}
+              </p>
             </div>
           </Card>
         </div>
 
         <div className="bg-card rounded-2xl p-8 mb-16">
           <h3 className="text-2xl font-serif font-semibold mb-8 text-center text-[#70787e]" data-testid="text-stats-title">
-            Real results from SA recruiters
+            {organizationType === "agency" 
+              ? "Real results from SA recruiters" 
+              : "Real results from SA companies"}
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Stat value="↓50%" label="Time-to-shortlist" trend="down" color="amber" />
-            <Stat value="↓22%" label="Cost-per-hire" trend="down" color="amber" />
+            {organizationType === "agency" ? (
+              <>
+                <Stat value="↓50%" label="Time-to-shortlist" trend="down" color="amber" />
+                <Stat value="↓22%" label="Cost-per-hire" trend="down" color="amber" />
+              </>
+            ) : (
+              <>
+                <Stat value="↓45%" label="Time-to-hire" trend="down" color="amber" />
+                <Stat value="↑30%" label="EE/AA compliance" trend="up" color="amber" />
+              </>
+            )}
           </div>
         </div>
       </Section>
@@ -306,7 +348,9 @@ export default function Recruiters() {
                 Job Postings
               </h2>
               <p className="text-[#ffffff]">
-                Post jobs with mandatory salary ranges and WhatsApp contact
+                {organizationType === "agency" 
+                  ? "Post jobs with mandatory salary ranges and WhatsApp contact" 
+                  : "Post internal roles with EE/AA tracking and department workflows"}
               </p>
             </div>
             <Button
@@ -758,10 +802,14 @@ export default function Recruiters() {
       </Section>
       <Section id="pricing">
         <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-pricing-title">
-          Pricing for Recruiters
+          {organizationType === "agency" 
+            ? "Pricing for Recruiting Agencies" 
+            : "Pricing for Corporate Companies"}
         </h2>
         <p className="text-center mb-12 max-w-2xl mx-auto text-[#ffffff]">
-          Choose the plan that fits your recruitment needs. All plans include POPIA compliance and WhatsApp integration.
+          {organizationType === "agency" 
+            ? "Choose the plan that fits your recruitment needs. All plans include POPIA compliance and WhatsApp integration." 
+            : "Enterprise-grade hiring solutions with EE/AA compliance and multi-department support. All plans include POPIA compliance."}
         </p>
         <PricingTable plans={recruiterPricingPlans} />
       </Section>
