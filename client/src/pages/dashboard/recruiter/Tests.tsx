@@ -99,26 +99,44 @@ export default function RecruiterTests() {
     },
   });
 
-  // Watch form values for reactive totals
-  const weights = useWatch({ control: form.control, name: "weights" });
-  const questionCounts = useWatch({ control: form.control, name: "questionCounts" });
-  const timeAllocations = useWatch({ control: form.control, name: "timeAllocations" });
+  // Watch individual form values for reactive totals
+  const weightsSkills = useWatch({ control: form.control, name: "weights.skills" });
+  const weightsAptitude = useWatch({ control: form.control, name: "weights.aptitude" });
+  const weightsWorkStyle = useWatch({ control: form.control, name: "weights.workStyle" });
+  
+  const questionsSkills = useWatch({ control: form.control, name: "questionCounts.skills" });
+  const questionsAptitude = useWatch({ control: form.control, name: "questionCounts.aptitude" });
+  const questionsWorkStyle = useWatch({ control: form.control, name: "questionCounts.workStyle" });
+  
+  const timeSkills = useWatch({ control: form.control, name: "timeAllocations.skills" });
+  const timeAptitude = useWatch({ control: form.control, name: "timeAllocations.aptitude" });
+  const timeWorkStyle = useWatch({ control: form.control, name: "timeAllocations.workStyle" });
 
   // Calculate totals
   const totalWeight = useMemo(() => {
-    return (weights?.skills || 0) + (weights?.aptitude || 0) + (weights?.workStyle || 0);
-  }, [weights]);
+    return (weightsSkills || 0) + (weightsAptitude || 0) + (weightsWorkStyle || 0);
+  }, [weightsSkills, weightsAptitude, weightsWorkStyle]);
 
   const totalQuestions = useMemo(() => {
-    return (questionCounts?.skills || 0) + (questionCounts?.aptitude || 0) + (questionCounts?.workStyle || 0);
-  }, [questionCounts]);
+    return (questionsSkills || 0) + (questionsAptitude || 0) + (questionsWorkStyle || 0);
+  }, [questionsSkills, questionsAptitude, questionsWorkStyle]);
 
   const totalTime = useMemo(() => {
-    return (timeAllocations?.skills || 0) + (timeAllocations?.aptitude || 0) + (timeAllocations?.workStyle || 0);
-  }, [timeAllocations]);
+    return (timeSkills || 0) + (timeAptitude || 0) + (timeWorkStyle || 0);
+  }, [timeSkills, timeAptitude, timeWorkStyle]);
 
   // Generate and create test
   const handleGenerateTest = async (values: GenerateTestInput) => {
+    // Extra guard: prevent submission if weights exceed 100%
+    if (totalWeight > 100) {
+      toast({
+        title: "Invalid Configuration",
+        description: "Section weights cannot exceed 100%. Please adjust the weights before generating.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setGeneratingTest(true);
     try {
       // Step 1: Generate blueprint with custom parameters
@@ -724,7 +742,7 @@ export default function RecruiterTests() {
                       </Button>
                       <Button 
                         type="submit" 
-                        disabled={generatingTest}
+                        disabled={generatingTest || totalWeight > 100}
                         data-testid="button-generate-test"
                       >
                         {generatingTest ? (
