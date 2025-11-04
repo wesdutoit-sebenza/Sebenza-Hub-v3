@@ -1,5 +1,8 @@
 import { type User, type InsertUser, type UpsertUser, type Subscriber, type InsertSubscriber, type Job, type InsertJob, type CV, type InsertCV, type RefreshToken, type InsertRefreshToken, type ConnectedAccount, type InsertConnectedAccount, type InterviewPool, type InsertInterviewPool, type Interview, type InsertInterview } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { db } from "./db";
+import { connectedAccounts, interviewPools, interviews } from "@shared/schema";
+import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -269,6 +272,126 @@ export class MemStorage implements IStorage {
       (token) => token.expiresAt < now
     );
     tokens.forEach((token) => this.refreshTokens.delete(token.token));
+  }
+
+  // Connected Accounts - Using database
+  async saveConnectedAccount(account: InsertConnectedAccount): Promise<ConnectedAccount> {
+    const [created] = await db.insert(connectedAccounts).values(account).returning();
+    return created;
+  }
+
+  async getConnectedAccount(userId: string, provider: string): Promise<ConnectedAccount | undefined> {
+    const [account] = await db
+      .select()
+      .from(connectedAccounts)
+      .where(and(
+        eq(connectedAccounts.userId, userId),
+        eq(connectedAccounts.provider, provider)
+      ))
+      .limit(1);
+    return account;
+  }
+
+  async updateConnectedAccount(id: string, updates: Partial<InsertConnectedAccount>): Promise<void> {
+    await db
+      .update(connectedAccounts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(connectedAccounts.id, id));
+  }
+
+  async getUserConnectedAccounts(userId: string): Promise<ConnectedAccount[]> {
+    return db
+      .select()
+      .from(connectedAccounts)
+      .where(eq(connectedAccounts.userId, userId));
+  }
+
+  // Interview Pools - Using database
+  async createInterviewPool(pool: InsertInterviewPool): Promise<InterviewPool> {
+    const [created] = await db.insert(interviewPools).values(pool).returning();
+    return created;
+  }
+
+  async getInterviewPool(id: string): Promise<InterviewPool | undefined> {
+    const [pool] = await db
+      .select()
+      .from(interviewPools)
+      .where(eq(interviewPools.id, id))
+      .limit(1);
+    return pool;
+  }
+
+  async getOrganizationPools(organizationId: string): Promise<InterviewPool[]> {
+    return db
+      .select()
+      .from(interviewPools)
+      .where(eq(interviewPools.organizationId, organizationId));
+  }
+
+  async updateInterviewPool(id: string, updates: Partial<InsertInterviewPool>): Promise<void> {
+    await db
+      .update(interviewPools)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(interviewPools.id, id));
+  }
+
+  // Interviews - Using database
+  async createInterview(interview: InsertInterview): Promise<Interview> {
+    const [created] = await db.insert(interviews).values(interview).returning();
+    return created;
+  }
+
+  async getInterview(id: string): Promise<Interview | undefined> {
+    const [interview] = await db
+      .select()
+      .from(interviews)
+      .where(eq(interviews.id, id))
+      .limit(1);
+    return interview;
+  }
+
+  async getInterviewsByOrganization(organizationId: string): Promise<Interview[]> {
+    return db
+      .select()
+      .from(interviews)
+      .where(eq(interviews.organizationId, organizationId))
+      .orderBy(desc(interviews.startTime));
+  }
+
+  async getInterviewsByCandidate(candidateEmail: string): Promise<Interview[]> {
+    return db
+      .select()
+      .from(interviews)
+      .where(eq(interviews.candidateEmail, candidateEmail))
+      .orderBy(desc(interviews.startTime));
+  }
+
+  async getInterviewsByInterviewer(interviewerUserId: string): Promise<Interview[]> {
+    return db
+      .select()
+      .from(interviews)
+      .where(eq(interviews.interviewerUserId, interviewerUserId))
+      .orderBy(desc(interviews.startTime));
+  }
+
+  async updateInterview(id: string, updates: Partial<InsertInterview>): Promise<void> {
+    await db
+      .update(interviews)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(interviews.id, id));
+  }
+
+  async getUpcomingInterviews(organizationId: string, limit: number = 10): Promise<Interview[]> {
+    const now = new Date();
+    return db
+      .select()
+      .from(interviews)
+      .where(and(
+        eq(interviews.organizationId, organizationId),
+        eq(interviews.status, 'scheduled')
+      ))
+      .orderBy(interviews.startTime)
+      .limit(limit);
   }
 }
 
