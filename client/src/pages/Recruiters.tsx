@@ -320,6 +320,30 @@ export default function Recruiters() {
         </div>
       </Section>
 
+      {/* Pricing Section - Moved to Top */}
+      <Section id="pricing">
+        <h2
+          className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4"
+          data-testid="text-pricing-title"
+        >
+          {organizationType === "agency"
+            ? "Pricing for Recruiting Agencies"
+            : "Pricing for Corporate Companies"}
+        </h2>
+        <p className="text-center mb-12 max-w-2xl mx-auto text-foreground">
+          {organizationType === "agency"
+            ? "Choose the plan that fits your recruitment needs. All plans include POPIA compliance and WhatsApp integration."
+            : "Enterprise-grade hiring solutions with EE/AA compliance and multi-department support. All plans include POPIA compliance."}
+        </p>
+        <PricingTable
+          plans={
+            organizationType === "agency"
+              ? recruiterPricingPlans
+              : corporatePricingPlans
+          }
+        />
+      </Section>
+
       <Section>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
           <div>
@@ -951,28 +975,6 @@ export default function Recruiters() {
             Book a demo
           </Button>
         </div>
-      </Section>
-      <Section id="pricing">
-        <h2
-          className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand"
-          data-testid="text-pricing-title"
-        >
-          {organizationType === "agency"
-            ? "Pricing for Recruiting Agencies"
-            : "Pricing for Corporate Companies"}
-        </h2>
-        <p className="text-center mb-12 max-w-2xl mx-auto text-[#ffffff]">
-          {organizationType === "agency"
-            ? "Choose the plan that fits your recruitment needs. All plans include POPIA compliance and WhatsApp integration."
-            : "Enterprise-grade hiring solutions with EE/AA compliance and multi-department support. All plans include POPIA compliance."}
-        </p>
-        <PricingTable
-          plans={
-            organizationType === "agency"
-              ? recruiterPricingPlans
-              : corporatePricingPlans
-          }
-        />
       </Section>
       <Section className="bg-graphite" id="faq">
         <h2
