@@ -3,12 +3,12 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, MessageCircle, MapPin, Zap, ArrowRight } from "lucide-react";
+import { Sparkles, MessageCircle, MapPin, Zap, ArrowRight, UserCheck, FileText, ClipboardCheck, Calendar, ShieldAlert, GraduationCap } from "lucide-react";
 import Section from "@/components/Section";
 import Modal from "@/components/Modal";
 import FAQAccordion from "@/components/FAQAccordion";
 import TourSlides from "@/components/TourSlides";
-import { testimonials, valueProps } from "@/data";
+import { testimonials, valueProps, aiAgents } from "@/data";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import contractSigningImg from "@assets/u3533279657_Happy_employee_signing_contract_desk_with_laptop__c9cd7681-7b1f-449e-9cd3-ed6854df1887_0_1761202295751.png";
@@ -67,6 +67,12 @@ export default function Home() {
     MessageCircle,
     MapPin,
     Zap,
+    UserCheck,
+    FileText,
+    ClipboardCheck,
+    Calendar,
+    ShieldAlert,
+    GraduationCap,
   };
 
   return (
@@ -217,6 +223,26 @@ export default function Home() {
               </div>
             </div>
           </Card>
+        </div>
+      </Section>
+      <Section id="ai-agents">
+        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-ai-agents-title">
+          Meet Your AI Agents
+        </h2>
+        <p className="text-center mb-12 max-w-2xl mx-auto text-slate" data-testid="text-ai-agents-subtitle">
+          Your Digital Recruiting Team, Always On.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {aiAgents.map((agent, idx) => {
+            const Icon = iconMap[agent.icon as keyof typeof iconMap];
+            return (
+              <Card key={idx} className="p-6 hover-elevate" data-testid={`card-agent-${idx}`}>
+                <Icon size={40} className="text-amber mb-4" data-testid={`icon-agent-${idx}`} />
+                <h3 className="font-semibold text-lg mb-2 text-[#70787e]" data-testid={`text-agent-title-${idx}`}>{agent.title}</h3>
+                <p className="text-sm text-slate" data-testid={`text-agent-description-${idx}`}>{agent.description}</p>
+              </Card>
+            );
+          })}
         </div>
       </Section>
       <Section id="for-who">
