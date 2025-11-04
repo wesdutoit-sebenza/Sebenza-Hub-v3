@@ -277,7 +277,6 @@ export default function Recruiters() {
         description="Purpose-built tools for SA recruiters. Verify employers, require salary transparency, and export to all major job boards."
         breadcrumb="For Recruiters"
       />
-
       {/* Organization Type Toggle */}
       <Section className="py-8">
         <div className="max-w-4xl mx-auto">
@@ -319,11 +318,10 @@ export default function Recruiters() {
           </div>
         </div>
       </Section>
-
       {/* Pricing Section - Moved to Top */}
       <Section id="pricing">
         <h2
-          className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4"
+          className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-[#ffffff]"
           data-testid="text-pricing-title"
         >
           {organizationType === "agency"
@@ -343,7 +341,6 @@ export default function Recruiters() {
           }
         />
       </Section>
-
       <Section>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
           <div>
