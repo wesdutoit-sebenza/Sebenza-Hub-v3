@@ -168,7 +168,7 @@ export default function Home() {
                 <span className="text-lg font-semibold text-amber">2</span>
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">AI-Powered Screening</h3>
+                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Let our AI do the heavy lifting.</h3>
                 <p className="text-slate">
                   Our AI evaluates candidates against your criteria, ranking them by fit and highlighting top matches.
                 </p>
