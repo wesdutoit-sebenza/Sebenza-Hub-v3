@@ -298,3 +298,36 @@ export const valueProps = [
     icon: "Zap"
   }
 ];
+
+export const aiAgents = [
+  {
+    title: "Candidate Screening Agent",
+    description: "Automatically ranks and filters candidates for best fit.",
+    icon: "UserCheck"
+  },
+  {
+    title: "Job Description Agent",
+    description: "Writes compelling job posts in seconds.",
+    icon: "FileText"
+  },
+  {
+    title: "Competency Test Agent",
+    description: "Creates custom pre-interview tests per job.",
+    icon: "ClipboardCheck"
+  },
+  {
+    title: "Interview Scheduling Agent",
+    description: "Coordinates meetings via Google & Outlook.",
+    icon: "Calendar"
+  },
+  {
+    title: "Fraud & Spam Detection Agent",
+    description: "Flags fake or duplicate CVs instantly.",
+    icon: "ShieldAlert"
+  },
+  {
+    title: "AI Interview Coach",
+    description: "Helps candidates prepare confidently for interviews.",
+    icon: "GraduationCap"
+  }
+];
