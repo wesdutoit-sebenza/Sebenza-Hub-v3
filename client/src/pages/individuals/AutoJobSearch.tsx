@@ -75,18 +75,10 @@ export default function AutoJobSearch() {
     enabled: !!userId,
   });
 
-  const { data: resultsData, refetch: refetchResults, isError, error, isLoading: isLoadingResults } = useQuery<{ success: boolean; results: MatchResult[] }>({
+  const { data: resultsData, refetch: refetchResults } = useQuery<{ success: boolean; results: MatchResult[] }>({
     queryKey: ["/api/auto-search/results"],
     enabled: !!userId,
   });
-
-  // Debug logging
-  console.log('[Auto Search] Results data:', resultsData);
-  console.log('[Auto Search] Results array:', resultsData?.results);
-  console.log('[Auto Search] Results length:', resultsData?.results?.length);
-  console.log('[Auto Search] Is loading:', isLoadingResults);
-  console.log('[Auto Search] Is error:', isError);
-  console.log('[Auto Search] Error:', error);
 
   useEffect(() => {
     if (preferencesData?.preferences) {
@@ -124,9 +116,10 @@ export default function AutoJobSearch() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/auto-search/preferences", userId] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auto-search/results"] });
       toast({
         title: "Preferences Saved",
-        description: "Your job search preferences have been saved successfully.",
+        description: "Your job search preferences have been saved. Click 'Run AI Match' to see updated results.",
       });
     },
     onError: (error: Error) => {
