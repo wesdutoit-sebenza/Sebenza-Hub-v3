@@ -187,7 +187,7 @@ export default function Home() {
                 <span className="text-lg font-semibold text-amber">3</span>
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Connect & Interview</h3>
+                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Interview smarter, not harder.</h3>
                 <p className="text-slate">
                   Reach candidates via WhatsApp or email, schedule interviews, and collaborate with your team.
                 </p>
