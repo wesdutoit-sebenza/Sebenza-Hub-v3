@@ -8,7 +8,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Sparkles, FileText, Library, Loader2, Clock, Target, Users } from "lucide-react";
+import { Plus, Sparkles, FileText, Library, Loader2, Clock, Target, Users, Sliders } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -25,6 +25,23 @@ const generateTestSchema = z.object({
   companyValues: z.string().optional(),
   industry: z.string().optional(),
   seniority: z.enum(["entry", "mid", "senior", "executive"]).optional(),
+  weights: z.object({
+    skills: z.number().min(0).max(100),
+    aptitude: z.number().min(0).max(100),
+    workStyle: z.number().min(0).max(100),
+  }).refine((data) => data.skills + data.aptitude + data.workStyle <= 100, {
+    message: "Total weights must not exceed 100%",
+  }),
+  questionCounts: z.object({
+    skills: z.number().min(0).max(100),
+    aptitude: z.number().min(0).max(100),
+    workStyle: z.number().min(0).max(100),
+  }),
+  timeAllocations: z.object({
+    skills: z.number().min(0).max(240),
+    aptitude: z.number().min(0).max(240),
+    workStyle: z.number().min(0).max(240),
+  }),
 });
 
 type GenerateTestInput = z.infer<typeof generateTestSchema>;
@@ -64,6 +81,21 @@ export default function RecruiterTests() {
       keyResponsibilities: "",
       companyValues: "",
       industry: "",
+      weights: {
+        skills: 50,
+        aptitude: 30,
+        workStyle: 20,
+      },
+      questionCounts: {
+        skills: 12,
+        aptitude: 8,
+        workStyle: 12,
+      },
+      timeAllocations: {
+        skills: 25,
+        aptitude: 15,
+        workStyle: 10,
+      },
     },
   });
 
@@ -261,6 +293,387 @@ export default function RecruiterTests() {
                         </FormItem>
                       )}
                     />
+
+                    <div className="space-y-4 pt-4 border-t">
+                      <div>
+                        <h4 className="font-semibold flex items-center gap-2 mb-2">
+                          <Sliders className="w-4 h-4" />
+                          Test Configuration
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          Adjust section weights, question counts, and time allocations
+                        </p>
+                      </div>
+
+                      {/* Section Weights */}
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base">Section Weights</CardTitle>
+                          <CardDescription>
+                            Total: {form.watch("weights.skills") + form.watch("weights.aptitude") + form.watch("weights.workStyle")}% 
+                            {(form.watch("weights.skills") + form.watch("weights.aptitude") + form.watch("weights.workStyle")) > 100 && (
+                              <span className="text-destructive ml-2">Exceeds 100%</span>
+                            )}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="weights.skills"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center justify-between mb-2">
+                                  <FormLabel>Skills</FormLabel>
+                                  <span className="text-sm font-medium">{field.value}%</span>
+                                </div>
+                                <FormControl>
+                                  <input
+                                    type="range"
+                                    min={0}
+                                    max={100}
+                                    step={5}
+                                    value={field.value}
+                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                    className="w-full accent-primary"
+                                    data-testid="slider-weight-skills"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="weights.aptitude"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center justify-between mb-2">
+                                  <FormLabel>Aptitude</FormLabel>
+                                  <span className="text-sm font-medium">{field.value}%</span>
+                                </div>
+                                <FormControl>
+                                  <input
+                                    type="range"
+                                    min={0}
+                                    max={100}
+                                    step={5}
+                                    value={field.value}
+                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                    className="w-full accent-primary"
+                                    data-testid="slider-weight-aptitude"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="weights.workStyle"
+                            render={({ field }) => (
+                              <FormItem>
+                                <div className="flex items-center justify-between mb-2">
+                                  <FormLabel>Work Style</FormLabel>
+                                  <span className="text-sm font-medium">{field.value}%</span>
+                                </div>
+                                <FormControl>
+                                  <input
+                                    type="range"
+                                    min={0}
+                                    max={100}
+                                    step={5}
+                                    value={field.value}
+                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                    className="w-full accent-primary"
+                                    data-testid="slider-weight-work-style"
+                                  />
+                                </FormControl>
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      {/* Question Counts */}
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base">Number of Questions</CardTitle>
+                          <CardDescription>
+                            Total: {form.watch("questionCounts.skills") + form.watch("questionCounts.aptitude") + form.watch("questionCounts.workStyle")} questions
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-3 gap-3">
+                          <FormField
+                            control={form.control}
+                            name="questionCounts.skills"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">Skills</FormLabel>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => field.onChange(Math.max(0, field.value - 1))}
+                                    data-testid="button-decrease-questions-skills"
+                                  >
+                                    -
+                                  </Button>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      max={100}
+                                      value={field.value}
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                      className="h-8 text-center"
+                                      data-testid="input-questions-skills"
+                                    />
+                                  </FormControl>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => field.onChange(Math.min(100, field.value + 1))}
+                                    data-testid="button-increase-questions-skills"
+                                  >
+                                    +
+                                  </Button>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="questionCounts.aptitude"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">Aptitude</FormLabel>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => field.onChange(Math.max(0, field.value - 1))}
+                                    data-testid="button-decrease-questions-aptitude"
+                                  >
+                                    -
+                                  </Button>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      max={100}
+                                      value={field.value}
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                      className="h-8 text-center"
+                                      data-testid="input-questions-aptitude"
+                                    />
+                                  </FormControl>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => field.onChange(Math.min(100, field.value + 1))}
+                                    data-testid="button-increase-questions-aptitude"
+                                  >
+                                    +
+                                  </Button>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="questionCounts.workStyle"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">Work Style</FormLabel>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => field.onChange(Math.max(0, field.value - 1))}
+                                    data-testid="button-decrease-questions-work-style"
+                                  >
+                                    -
+                                  </Button>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      max={100}
+                                      value={field.value}
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                      className="h-8 text-center"
+                                      data-testid="input-questions-work-style"
+                                    />
+                                  </FormControl>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => field.onChange(Math.min(100, field.value + 1))}
+                                    data-testid="button-increase-questions-work-style"
+                                  >
+                                    +
+                                  </Button>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
+                      </Card>
+
+                      {/* Time Allocations */}
+                      <Card>
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base">Time Allocation (minutes)</CardTitle>
+                          <CardDescription>
+                            Total: {form.watch("timeAllocations.skills") + form.watch("timeAllocations.aptitude") + form.watch("timeAllocations.workStyle")} minutes
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-3 gap-3">
+                          <FormField
+                            control={form.control}
+                            name="timeAllocations.skills"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">Skills</FormLabel>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => field.onChange(Math.max(0, field.value - 5))}
+                                    data-testid="button-decrease-time-skills"
+                                  >
+                                    -5
+                                  </Button>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      max={240}
+                                      value={field.value}
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                      className="h-8 text-center"
+                                      data-testid="input-time-skills"
+                                    />
+                                  </FormControl>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => field.onChange(Math.min(240, field.value + 5))}
+                                    data-testid="button-increase-time-skills"
+                                  >
+                                    +5
+                                  </Button>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="timeAllocations.aptitude"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">Aptitude</FormLabel>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => field.onChange(Math.max(0, field.value - 5))}
+                                    data-testid="button-decrease-time-aptitude"
+                                  >
+                                    -5
+                                  </Button>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      max={240}
+                                      value={field.value}
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                      className="h-8 text-center"
+                                      data-testid="input-time-aptitude"
+                                    />
+                                  </FormControl>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => field.onChange(Math.min(240, field.value + 5))}
+                                    data-testid="button-increase-time-aptitude"
+                                  >
+                                    +5
+                                  </Button>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="timeAllocations.workStyle"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">Work Style</FormLabel>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => field.onChange(Math.max(0, field.value - 5))}
+                                    data-testid="button-decrease-time-work-style"
+                                  >
+                                    -5
+                                  </Button>
+                                  <FormControl>
+                                    <Input
+                                      type="number"
+                                      min={0}
+                                      max={240}
+                                      value={field.value}
+                                      onChange={(e) => field.onChange(Number(e.target.value))}
+                                      className="h-8 text-center"
+                                      data-testid="input-time-work-style"
+                                    />
+                                  </FormControl>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => field.onChange(Math.min(240, field.value + 5))}
+                                    data-testid="button-increase-time-work-style"
+                                  >
+                                    +5
+                                  </Button>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
 
                     <div className="bg-muted p-4 rounded-lg">
                       <h4 className="font-medium mb-2 flex items-center gap-2">
