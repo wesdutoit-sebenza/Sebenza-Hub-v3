@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, MessageCircle, MapPin, Zap, ArrowRight, UserCheck, FileText, ClipboardCheck, Calendar, ShieldAlert, GraduationCap } from "lucide-react";
+import { Sparkles, MessageCircle, MapPin, Zap, ArrowRight, UserCheck, FileText, ClipboardCheck, Calendar, ShieldAlert, GraduationCap, Briefcase, Brain, Video, CheckCircle } from "lucide-react";
 import Section from "@/components/Section";
 import Modal from "@/components/Modal";
 import FAQAccordion from "@/components/FAQAccordion";
@@ -146,7 +146,7 @@ export default function Home() {
             </div>
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber/10">
-                <span className="text-lg font-semibold text-amber">1</span>
+                <Briefcase className="text-amber" size={20} />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Find the right talent—fast.</h3>
@@ -165,7 +165,7 @@ export default function Home() {
             </div>
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber/10">
-                <span className="text-lg font-semibold text-amber">2</span>
+                <Brain className="text-amber" size={20} />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Let our AI do the heavy lifting.</h3>
@@ -184,7 +184,7 @@ export default function Home() {
             </div>
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber/10">
-                <span className="text-lg font-semibold text-amber">3</span>
+                <Video className="text-amber" size={20} />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Interview smarter, not harder.</h3>
@@ -203,7 +203,7 @@ export default function Home() {
             </div>
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber/10">
-                <span className="text-lg font-semibold text-amber">4</span>
+                <CheckCircle className="text-amber" size={20} />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Make the offer in one click.</h3>
