@@ -16,6 +16,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ManualTestBuilder from "@/components/ManualTestBuilder";
 
 const generateTestSchema = z.object({
   jobTitle: z.string().min(3, "Job title must be at least 3 characters"),
@@ -308,11 +309,10 @@ export default function RecruiterTests() {
               </TabsContent>
 
               <TabsContent value="manual" className="mt-6">
-                <div className="text-center py-12 text-muted-foreground">
-                  <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p className="mb-2">Manual test authoring</p>
-                  <p className="text-sm">Coming soon - build tests question by question</p>
-                </div>
+                <ManualTestBuilder
+                  onComplete={() => setCreateDialogOpen(false)}
+                  onCancel={() => setCreateDialogOpen(false)}
+                />
               </TabsContent>
 
               <TabsContent value="template" className="mt-6">
