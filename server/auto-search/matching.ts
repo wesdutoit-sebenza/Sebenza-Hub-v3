@@ -19,7 +19,7 @@ import {
   cosineSimilarity,
   type HeuristicFeatures
 } from "./utils";
-import { generateEmbedding, getCandidateEmbedding } from "../embeddings";
+import { generateEmbedding, getCandidateEmbedding, indexCandidateProfile } from "../embeddings";
 
 /**
  * Candidate search preferences
@@ -88,16 +88,13 @@ export async function matchJobs(preferences: SearchPreferences): Promise<JobMatc
   let candidateEmbedding = await getCandidateEmbedding(candidateProfile.id);
   
   if (!candidateEmbedding) {
-    console.warn(`[Matching] No embedding found for candidate ${candidateProfile.id}, generating now...`);
+    console.warn(`[Matching] No embedding found for candidate profile ${candidateProfile.id}, generating now...`);
     
-    // Import indexCandidate dynamically to avoid circular dependencies
-    const { indexCandidate } = await import("../embeddings");
-    
-    // Generate embedding for this candidate
-    const success = await indexCandidate(candidateProfile.id);
+    // Generate embedding for this candidate profile
+    const success = await indexCandidateProfile(candidateProfile.id);
     
     if (!success) {
-      throw new Error(`Failed to generate embedding for candidate ${candidateProfile.id}. Cannot proceed with job matching.`);
+      throw new Error(`Failed to generate embedding for candidate profile ${candidateProfile.id}. Cannot proceed with job matching.`);
     }
     
     // Retrieve the newly generated embedding

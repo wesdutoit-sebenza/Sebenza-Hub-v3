@@ -9,6 +9,7 @@ import {
   skills,
   candidateSkills,
   candidateEmbeddings,
+  candidateProfiles,
   jobs,
   jobEmbeddings
 } from "@shared/schema";
@@ -191,6 +192,108 @@ export async function indexCandidate(candidateId: string): Promise<boolean> {
 
   } catch (error) {
     console.error(`[Embeddings] Error indexing candidate ${candidateId}:`, error);
+    return false;
+  }
+}
+
+/**
+ * Generate and store embedding for an individual candidate profile
+ * Used for Auto Job Search feature
+ * @param candidateProfileId - UUID of the candidate profile to index
+ * @returns Promise<boolean> - Returns true if successful, false otherwise
+ */
+export async function indexCandidateProfile(candidateProfileId: string): Promise<boolean> {
+  try {
+    console.log(`[Embeddings] Generating embedding for candidate profile: ${candidateProfileId}`);
+
+    // Fetch candidate profile data
+    const profile = await db.query.candidateProfiles.findFirst({
+      where: eq(candidateProfiles.id, candidateProfileId),
+    });
+
+    if (!profile) {
+      console.error(`[Embeddings] Candidate profile not found: ${candidateProfileId}`);
+      return false;
+    }
+
+    // Fetch resume data
+    const resume = await db.query.resumes.findFirst({
+      where: eq(resumes.candidateId, candidateProfileId),
+    });
+
+    // Build text representation for embedding
+    const textParts: string[] = [];
+
+    // Add full name and job title
+    if (profile.fullName) {
+      textParts.push(profile.fullName);
+    }
+    if (profile.jobTitle) {
+      textParts.push(`Job Title: ${profile.jobTitle}`);
+    }
+
+    // Add experience level
+    if (profile.experienceLevel) {
+      textParts.push(`Experience Level: ${profile.experienceLevel}`);
+    }
+
+    // Add location
+    const locationParts = [];
+    if (profile.city) locationParts.push(profile.city);
+    if (profile.province) locationParts.push(profile.province);
+    if (profile.country) locationParts.push(profile.country);
+    if (locationParts.length > 0) {
+      textParts.push(`Location: ${locationParts.join(", ")}`);
+    }
+
+    // Add skills
+    if (profile.skills && profile.skills.length > 0) {
+      textParts.push(`Skills: ${profile.skills.join(", ")}`);
+    }
+
+    // Add resume content if available
+    if (resume?.rawText) {
+      textParts.push(`Resume: ${resume.rawText}`);
+    }
+
+    // Combine all parts
+    const text = textParts.join("\n");
+
+    if (!text.trim()) {
+      console.error(`[Embeddings] No content available for candidate profile: ${candidateProfileId}`);
+      return false;
+    }
+
+    // Generate embedding using OpenAI
+    const embeddingResponse = await getOpenAIClient().embeddings.create({
+      model: "text-embedding-3-small",
+      input: text
+    });
+
+    const embedding = embeddingResponse.data[0].embedding;
+
+    // Store embedding as JSON string
+    const embeddingJson = JSON.stringify(embedding);
+
+    // Insert or update embedding
+    await db
+      .insert(candidateEmbeddings)
+      .values({
+        candidateId: candidateProfileId,
+        embedding: embeddingJson
+      })
+      .onConflictDoUpdate({
+        target: candidateEmbeddings.candidateId,
+        set: {
+          embedding: embeddingJson
+        }
+      });
+
+    console.log(`[Embeddings] Successfully generated and stored embedding for candidate profile: ${candidateProfileId}`);
+    return true;
+
+  } catch (error) {
+    console.error(`[Embeddings] Error indexing candidate profile ${candidateProfileId}:`, error);
     return false;
   }
 }
