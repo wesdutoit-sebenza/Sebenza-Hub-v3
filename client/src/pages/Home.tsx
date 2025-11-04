@@ -207,9 +207,7 @@ export default function Home() {
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Make the offer in one click.</h3>
-                <p className="text-slate">
-                  Send offers, track acceptances, and onboard your new team member—all in one place.
-                </p>
+                <p className="text-slate">Send digital offers, manage acceptances, and onboard your new hire—all in one seamless flow. Sebenza Hub turns hiring into a human, hassle-free experience.</p>
               </div>
             </div>
           </Card>
