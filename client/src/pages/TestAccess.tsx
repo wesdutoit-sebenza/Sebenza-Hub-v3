@@ -3,7 +3,7 @@ import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, Clock, FileText, ShieldCheck } from "lucide-react";
+import { AlertCircle, Clock, FileText, ShieldCheck, LogIn } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,14 @@ export default function TestAccess() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [attemptId, setAttemptId] = useState<string | null>(null);
+
+  // Check if user is authenticated
+  const { data: userData } = useQuery({
+    queryKey: ["/api/auth/user"],
+    retry: false,
+  });
+
+  const isAuthenticated = userData?.user != null;
 
   // Fetch test details
   const { data: testData, isLoading: isLoadingTest, error: testError } = useQuery({
@@ -177,18 +185,41 @@ export default function TestAccess() {
 
           {/* Start Button */}
           <div className="flex flex-col gap-3 pt-4">
-            <Button
-              size="lg"
-              onClick={() => startTestMutation.mutate()}
-              disabled={startTestMutation.isPending}
-              className="w-full"
-              data-testid="button-start-test"
-            >
-              {startTestMutation.isPending ? "Starting Test..." : "Start Test"}
-            </Button>
-            <p className="text-xs text-center text-muted-foreground">
-              By clicking "Start Test", you agree to complete the assessment under the conditions stated above.
-            </p>
+            {!isAuthenticated ? (
+              <>
+                <Alert>
+                  <LogIn className="h-4 w-4" />
+                  <AlertTitle>Sign In Required</AlertTitle>
+                  <AlertDescription>
+                    You must be signed in to take this test. Your progress will be saved and you can return to complete it later.
+                  </AlertDescription>
+                </Alert>
+                <Button
+                  size="lg"
+                  onClick={() => navigate(`/auth/signin?redirect=/test/${referenceNumber}`)}
+                  className="w-full"
+                  data-testid="button-signin-to-start"
+                >
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Sign In to Start Test
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  size="lg"
+                  onClick={() => startTestMutation.mutate()}
+                  disabled={startTestMutation.isPending}
+                  className="w-full"
+                  data-testid="button-start-test"
+                >
+                  {startTestMutation.isPending ? "Starting Test..." : "Start Test"}
+                </Button>
+                <p className="text-xs text-center text-muted-foreground">
+                  By clicking "Start Test", you agree to complete the assessment under the conditions stated above.
+                </p>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
