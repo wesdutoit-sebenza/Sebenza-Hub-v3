@@ -145,8 +145,8 @@ export default function Home() {
               />
             </div>
             <div className="flex items-start gap-6">
-              <div className="flex h-16 w-16 mt-6 shrink-0 items-center justify-center rounded-full bg-amber/10">
-                <Briefcase className="text-amber" size={32} />
+              <div className="flex h-20 w-20 mt-10 shrink-0 items-center justify-center rounded-full bg-amber/10">
+                <Briefcase className="text-amber" size={40} />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Find the right talent—fast.</h3>
@@ -164,8 +164,8 @@ export default function Home() {
               />
             </div>
             <div className="flex items-start gap-6">
-              <div className="flex h-16 w-16 mt-6 shrink-0 items-center justify-center rounded-full bg-amber/10">
-                <Brain className="text-amber" size={32} />
+              <div className="flex h-20 w-20 mt-10 shrink-0 items-center justify-center rounded-full bg-amber/10">
+                <Brain className="text-amber" size={40} />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Let our AI do the heavy lifting.</h3>
@@ -183,8 +183,8 @@ export default function Home() {
               />
             </div>
             <div className="flex items-start gap-6">
-              <div className="flex h-16 w-16 mt-6 shrink-0 items-center justify-center rounded-full bg-amber/10">
-                <Video className="text-amber" size={32} />
+              <div className="flex h-20 w-20 mt-10 shrink-0 items-center justify-center rounded-full bg-amber/10">
+                <Video className="text-amber" size={40} />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Interview smarter, not harder.</h3>
@@ -202,8 +202,8 @@ export default function Home() {
               />
             </div>
             <div className="flex items-start gap-6">
-              <div className="flex h-16 w-16 mt-6 shrink-0 items-center justify-center rounded-full bg-amber/10">
-                <CheckCircle className="text-amber" size={32} />
+              <div className="flex h-20 w-20 mt-10 shrink-0 items-center justify-center rounded-full bg-amber/10">
+                <CheckCircle className="text-amber" size={40} />
               </div>
               <div>
                 <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Make the offer in one click.</h3>
