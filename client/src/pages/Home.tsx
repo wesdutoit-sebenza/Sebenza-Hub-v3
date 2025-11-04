@@ -94,9 +94,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-br from-black/70 via-black/60 to-black/50" />
         <div className="max-w-6xl mx-auto text-center relative z-10 py-20">
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-semibold mb-6 text-white" data-testid="text-hero-title">South Africa’s First AI-Powered Recruiting Platform</h1>
-          <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-100" data-testid="text-hero-subtitle">
-            A trust layer for SA recruiting—transparent salaries, WhatsApp-first funnels, and built-in compliance.
-          </p>
+          <p className="text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-100" data-testid="text-hero-subtitle">Whether you’re hiring or job hunting, Sebenza Hub connects people, passion, and opportunity — faster and smarter than ever.</p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Button
               size="lg"
