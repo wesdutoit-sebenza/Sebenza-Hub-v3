@@ -72,6 +72,7 @@ export default function Recruiters() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [organizationType, setOrganizationType] = useState<"agency" | "corporate">("agency");
 
   useEffect(() => {
     document.title = "For Recruiters | Reduce noise. Faster shortlists.";
@@ -219,6 +220,47 @@ export default function Recruiters() {
         description="Purpose-built tools for SA recruiters. Verify employers, require salary transparency, and export to all major job boards."
         breadcrumb="For Recruiters"
       />
+      
+      {/* Organization Type Toggle */}
+      <Section className="py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-center">
+            <div className="inline-flex rounded-xl bg-card p-2 shadow-lg border-2 border-amber/20">
+              <Button
+                size="lg"
+                variant={organizationType === "agency" ? "default" : "ghost"}
+                className={`
+                  px-8 py-6 text-lg font-semibold rounded-lg transition-all
+                  ${organizationType === "agency" 
+                    ? "bg-amber-gradient text-charcoal hover:opacity-90 shadow-md" 
+                    : "text-muted-foreground hover:text-foreground hover-elevate"
+                  }
+                `}
+                onClick={() => setOrganizationType("agency")}
+                data-testid="button-toggle-agency"
+              >
+                Recruiting Agencies
+              </Button>
+              <Button
+                size="lg"
+                variant={organizationType === "corporate" ? "default" : "ghost"}
+                className={`
+                  px-8 py-6 text-lg font-semibold rounded-lg transition-all
+                  ${organizationType === "corporate" 
+                    ? "bg-amber-gradient text-charcoal hover:opacity-90 shadow-md" 
+                    : "text-muted-foreground hover:text-foreground hover-elevate"
+                  }
+                `}
+                onClick={() => setOrganizationType("corporate")}
+                data-testid="button-toggle-corporate"
+              >
+                Corporate Company
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Section>
+
       <Section>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center mb-16">
           <div>
