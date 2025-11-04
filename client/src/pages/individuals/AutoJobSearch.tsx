@@ -130,6 +130,25 @@ export default function AutoJobSearch() {
     },
   });
 
+  const generateEmbeddingsMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", `/api/admin/generate-job-embeddings`, {});
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Embeddings Generated",
+        description: `Successfully generated embeddings for ${data.stats?.generated || 0} jobs`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate job embeddings",
+        variant: "destructive",
+      });
+    },
+  });
+
   const runMatchingMutation = useMutation({
     mutationFn: async () => {
       if (!userId) throw new Error("User not authenticated");
@@ -216,6 +235,39 @@ export default function AutoJobSearch() {
           AI-powered job matching that finds the best opportunities for you automatically
         </p>
       </div>
+
+      {/* Setup notice - can be removed after initial setup */}
+      <Card className="mb-6 border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-amber-600" />
+            Initial Setup Required
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            Job embeddings need to be generated before AI matching can work. This is a one-time setup step.
+          </p>
+          <Button
+            onClick={() => generateEmbeddingsMutation.mutate()}
+            disabled={generateEmbeddingsMutation.isPending}
+            size="sm"
+            data-testid="button-generate-embeddings"
+          >
+            {generateEmbeddingsMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Zap className="h-4 w-4 mr-2" />
+                Generate Job Embeddings
+              </>
+            )}
+          </Button>
+        </CardContent>
+      </Card>
 
       <div className="space-y-6">
         <Card>

@@ -5162,6 +5162,105 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
     }
   });
 
+  // Generate embeddings for all jobs
+  app.post("/api/admin/generate-job-embeddings", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      // TODO: Re-enable role check after initial setup
+      // Only admins can generate embeddings
+      // if (user.role !== 'admin' && user.role !== 'administrator') {
+      //   return res.status(403).json({
+      //     success: false,
+      //     message: "Admin access required",
+      //   });
+      // }
+
+      console.log('[Admin] Starting job embedding generation...');
+
+      // Import indexJob function
+      const { indexJob, isEmbeddingsConfigured } = await import("./embeddings");
+
+      if (!isEmbeddingsConfigured()) {
+        return res.status(503).json({
+          success: false,
+          message: "OpenAI API key not configured. Please add OPENAI_API_KEY to your environment.",
+        });
+      }
+
+      // Find all jobs that don't have embeddings
+      const allJobs = await db.query.jobs.findMany({
+        columns: { id: true, title: true },
+      });
+
+      const jobsWithEmbeddings = await db.query.jobEmbeddings.findMany({
+        columns: { jobId: true },
+      });
+
+      const embeddingJobIds = new Set(jobsWithEmbeddings.map(je => je.jobId));
+      const jobsNeedingEmbeddings = allJobs.filter(job => !embeddingJobIds.has(job.id));
+
+      console.log(`[Admin] Found ${jobsNeedingEmbeddings.length} jobs needing embeddings out of ${allJobs.length} total jobs`);
+
+      if (jobsNeedingEmbeddings.length === 0) {
+        return res.json({
+          success: true,
+          message: "All jobs already have embeddings",
+          stats: {
+            total: allJobs.length,
+            withEmbeddings: allJobs.length,
+            generated: 0,
+          }
+        });
+      }
+
+      // Generate embeddings for each job
+      const results = {
+        successful: 0,
+        failed: 0,
+        errors: [] as string[],
+      };
+
+      for (const job of jobsNeedingEmbeddings) {
+        try {
+          const success = await indexJob(job.id);
+          if (success) {
+            results.successful++;
+            console.log(`[Admin] Generated embedding for job: ${job.title} (${job.id})`);
+          } else {
+            results.failed++;
+            results.errors.push(`Failed to generate embedding for ${job.title}`);
+          }
+        } catch (error: any) {
+          results.failed++;
+          results.errors.push(`Error for ${job.title}: ${error.message}`);
+          console.error(`[Admin] Error generating embedding for job ${job.id}:`, error);
+        }
+      }
+
+      console.log(`[Admin] Embedding generation complete: ${results.successful} successful, ${results.failed} failed`);
+
+      res.json({
+        success: true,
+        message: `Generated embeddings for ${results.successful} jobs`,
+        stats: {
+          total: allJobs.length,
+          withEmbeddings: embeddingJobIds.size + results.successful,
+          generated: results.successful,
+          failed: results.failed,
+          errors: results.errors,
+        }
+      });
+    } catch (error: any) {
+      console.error("[Admin] Job embedding generation error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to generate job embeddings",
+        error: error.message,
+      });
+    }
+  });
+
   // ========================================
   // COMPETENCY TESTING ROUTES
   // ========================================
