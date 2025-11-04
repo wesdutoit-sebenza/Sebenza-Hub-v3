@@ -6423,7 +6423,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   // Google Calendar OAuth - Initiate connection
   app.get("/api/calendar/google/connect", authenticateSession, async (req, res) => {
     try {
-      const userId = req.user!.user!.id;
+      const userId = (req as any).user.id;
       const baseUrl = `https://${req.get('host')}`;
       
       const { getAuthorizationUrl } = await import('./calendar/google-oauth');
@@ -6464,7 +6464,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   // Disconnect Google Calendar
   app.delete("/api/calendar/google/disconnect", authenticateSession, async (req, res) => {
     try {
-      const userId = req.user!.user!.id;
+      const userId = (req as any).user.id;
       
       const { disconnectCalendar } = await import('./calendar/google-oauth');
       await disconnectCalendar(userId, dbStorage);
@@ -6482,11 +6482,11 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   // Microsoft Teams/Outlook OAuth - Initiate connection
   app.get("/api/calendar/microsoft/connect", authenticateSession, async (req, res) => {
     try {
-      const userId = req.user!.user!.id;
+      const userId = (req as any).user.id;
       const baseUrl = `https://${req.get('host')}`;
       
       const { getMicrosoftAuthUrl } = await import('./calendar/microsoft-oauth');
-      const authUrl = getMicrosoftAuthUrl(userId, baseUrl);
+      const authUrl = await getMicrosoftAuthUrl(userId, baseUrl);
       
       res.json({ success: true, authUrl });
     } catch (error: any) {
@@ -6522,7 +6522,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   // Disconnect Microsoft Teams/Outlook
   app.delete("/api/calendar/microsoft/disconnect", authenticateSession, async (req, res) => {
     try {
-      const userId = req.user!.user!.id;
+      const userId = (req as any).user.id;
       
       const { disconnectMicrosoft } = await import('./calendar/microsoft-oauth');
       await disconnectMicrosoft(userId, dbStorage);
@@ -6540,11 +6540,11 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   // Zoom OAuth - Initiate connection
   app.get("/api/calendar/zoom/connect", authenticateSession, async (req, res) => {
     try {
-      const userId = req.user!.user!.id;
+      const userId = (req as any).user.id;
       const baseUrl = `https://${req.get('host')}`;
       
       const { getZoomAuthUrl } = await import('./calendar/zoom-oauth');
-      const authUrl = getZoomAuthUrl(userId, baseUrl);
+      const authUrl = await getZoomAuthUrl(userId, baseUrl);
       
       res.json({ success: true, authUrl });
     } catch (error: any) {
@@ -6580,7 +6580,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   // Disconnect Zoom
   app.delete("/api/calendar/zoom/disconnect", authenticateSession, async (req, res) => {
     try {
-      const userId = req.user!.user!.id;
+      const userId = (req as any).user.id;
       
       const { disconnectZoom } = await import('./calendar/zoom-oauth');
       await disconnectZoom(userId, dbStorage);
@@ -6598,7 +6598,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   // Get calendar connection status (all providers)
   app.get("/api/calendar/status", authenticateSession, async (req, res) => {
     try {
-      const userId = req.user!.user!.id;
+      const userId = (req as any).user.id;
       
       const googleAccount = await dbStorage.getConnectedAccount(userId, 'google');
       const microsoftAccount = await dbStorage.getConnectedAccount(userId, 'microsoft');
