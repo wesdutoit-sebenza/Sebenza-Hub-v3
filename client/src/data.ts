@@ -62,7 +62,7 @@ export const faqs = [
   }
 ];
 
-// Recruiter pricing plans
+// Recruiter pricing plans (for agencies)
 export const recruiterPricingPlans = [
   {
     name: "Recruiter Free",
@@ -95,6 +95,52 @@ export const recruiterPricingPlans = [
     name: "Recruiter Premium",
     price: { monthly: 1999, annual: 17990 },
     description: "Advanced features for professional recruiters",
+    features: [
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed"
+    ],
+    cta: "Contact sales",
+    highlighted: false
+  }
+];
+
+// Corporate pricing plans (for in-house recruiters at companies)
+export const corporatePricingPlans = [
+  {
+    name: "Corporate Free",
+    price: { monthly: 0, annual: 0 },
+    description: "Get started with essential tools",
+    features: [
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed"
+    ],
+    cta: "Get started",
+    highlighted: false
+  },
+  {
+    name: "Corporate Standard",
+    price: { monthly: 799, annual: 7190 },
+    description: "For growing corporate recruitment teams",
+    features: [
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed"
+    ],
+    cta: "Start free trial",
+    highlighted: true
+  },
+  {
+    name: "Corporate Premium",
+    price: { monthly: 1999, annual: 17990 },
+    description: "Enterprise-grade compliance and features",
     features: [
       "Feature to be confirmed",
       "Feature to be confirmed",
