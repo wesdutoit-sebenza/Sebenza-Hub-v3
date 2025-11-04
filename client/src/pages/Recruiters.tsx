@@ -42,6 +42,56 @@ import {
 import { type Job } from "@shared/schema";
 import { recruiterPricingPlans } from "@/data";
 import { useToast } from "@/hooks/use-toast";
+
+const corporatePricingPlans = [
+  {
+    name: "Recruiter Free",
+    description: "Get started with essential tools",
+    price: "R0",
+    period: "/month",
+    features: [
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+    ],
+    cta: "Get started",
+    ctaVariant: "outline" as const,
+    popular: false,
+  },
+  {
+    name: "Recruiter Standard",
+    description: "For growing recruitment agencies",
+    price: "R999",
+    period: "/month",
+    features: [
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+    ],
+    cta: "Start free trial",
+    ctaVariant: "default" as const,
+    popular: true,
+  },
+  {
+    name: "Recruiter Premium",
+    description: "Advanced features for professional recruiters",
+    price: "R2999",
+    period: "/month",
+    features: [
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+      "Feature to be confirmed",
+    ],
+    cta: "Contact sales",
+    ctaVariant: "outline" as const,
+    popular: false,
+  },
+];
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
 import { JOB_TITLES } from "@shared/jobTitles";
@@ -966,7 +1016,9 @@ export default function Recruiters() {
             ? "Choose the plan that fits your recruitment needs. All plans include POPIA compliance and WhatsApp integration."
             : "Enterprise-grade hiring solutions with EE/AA compliance and multi-department support. All plans include POPIA compliance."}
         </p>
-        <PricingTable plans={recruiterPricingPlans} />
+        <PricingTable 
+          plans={organizationType === "agency" ? recruiterPricingPlans : corporatePricingPlans} 
+        />
       </Section>
       <Section className="bg-graphite" id="faq">
         <h2
