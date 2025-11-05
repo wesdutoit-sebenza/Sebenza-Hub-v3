@@ -71,6 +71,7 @@ import RecruiterDashboardTestDetails from "@/pages/dashboard/recruiter/TestDetai
 import RecruiterDashboardScheduling from "@/pages/dashboard/recruiter/Scheduling";
 import RecruiterDashboardBilling from "@/pages/dashboard/recruiter/Billing";
 import RecruiterDashboardSettings from "@/pages/dashboard/recruiter/Settings";
+import RecruiterDashboardClients from "@/pages/recruiter/CorporateClients";
 
 function AdminRouter() {
   return (
@@ -129,6 +130,7 @@ function RecruitersRouter() {
         <Route path="/dashboard/recruiter/jobs" component={RecruiterDashboardJobs} />
         <Route path="/dashboard/recruiter/roles" component={RecruiterDashboardRoles} />
         <Route path="/dashboard/recruiter/candidates" component={RecruiterDashboardCandidates} />
+        <Route path="/dashboard/recruiter/clients" component={RecruiterDashboardClients} />
         <Route path="/dashboard/recruiter/tests" component={RecruiterDashboardTests} />
         <Route path="/dashboard/recruiter/scheduling" component={RecruiterDashboardScheduling} />
         <Route path="/dashboard/recruiter/billing" component={RecruiterDashboardBilling} />
@@ -197,6 +199,7 @@ function Router() {
       <Route path="/dashboard/recruiter/jobs" component={() => <RecruitersRouter />} />
       <Route path="/dashboard/recruiter/roles" component={() => <RecruitersRouter />} />
       <Route path="/dashboard/recruiter/candidates" component={() => <RecruitersRouter />} />
+      <Route path="/dashboard/recruiter/clients" component={() => <RecruitersRouter />} />
       <Route path="/dashboard/recruiter/tests" component={() => <RecruitersRouter />} />
       <Route path="/dashboard/recruiter/scheduling" component={() => <RecruitersRouter />} />
       <Route path="/dashboard/recruiter/billing" component={() => <RecruitersRouter />} />

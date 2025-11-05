@@ -18,6 +18,7 @@ import {
   Briefcase,
   Target,
   Users,
+  Building2,
   ClipboardCheck,
   Calendar,
   CreditCard,
@@ -44,6 +45,11 @@ const menuItems = [
     title: "Candidate Database",
     url: "/dashboard/recruiter/candidates",
     icon: Users,
+  },
+  {
+    title: "Corporate Clients",
+    url: "/dashboard/recruiter/clients",
+    icon: Building2,
   },
   {
     title: "Competency Tests",
