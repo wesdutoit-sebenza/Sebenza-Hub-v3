@@ -137,10 +137,7 @@ export function EngagementDialog({
         notes: data.notes || null,
       };
 
-      return await apiRequest(`/api/recruiter/clients/${clientId}/engagements`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
+      return await apiRequest("POST", `/api/recruiter/clients/${clientId}/engagements`, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -181,11 +178,9 @@ export function EngagementDialog({
       };
 
       return await apiRequest(
+        "PATCH",
         `/api/recruiter/clients/${clientId}/engagements/${engagement.id}`,
-        {
-          method: "PATCH",
-          body: JSON.stringify(payload),
-        }
+        payload
       );
     },
     onSuccess: () => {

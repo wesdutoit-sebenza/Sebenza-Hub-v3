@@ -118,10 +118,7 @@ export function ContactDialog({
         notes: data.notes || null,
       };
 
-      return await apiRequest(`/api/recruiter/clients/${clientId}/contacts`, {
-        method: "POST",
-        body: JSON.stringify(payload),
-      });
+      return await apiRequest("POST", `/api/recruiter/clients/${clientId}/contacts`, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients", clientId, "contacts"] });
@@ -167,11 +164,9 @@ export function ContactDialog({
       };
 
       return await apiRequest(
+        "PATCH",
         `/api/recruiter/clients/${clientId}/contacts/${contact.id}`,
-        {
-          method: "PATCH",
-          body: JSON.stringify(payload),
-        }
+        payload
       );
     },
     onSuccess: () => {

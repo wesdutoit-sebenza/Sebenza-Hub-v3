@@ -184,7 +184,7 @@ export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) 
           value === "" ? null : value,
         ])
       );
-      return await apiRequest("/api/recruiter/clients", "POST", cleanData);
+      return await apiRequest("POST", "/api/recruiter/clients", cleanData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients"] });
@@ -214,8 +214,8 @@ export function ClientDialog({ open, onOpenChange, client }: ClientDialogProps) 
         ])
       );
       return await apiRequest(
-        `/api/recruiter/clients/${client!.id}`,
         "PATCH",
+        `/api/recruiter/clients/${client!.id}`,
         cleanData
       );
     },
