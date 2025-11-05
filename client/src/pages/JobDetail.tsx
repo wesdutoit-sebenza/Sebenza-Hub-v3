@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { CompleteJob } from "@/types/job";
+import html2pdf from "html2pdf.js";
 import {
   ArrowLeft,
   MapPin,
@@ -41,7 +42,8 @@ import {
   Package,
   Target,
   Sparkles,
-  Search
+  Search,
+  Download
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -166,6 +168,229 @@ export default function JobDetail() {
     toast({
       title: "Link copied!",
       description: "Job link has been copied to your clipboard.",
+    });
+  };
+
+  const generateJobPDFHTML = (data: CompleteJob) => {
+    const formatDate = (dateStr?: string) => dateStr ? new Date(dateStr).toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+    const formatCurrency = (amount?: number) => amount ? `R ${amount.toLocaleString()}` : 'N/A';
+    
+    return `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 850px; margin: 0 auto; padding: 50px; line-height: 1.7; color: #1f2937; background: #ffffff;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 40px; padding-bottom: 30px; border-bottom: 4px solid #D97706;">
+          <h1 style="color: #D97706; font-size: 32px; font-weight: 700; margin: 0 0 10px 0; letter-spacing: -0.5px;">${data.title || 'Job Posting'}</h1>
+          <p style="color: #6b7280; font-size: 16px; margin: 0;">${data.companyDetails?.name || data.company || 'Company Name'}</p>
+        </div>
+
+        <!-- Company Information -->
+        <div style="background: #fef3e2; padding: 25px; margin-bottom: 30px; border-radius: 8px; border-left: 5px solid #D97706;">
+          <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #fbbf24;">About the Company</h2>
+          <div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Company:</span> <span style="color: #1f2937;">${data.companyDetails?.name || data.company || 'N/A'}</span></div>
+          <div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Industry:</span> <span style="color: #1f2937;">${data.companyDetails?.industry || data.industry || 'N/A'}</span></div>
+          ${data.companyDetails?.website ? `<div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Website:</span> <a href="${data.companyDetails.website}" style="color: #D97706; text-decoration: none;">${data.companyDetails.website}</a></div>` : ''}
+          ${(data.companyDetails as any)?.companySize ? `<div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Company Size:</span> <span style="color: #1f2937;">${(data.companyDetails as any).companySize}</span></div>` : ''}
+          ${data.companyDetails?.description ? `<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #fbbf24;"><p style="margin: 0; color: #374151; line-height: 1.8;">${data.companyDetails.description}</p></div>` : ''}
+        </div>
+
+        <!-- Job Overview -->
+        <div style="background: #f9fafb; padding: 25px; margin-bottom: 30px; border-radius: 8px; border: 1px solid #e5e7eb;">
+          <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #D97706;">Position Details</h2>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div><span style="color: #6b7280; font-weight: 600;">Location:</span> <span style="color: #1f2937;">${formatLocation(data)}</span></div>
+            <div><span style="color: #6b7280; font-weight: 600;">Employment Type:</span> <span style="color: #1f2937;">${data.employmentType || 'N/A'}</span></div>
+            ${data.core?.workArrangement ? `<div><span style="color: #6b7280; font-weight: 600;">Work Arrangement:</span> <span style="color: #1f2937;">${data.core.workArrangement}</span></div>` : ''}
+            ${data.core?.seniority ? `<div><span style="color: #6b7280; font-weight: 600;">Seniority Level:</span> <span style="color: #1f2937;">${data.core.seniority}</span></div>` : ''}
+            ${(data.application as any)?.closingDate ? `<div><span style="color: #6b7280; font-weight: 600;">Closing Date:</span> <span style="color: #1f2937;">${formatDate((data.application as any).closingDate)}</span></div>` : data.admin?.closingDate ? `<div><span style="color: #6b7280; font-weight: 600;">Closing Date:</span> <span style="color: #1f2937;">${formatDate(data.admin.closingDate)}</span></div>` : ''}
+            ${(data.admin as any)?.targetStartDate ? `<div><span style="color: #6b7280; font-weight: 600;">Target Start:</span> <span style="color: #1f2937;">${formatDate((data.admin as any).targetStartDate)}</span></div>` : ''}
+          </div>
+        </div>
+
+        <!-- Summary -->
+        ${data.core?.summary ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #D97706;">Role Summary</h2>
+            <p style="margin: 0; color: #374151; line-height: 1.8; white-space: pre-wrap;">${data.core.summary}</p>
+          </div>
+        ` : ''}
+
+        <!-- Responsibilities -->
+        ${data.core?.responsibilities && data.core.responsibilities.length > 0 ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #D97706;">Key Responsibilities</h2>
+            <ul style="margin: 0; padding-left: 25px; color: #374151;">
+              ${data.core.responsibilities.map(resp => `<li style="margin-bottom: 8px;">${resp}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+
+        <!-- Requirements Section -->
+        <div style="margin-bottom: 30px;">
+          <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #D97706;">Requirements</h2>
+          
+          <!-- Required Skills -->
+          ${data.core?.requiredSkills && data.core.requiredSkills.length > 0 ? `
+            <div style="margin-bottom: 20px;">
+              <h3 style="color: #374151; font-size: 16px; font-weight: 600; margin: 0 0 10px 0;">Required Skills</h3>
+              <ul style="margin: 0; padding-left: 25px; color: #374151;">
+                ${data.core.requiredSkills.map((skill: any) => {
+                  if (typeof skill === 'string') {
+                    return `<li style="margin-bottom: 6px;">${skill}</li>`;
+                  }
+                  return `<li style="margin-bottom: 6px;"><strong>${skill.skill || skill.name}</strong> - ${skill.level} ${skill.priority ? `<span style="color: #D97706;">(${skill.priority})</span>` : ''}</li>`;
+                }).join('')}
+              </ul>
+            </div>
+          ` : ''}
+
+          <!-- Qualifications -->
+          ${data.core?.qualifications && data.core.qualifications.length > 0 ? `
+            <div style="margin-bottom: 20px;">
+              <h3 style="color: #374151; font-size: 16px; font-weight: 600; margin: 0 0 10px 0;">Qualifications</h3>
+              <ul style="margin: 0; padding-left: 25px; color: #374151;">
+                ${data.core.qualifications.map((qual: any) => `<li style="margin-bottom: 6px;">${qual}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+
+          <!-- Experience -->
+          ${data.core?.experience && data.core.experience.length > 0 ? `
+            <div style="margin-bottom: 20px;">
+              <h3 style="color: #374151; font-size: 16px; font-weight: 600; margin: 0 0 10px 0;">Experience Required</h3>
+              <ul style="margin: 0; padding-left: 25px; color: #374151;">
+                ${data.core.experience.map((exp: any) => `<li style="margin-bottom: 6px;">${exp}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Tools & Technologies -->
+        ${(data.roleDetails as any)?.toolsTech && (data.roleDetails as any).toolsTech.length > 0 ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #D97706;">Tools & Technologies</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+              ${(data.roleDetails as any).toolsTech.map((tool: any) => `<span style="background: #fef3e2; color: #92400e; padding: 6px 12px; border-radius: 6px; font-size: 14px; border: 1px solid #fbbf24;">${tool}</span>`).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <!-- Languages -->
+        ${data.core?.languagesRequired && data.core.languagesRequired.length > 0 ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #D97706;">Language Requirements</h2>
+            <ul style="margin: 0; padding-left: 25px; color: #374151;">
+              ${data.core.languagesRequired.map((lang: any) => `<li style="margin-bottom: 6px;">${lang.language} - ${lang.proficiency}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+
+        <!-- Compensation & Benefits -->
+        <div style="background: #f0fdf4; padding: 25px; margin-bottom: 30px; border-radius: 8px; border-left: 5px solid #10b981;">
+          <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #10b981;">Compensation & Benefits</h2>
+          ${data.compensation?.min || data.compensation?.max ? `
+            <div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 6px; border: 1px solid #86efac;">
+              <span style="color: #065f46; font-weight: 600; font-size: 18px;">Salary Range:</span>
+              <div style="color: #047857; font-size: 24px; font-weight: 700; margin-top: 5px;">
+                ${formatCurrency(data.compensation.min)} - ${formatCurrency(data.compensation.max)}
+              </div>
+            </div>
+          ` : ''}
+          
+          ${data.compensation?.commissionAvailable ? `<div style="margin-bottom: 8px;"><span style="color: #065f46; font-weight: 600;">✓ Commission Available</span></div>` : ''}
+          ${data.compensation?.performanceBonus ? `<div style="margin-bottom: 8px;"><span style="color: #065f46; font-weight: 600;">✓ Performance Bonus Available</span></div>` : ''}
+          ${data.compensation?.medicalAidContribution ? `<div style="margin-bottom: 8px;"><span style="color: #065f46; font-weight: 600;">✓ Medical Aid Contribution</span></div>` : ''}
+          ${data.compensation?.pensionContribution ? `<div style="margin-bottom: 8px;"><span style="color: #065f46; font-weight: 600;">✓ Pension/Provident Fund Contribution</span></div>` : ''}
+          
+          ${data.benefits?.benefits && data.benefits.benefits.length > 0 ? `
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #86efac;">
+              <span style="color: #065f46; font-weight: 600;">Additional Benefits:</span>
+              <ul style="margin: 5px 0 0 0; padding-left: 25px; color: #374151;">
+                ${data.benefits.benefits.map((benefit: string) => `<li style="margin-bottom: 4px;">${benefit}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Working Conditions -->
+        ${(data.roleDetails as any)?.travel || (data.roleDetails as any)?.shiftPattern || data.contract?.startDate ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #D97706;">Working Conditions</h2>
+            ${(data.roleDetails as any)?.travel ? `<div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Travel Required:</span> <span style="color: #1f2937;">${(data.roleDetails as any).travel}</span></div>` : ''}
+            ${(data.roleDetails as any)?.shiftPattern ? `<div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Shift Pattern:</span> <span style="color: #1f2937;">${(data.roleDetails as any).shiftPattern}</span></div>` : ''}
+            ${(data.roleDetails as any)?.weekendWork ? `<div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Weekend Work:</span> <span style="color: #1f2937;">Required</span></div>` : ''}
+            ${(data.roleDetails as any)?.onCall ? `<div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">On-call:</span> <span style="color: #1f2937;">Required</span></div>` : ''}
+            ${data.contract?.startDate ? `<div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Contract Start:</span> <span style="color: #1f2937;">${formatDate(data.contract.startDate)}</span></div>` : ''}
+            ${data.contract?.endDate ? `<div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Contract End:</span> <span style="color: #1f2937;">${formatDate(data.contract.endDate)}</span></div>` : ''}
+            ${data.contract?.renewalPossible ? `<div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Renewal:</span> <span style="color: #1f2937;">Possible</span></div>` : ''}
+          </div>
+        ` : ''}
+
+        <!-- Application Process -->
+        <div style="background: #eff6ff; padding: 25px; margin-bottom: 30px; border-radius: 8px; border-left: 5px solid #3b82f6;">
+          <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #3b82f6;">How to Apply</h2>
+          ${(data.application as any)?.whatsappNumber || data.whatsappContact ? `
+            <div style="margin-bottom: 12px;">
+              <span style="color: #1e40af; font-weight: 600; font-size: 16px;">📱 Apply via WhatsApp:</span>
+              <div style="margin-top: 6px; font-size: 18px; font-weight: 700; color: #1e3a8a;">${(data.application as any)?.whatsappNumber || data.whatsappContact}</div>
+              <div style="color: #6b7280; font-size: 14px; margin-top: 4px;">Send your CV and cover letter directly</div>
+            </div>
+          ` : ''}
+          ${(data.application as any)?.closingDate || data.admin?.closingDate ? `
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #bfdbfe;">
+              <span style="color: #6b7280; font-weight: 600;">Application Deadline:</span> 
+              <span style="color: #1f2937; font-weight: 600;">${formatDate((data.application as any)?.closingDate || data.admin?.closingDate)}</span>
+            </div>
+          ` : ''}
+          ${data.attachments?.required && data.attachments.required.length > 0 ? `
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #bfdbfe;">
+              <div style="color: #1e40af; font-weight: 600; margin-bottom: 6px;">Required Documents:</div>
+              <ul style="margin: 0; padding-left: 25px; color: #374151;">
+                ${data.attachments.required.map((doc: any) => `<li style="margin-bottom: 4px;">${doc}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+
+        <!-- Additional Information -->
+        ${data.accessibility?.accommodationContact || data.accessibility?.physicalRequirements || data.accessibility?.workplaceAccessibility ? `
+          <div style="margin-bottom: 30px;">
+            <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #D97706;">Accessibility & Accommodations</h2>
+            ${data.accessibility.accommodationContact ? `<div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Contact for accommodations:</span> <a href="mailto:${data.accessibility.accommodationContact}" style="color: #D97706; text-decoration: none;">${data.accessibility.accommodationContact}</a></div>` : ''}
+            ${data.accessibility.physicalRequirements ? `<div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Physical Requirements:</span> <span style="color: #374151;">${data.accessibility.physicalRequirements}</span></div>` : ''}
+            ${data.accessibility.workplaceAccessibility ? `<div style="margin-bottom: 8px;"><span style="color: #6b7280; font-weight: 600;">Workplace Accessibility:</span> <span style="color: #374151;">${data.accessibility.workplaceAccessibility}</span></div>` : ''}
+          </div>
+        ` : ''}
+
+        <!-- Footer -->
+        <div style="margin-top: 50px; padding-top: 25px; border-top: 3px solid #e5e7eb; text-align: center;">
+          <div style="color: #D97706; font-size: 20px; font-weight: 700; margin-bottom: 8px;">Sebenza Hub</div>
+          <div style="color: #6b7280; font-size: 14px; margin-bottom: 4px;">South African Recruiting Platform</div>
+          <div style="color: #9ca3af; font-size: 12px;">Generated on ${new Date().toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+        </div>
+      </div>
+    `;
+  };
+
+  const handleDownloadPDF = () => {
+    if (!job) return;
+
+    const pdfHTML = generateJobPDFHTML(job);
+    const element = document.createElement('div');
+    element.innerHTML = pdfHTML;
+
+    const opt = {
+      margin: 0.5,
+      filename: `${job.title.replace(/[^a-z0-9]/gi, '_')}_${job.company.replace(/[^a-z0-9]/gi, '_')}.pdf`,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in' as const, format: 'a4' as const, orientation: 'portrait' as const }
+    };
+
+    html2pdf().set(opt).from(element).save();
+    
+    toast({
+      title: "PDF Generated!",
+      description: "Your job posting PDF has been downloaded.",
     });
   };
 
@@ -375,6 +600,15 @@ export default function JobDetail() {
               >
                 <MessageCircle className="mr-2 h-5 w-5" />
                 {existingApplication ? "Apply Again via WhatsApp" : "Apply via WhatsApp"}
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleDownloadPDF}
+                data-testid="button-download-pdf"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download PDF
               </Button>
               <Button
                 size="lg"
