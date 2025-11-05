@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PageHeader from "@/components/PageHeader";
 import Section from "@/components/Section";
 import Stat from "@/components/Stat";
@@ -57,6 +58,7 @@ export default function Recruiters() {
   const [organizationType, setOrganizationType] = useState<
     "agency" | "corporate"
   >("agency");
+  const [interval, setInterval] = useState<'monthly' | 'annual'>('monthly');
 
   useEffect(() => {
     document.title = "For Recruiters | Reduce noise. Faster shortlists.";
@@ -67,13 +69,13 @@ export default function Recruiters() {
     queryKey: ['/api/public/plans'],
   });
 
-  // Filter plans based on organization type
+  // Filter plans based on organization type and interval
   const plans = data?.plans || [];
   const currentProduct = organizationType === "agency" ? "recruiter" : "corporate";
-  const monthlyPlans = {
-    free: plans.find(p => p.plan.product === currentProduct && p.plan.tier === 'free' && p.plan.interval === 'monthly'),
-    standard: plans.find(p => p.plan.product === currentProduct && p.plan.tier === 'standard' && p.plan.interval === 'monthly'),
-    premium: plans.find(p => p.plan.product === currentProduct && p.plan.tier === 'premium' && p.plan.interval === 'monthly'),
+  const selectedPlans = {
+    free: plans.find(p => p.plan.product === currentProduct && p.plan.tier === 'free' && p.plan.interval === interval),
+    standard: plans.find(p => p.plan.product === currentProduct && p.plan.tier === 'standard' && p.plan.interval === interval),
+    premium: plans.find(p => p.plan.product === currentProduct && p.plan.tier === 'premium' && p.plan.interval === interval),
   };
 
   const agencyFeatures = [
@@ -191,19 +193,34 @@ export default function Recruiters() {
             ? "Pricing for Recruiting Agencies"
             : "Pricing for Corporate Companies"}
         </h2>
-        <p className="text-center mb-12 max-w-2xl mx-auto text-[#ffffff]">
+        <p className="text-center mb-8 max-w-2xl mx-auto text-[#ffffff]">
           {organizationType === "agency"
             ? "Choose the plan that fits your recruitment needs. All plans include POPIA compliance and WhatsApp integration."
             : "Enterprise-grade hiring solutions with EE/AA compliance and multi-department support. All plans include POPIA compliance."}
         </p>
+
+        {/* Billing Interval Toggle */}
+        <div className="flex justify-center mb-12">
+          <Tabs value={interval} onValueChange={(v) => setInterval(v as 'monthly' | 'annual')} className="w-auto">
+            <TabsList data-testid="toggle-billing-interval">
+              <TabsTrigger value="monthly" data-testid="tab-monthly">
+                Monthly
+              </TabsTrigger>
+              <TabsTrigger value="annual" data-testid="tab-annual">
+                Annual
+                <Badge variant="secondary" className="ml-2 text-xs">Save 17%</Badge>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
         {isLoading ? (
           <div className="flex justify-center py-12" data-testid="loading-pricing">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div key={currentProduct} className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {Object.entries(monthlyPlans).map(([tier, planData]) => {
+          <div key={`${currentProduct}-${interval}`} className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {Object.entries(selectedPlans).map(([tier, planData]) => {
               if (!planData) return null;
               
               const { plan, entitlements } = planData;
@@ -234,8 +251,15 @@ export default function Recruiters() {
                         <span className="text-4xl font-bold" data-testid={`price-${currentProduct}-${tier}`}>
                           R{parseFloat(plan.priceMonthly).toLocaleString()}
                         </span>
-                        <span className="text-muted-foreground">/mo</span>
+                        <span className="text-muted-foreground">
+                          /{interval === 'monthly' ? 'mo' : 'year'}
+                        </span>
                       </div>
+                      {interval === 'annual' && parseFloat(plan.priceMonthly) > 0 && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          R{(parseFloat(plan.priceMonthly) / 12).toFixed(0)}/month billed annually
+                        </p>
+                      )}
                     </div>
                   </CardHeader>
 
