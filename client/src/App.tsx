@@ -10,6 +10,7 @@ import Home from "@/pages/Home";
 import Recruiters from "@/pages/Recruiters";
 import Individuals from "@/pages/Individuals";
 import ContactUs from "@/pages/ContactUs";
+import Pricing from "@/pages/Pricing";
 import JobDetail from "@/pages/JobDetail";
 import Screening from "@/pages/screening";
 import Login from "@/pages/login";
@@ -158,6 +159,7 @@ function Router() {
       <Route path="/recruiters" component={Recruiters} />
       <Route path="/individuals" component={Individuals} />
       <Route path="/contact" component={ContactUs} />
+      <Route path="/pricing" component={Pricing} />
       <Route path="/jobs/:id" component={JobDetail} />
       <Route path="/individuals/job-searches" component={IndividualDashboardManualJobSearch} />
       <Route path="/screening" component={Screening} />
