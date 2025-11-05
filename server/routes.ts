@@ -498,9 +498,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Normalize legacy skills data
       const normalizedJob = normalizeJobSkills(job);
       
+      // Include basic client information if job is linked to a corporate client
+      let clientInfo = null;
+      if (job.clientId) {
+        const [client] = await db.select({
+          id: corporateClients.id,
+          name: corporateClients.name,
+          industry: corporateClients.industry,
+        })
+          .from(corporateClients)
+          .where(eq(corporateClients.id, job.clientId));
+        
+        if (client) {
+          clientInfo = client;
+        }
+      }
+      
       res.json({
         success: true,
         job: normalizedJob,
+        client: clientInfo,
       });
     } catch (error) {
       console.error("Error fetching job:", error);

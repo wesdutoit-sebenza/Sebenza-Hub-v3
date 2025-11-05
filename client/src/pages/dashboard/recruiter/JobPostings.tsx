@@ -321,6 +321,12 @@ export default function RecruiterJobPostings() {
     queryKey: ["/api/profile/recruiter"],
   });
 
+  // Fetch corporate clients for client selection
+  const { data: corporateClientsData } = useQuery<{ clients: Array<{ id: string; name: string }> }>({
+    queryKey: ["/api/recruiter/clients"],
+  });
+
+  const corporateClients = corporateClientsData?.clients || [];
   const jobs = jobsData?.jobs || [];
   
   const filteredJobs = jobs.filter((job) =>
@@ -362,6 +368,7 @@ export default function RecruiterJobPostings() {
       title: "",
       jobIndustry: "",
       company: "",
+      clientId: undefined,
       employmentType: "Permanent",
       core: {
         seniority: "Mid",
@@ -1059,6 +1066,49 @@ export default function RecruiterJobPostings() {
                       </FormControl>
                       <FormDescription>
                         Auto-populated from your recruiter profile
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="clientId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Corporate Client (Optional)</FormLabel>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value === "none" ? undefined : value);
+                          // Auto-fill company name when client is selected
+                          if (value !== "none") {
+                            const selectedClient = corporateClients.find(c => c.id === value);
+                            if (selectedClient) {
+                              // Always update both company fields for consistency
+                              form.setValue("company", selectedClient.name);
+                              form.setValue("companyDetails.name", selectedClient.name);
+                            }
+                          }
+                        }} 
+                        value={field.value || "none"}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-client">
+                            <SelectValue placeholder="Select a corporate client (optional)" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">No corporate client</SelectItem>
+                          {corporateClients.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {client.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Link this job to a corporate client for better tracking
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

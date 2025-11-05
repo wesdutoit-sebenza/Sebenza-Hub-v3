@@ -77,6 +77,7 @@ export default function JobDetail() {
   const { data: jobData, isLoading, error } = useQuery<{
     success: boolean;
     job: CompleteJob;
+    client?: { id: string; name: string; industry: string | null } | null;
   }>({
     queryKey: [`/api/jobs/${id}`],
     enabled: !!id,
@@ -90,6 +91,7 @@ export default function JobDetail() {
   });
 
   const job = jobData?.job;
+  const client = jobData?.client;
 
   // Check if user has already applied to this job
   const { data: applicationsData } = useQuery<{
@@ -620,11 +622,24 @@ export default function JobDetail() {
                   {job.companyDetails?.eeAa && (
                     <Badge variant="outline">EE/AA Employer</Badge>
                   )}
+                  {client && (
+                    <Badge variant="secondary" className="text-xs" data-testid="badge-corporate-client">
+                      <Users className="w-3 h-3 mr-1" />
+                      via {client.name}
+                    </Badge>
+                  )}
                 </div>
 
                 {job.referenceNumber && (
                   <p className="text-sm text-muted-foreground">
                     Reference: {job.referenceNumber}
+                  </p>
+                )}
+                
+                {client && (
+                  <p className="text-sm text-muted-foreground" data-testid="text-client-info">
+                    This position is being recruited for on behalf of {client.name}
+                    {client.industry && ` (${client.industry})`}.
                   </p>
                 )}
               </div>
