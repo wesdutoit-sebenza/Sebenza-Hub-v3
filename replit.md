@@ -1,7 +1,7 @@
 # Sebenza Hub - South African Recruiting Platform
 
 ## Overview
-Sebenza Hub is a marketing website for a South African recruiting platform designed to revolutionize hiring by emphasizing transparency, compliance, and a WhatsApp-first approach. It connects recruiters, businesses, and job seekers through dedicated landing pages. The platform is a full-stack TypeScript application utilizing React and Express, focused on streamlining the hiring process, enhancing candidate experience, and aiming to become a leading recruitment solution in South Africa.
+Sebenza Hub is a South African recruiting platform with a comprehensive feature-based billing system, designed to revolutionize hiring by emphasizing transparency, compliance, and a WhatsApp-first approach. It connects recruiters, businesses, and job seekers through dedicated landing pages and role-specific portals. The platform is a full-stack TypeScript application utilizing React and Express, focused on streamlining the hiring process, enhancing candidate experience, and monetizing through tiered subscriptions with Netcash payment integration.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -15,7 +15,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Technical Implementations
 - **Frontend**: Developed with React and TypeScript (Vite), using Wouter for routing and TanStack React Query for state management.
-    - **Marketing Pages**: Contact Us page (`/contact`) with contact form (inquiry types, name, email, WhatsApp), office information cards, and business hours. Navigation updated: "For Businesses" page removed, replaced with "Contact Us" after "For Individuals". Recruiters marketing page (`/recruiters`) displays organization type toggle (agency vs corporate), pricing plans, features, stats, and FAQ - job posting functionality removed from public marketing page (November 2025).
+    - **Marketing Pages**: Contact Us page (`/contact`) with contact form (inquiry types, name, email, WhatsApp), office information cards, and business hours. Pricing page (`/pricing`) displays 3 product families (Individual, Recruiter, Corporate) with 3 tiers each (Free, Standard, Premium), monthly/annual toggle, feature comparison, FAQ, and upgrade CTAs. Navigation updated: "For Businesses" page removed, replaced with "Pricing" then "Contact Us" after "For Individuals". Recruiters marketing page (`/recruiters`) displays organization type toggle (agency vs corporate), pricing plans, features, stats, and FAQ - job posting functionality removed from public marketing page (November 2025).
     - **Recruiters Portal**: Includes job posting forms with WhatsApp integration, an AI Job Description Generator, and a status-based workflow (Draft, Live, Paused, Closed, Filled) with conditional validation. Features interactive sticky form navigation, enhanced skills structure with level/priority attributes, a job import feature (document upload/text paste with AI extraction), an AI Company Description Assistant, comprehensive PDF export and preview functionality (available in job posting form and individual job detail view), automatic "Days Left" calculator for job closing dates, and **Interview Scheduling** (November 2025) with multi-provider calendar integration (Google Calendar/Meet, Microsoft Teams/Outlook, Zoom) for managing candidate interviews with automatic video meeting links. **Corporate Clients** (November 2025) enables recruiting agencies to manage client companies with organization-scoped sharing across team members, including client profiles, contacts (with POPIA consent tracking), fee agreements, and client-specific job postings with comprehensive analytics.
     - **Individuals Portal**: Supports multiple CV management (with AI-powered circular cropping for photos and PDF previews), profile management, competency test access, **Interview Booking** capability, and an AI Interview Coach.
         - **Job Searches Collapsible Tree** (November 2025): Reorganized Job Searches section into a collapsible sidebar tree structure with four sub-sections:
@@ -43,6 +43,14 @@ Preferred communication style: Simple, everyday language.
     - **Interview Scheduling Database** (November 2025): Five-table schema (`connected_accounts`, `interview_pools`, `pool_members`, `interviews`, `holds`) supporting per-recruiter OAuth for Google Calendar, Microsoft Teams/Outlook, and Zoom. Features multi-provider support with automatic video meeting link generation (Google Meet, Teams, or Zoom), availability management across providers, interview booking with provider selection, and calendar synchronization.
     - **Job Favorites Database** (November 2025): `job_favorites` table with unique constraint on (userId, jobId) for tracking saved jobs. API endpoints support add, remove, list, and check operations with proper authentication and cache invalidation.
     - **Corporate Clients Database** (November 2025): Three-table schema (`corporate_clients`, `corporate_client_contacts`, `corporate_client_engagements`) with `clientId` foreign key added to `jobs` table. All clients scoped to `agencyOrganizationId` for team collaboration. Contacts include POPIA consent tracking. Engagements store fee agreements (fixed, percentage, hybrid), guarantee periods, and payment terms with JSONB for flexible configuration.
+    - **Billing System Database** (November 2025): Six-table feature-entitlement architecture:
+        - `plans` - 18 subscription plans (3 products × 3 tiers × 2 intervals): Individual (R0-R299/mo), Recruiter (R0-R1999/mo), Corporate (R0-R1999/mo)
+        - `features` - 16 platform features with TOGGLE/QUOTA/METERED types
+        - `featureEntitlements` - Plan-to-feature mapping with quotas and limits
+        - `subscriptions` - User/org subscriptions with auto-provisioned free tier fallback
+        - `usage` - Per-billing-period usage tracking for quota enforcement
+        - `paymentEvents` - Netcash webhook event log
+        - Entitlements service provides checkAllowed(), consume(), getEntitlements() for feature-gating across platform
 
 ### System Design Choices
 - **Monorepo Structure**: Organized into `client/`, `server/`, and `shared/` directories.
