@@ -230,5 +230,12 @@ app.use((req, res, next) => {
     import('./start-workers.js').catch(err => {
       console.log('[Workers] Background workers not started:', err.message);
     });
+    
+    // Initialize billing cron job for monthly usage resets
+    import('./services/billing-cron.js').then(({ initializeBillingCron }) => {
+      initializeBillingCron();
+    }).catch(err => {
+      console.error('[Billing Cron] Failed to initialize billing cron job:', err.message);
+    });
   });
 })();

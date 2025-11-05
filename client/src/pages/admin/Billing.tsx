@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,7 +22,10 @@ import {
   Search,
   Calendar,
   Activity,
+  RefreshCw,
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 interface SubscriptionData {
   subscription: {
@@ -54,6 +58,7 @@ interface PaymentEvent {
 
 export default function AdminBilling() {
   const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
 
   const { data: subscriptionsData, isLoading: loadingSubscriptions } = useQuery<{
     subscriptions: SubscriptionData[];
@@ -65,6 +70,32 @@ export default function AdminBilling() {
     events: PaymentEvent[];
   }>({
     queryKey: ['/api/admin/billing/events'],
+  });
+
+  // Manual billing reset mutation
+  const resetBillingMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('/api/admin/billing/reset-usage', {
+        method: 'POST',
+      });
+      return response;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Billing Reset Successful",
+        description: `Processed ${data.result?.resetResult?.processedCount || 0} subscriptions and canceled ${data.result?.cancelResult?.canceledCount || 0} subscriptions.`,
+      });
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/billing/subscriptions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/billing/events'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Reset Failed",
+        description: error.message || "Failed to trigger billing reset",
+        variant: "destructive",
+      });
+    },
   });
 
   const subscriptions = subscriptionsData?.subscriptions || [];
@@ -258,6 +289,32 @@ export default function AdminBilling() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Admin Tools */}
+      <Card className="mb-6" data-testid="card-admin-tools">
+        <CardHeader>
+          <CardTitle>Admin Tools</CardTitle>
+          <CardDescription>
+            Manage billing operations and maintenance tasks
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={() => resetBillingMutation.mutate()}
+              disabled={resetBillingMutation.isPending}
+              variant="outline"
+              data-testid="button-reset-billing"
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${resetBillingMutation.isPending ? 'animate-spin' : ''}`} />
+              {resetBillingMutation.isPending ? 'Resetting...' : 'Trigger Billing Reset'}
+            </Button>
+            <div className="text-sm text-muted-foreground">
+              Manually reset billing periods for expired subscriptions. This is normally done automatically at midnight daily.
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tabs */}
       <Tabs defaultValue="subscriptions" className="space-y-4">

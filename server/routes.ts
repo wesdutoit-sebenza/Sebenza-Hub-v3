@@ -8326,6 +8326,34 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
     }
   });
 
+  // Admin: Manually trigger billing period reset (for testing/maintenance)
+  app.post("/api/admin/billing/reset-usage", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+      
+      const { triggerManualReset } = await import('./services/billing-cron');
+      const result = await triggerManualReset();
+      
+      res.json({
+        success: true,
+        message: "Billing reset triggered successfully",
+        result,
+      });
+    } catch (error: any) {
+      console.error("[Billing] Error triggering reset:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to trigger billing reset",
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
