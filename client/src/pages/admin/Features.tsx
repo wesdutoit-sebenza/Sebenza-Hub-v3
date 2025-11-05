@@ -103,10 +103,7 @@ export default function Features() {
   // Create feature mutation
   const createFeatureMutation = useMutation({
     mutationFn: async (data: FeatureFormData) => {
-      return await apiRequest('/api/admin/features', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      return await apiRequest('POST', '/api/admin/features', data);
     },
     onSuccess: () => {
       toast({
@@ -129,10 +126,7 @@ export default function Features() {
   // Update feature mutation
   const updateFeatureMutation = useMutation({
     mutationFn: async ({ key, data }: { key: string; data: Partial<FeatureFormData> }) => {
-      return await apiRequest(`/api/admin/features/${key}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      });
+      return await apiRequest('PATCH', `/api/admin/features/${key}`, data);
     },
     onSuccess: () => {
       toast({
@@ -155,9 +149,7 @@ export default function Features() {
   // Delete feature mutation
   const deleteFeatureMutation = useMutation({
     mutationFn: async (key: string) => {
-      return await apiRequest(`/api/admin/features/${key}`, {
-        method: 'DELETE',
-      });
+      return await apiRequest('DELETE', `/api/admin/features/${key}`);
     },
     onSuccess: () => {
       toast({

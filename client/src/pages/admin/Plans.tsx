@@ -123,10 +123,7 @@ export default function Plans() {
   // Create plan mutation
   const createPlanMutation = useMutation({
     mutationFn: async (data: PlanFormData) => {
-      return await apiRequest('/api/admin/plans', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
+      return await apiRequest('POST', '/api/admin/plans', data);
     },
     onSuccess: () => {
       toast({
@@ -149,10 +146,7 @@ export default function Plans() {
   // Update plan mutation
   const updatePlanMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<PlanFormData> }) => {
-      return await apiRequest(`/api/admin/plans/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(data),
-      });
+      return await apiRequest('PATCH', `/api/admin/plans/${id}`, data);
     },
     onSuccess: () => {
       toast({
@@ -175,9 +169,7 @@ export default function Plans() {
   // Delete plan mutation
   const deletePlanMutation = useMutation({
     mutationFn: async (id: string) => {
-      return await apiRequest(`/api/admin/plans/${id}`, {
-        method: 'DELETE',
-      });
+      return await apiRequest('DELETE', `/api/admin/plans/${id}`);
     },
     onSuccess: () => {
       toast({
@@ -618,9 +610,8 @@ function EntitlementsDialog({
           overageUnitCents: config.overageUnitCents || null,
         }));
 
-      return await apiRequest(`/api/admin/plans/${plan.id}/entitlements`, {
-        method: 'POST',
-        body: JSON.stringify({ entitlements: entitlementsArray }),
+      return await apiRequest('POST', `/api/admin/plans/${plan.id}/entitlements`, { 
+        entitlements: entitlementsArray 
       });
     },
     onSuccess: () => {
