@@ -8022,7 +8022,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   // Public: Get all plans catalog (for pricing page)
   app.get("/api/public/plans", async (req, res) => {
     try {
-      const allPlans = await db.select({
+      const rawPlans = await db.select({
         plan: plans,
         entitlements: sql`(
           SELECT COALESCE(json_agg(
@@ -8044,6 +8044,31 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
         .from(plans)
         .where(eq(plans.isPublic, 1))
         .orderBy(plans.product, plans.tier, plans.interval);
+
+      // Transform to include priceMonthly, name, description for frontend
+      const allPlans = rawPlans.map(({ plan, entitlements }) => {
+        // Generate name from product and tier
+        const productName = plan.product.charAt(0).toUpperCase() + plan.product.slice(1);
+        const tierName = plan.tier.charAt(0).toUpperCase() + plan.tier.slice(1);
+        const name = `${productName} - ${tierName}`;
+        
+        // Generate description based on product
+        const descriptions: Record<string, string> = {
+          individual: 'For job seekers building their careers',
+          recruiter: 'For recruiting agencies and talent teams',
+          corporate: 'For businesses hiring direct',
+        };
+        
+        return {
+          plan: {
+            ...plan,
+            name,
+            description: descriptions[plan.product] || '',
+            priceMonthly: (plan.priceCents / 100).toFixed(2), // Convert cents to rands
+          },
+          entitlements,
+        };
+      });
 
       res.json({
         success: true,
