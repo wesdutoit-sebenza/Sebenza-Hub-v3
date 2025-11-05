@@ -12,6 +12,7 @@ import { queueFraudDetection } from "./fraud-queue-helper";
 import { pool } from "./db-pool";
 import { generateUniqueCVReference, generateUniqueJobReference, generateUniqueTestReference } from "./reference-generator";
 import { generateTestBlueprint, validateBlueprint, type GenerateTestInput } from "./ai-test-generation";
+import { checkAllowed, consume } from "./services/entitlements";
 
 // Helper function to enqueue screening jobs for all active roles
 async function enqueueScreeningsForCandidate(candidateId: string) {
@@ -360,6 +361,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // FEATURE GATE: Check job posting quota
+      // Get organization membership to determine correct org ID for billing
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, user.id))
+        .limit(1);
+      
+      // Use organization ID if user is a member, otherwise use userId as org ID (individual recruiter)
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership?.organizationId || recruiterProfile.userId
+      };
+      
+      // Check quota BEFORE processing (but don't consume yet)
+      const allowed = await checkAllowed(orgHolder, 'job_posts', 1);
+      if (!allowed.ok) {
+        const errorMsg = allowed.reason || '';
+        let userMessage = "You've reached your job posting limit.";
+        
+        if (errorMsg.includes('QUOTA_EXCEEDED')) {
+          userMessage = "You've reached your monthly job posting limit. Upgrade your plan to post more jobs.";
+        } else if (errorMsg.includes('FEATURE_NOT_IN_PLAN')) {
+          userMessage = "Job posting is not available in your current plan. Please upgrade.";
+        } else if (errorMsg.includes('FEATURE_DISABLED')) {
+          userMessage = "Job posting is not enabled in your current plan. Please upgrade.";
+        }
+        
+        return res.status(403).json({
+          success: false,
+          message: userMessage,
+        });
+      }
+      
       // For drafts, skip strict validation
       let validatedData;
       if (jobStatus === "Draft") {
@@ -394,6 +428,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }).returning();
       
       console.log(`New job created: ${job.title} at ${job.company} (Status: ${jobStatus}) - Ref: ${referenceNumber} by user ${user.id}`);
+      
+      // Consume quota AFTER successful creation
+      try {
+        await consume(orgHolder, 'job_posts', 1);
+      } catch (error: any) {
+        console.error('Failed to consume job posting quota after creation:', error);
+        // Job was created successfully, so we log the error but don't fail the request
+      }
       
       // Queue fraud detection for job posting
       await queueFraudDetection('job_post', job.id, job, job.postedByUserId || undefined);
@@ -1865,6 +1907,32 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
     const userId = authReq.user.id;
     const userEmail = authReq.user.email;
 
+    // FEATURE GATE: Check CV builder quota
+    const userHolder = {
+      type: 'user' as const,
+      id: userId
+    };
+    
+    // Check quota BEFORE processing (but don't consume yet)
+    const allowed = await checkAllowed(userHolder, 'cv_builder', 1);
+    if (!allowed.ok) {
+      const errorMsg = allowed.reason || '';
+      let userMessage = "You've reached your CV creation limit.";
+      
+      if (errorMsg.includes('QUOTA_EXCEEDED')) {
+        userMessage = "You've reached your monthly CV creation limit. Upgrade your plan to create more CVs.";
+      } else if (errorMsg.includes('FEATURE_NOT_IN_PLAN')) {
+        userMessage = "CV builder is not available in your current plan. Please upgrade.";
+      } else if (errorMsg.includes('FEATURE_DISABLED')) {
+        userMessage = "CV builder is not enabled in your current plan. Please upgrade.";
+      }
+      
+      return res.status(403).json({
+        success: false,
+        message: userMessage,
+      });
+    }
+
     try {
       const validatedData = insertCVSchema.parse(req.body);
       
@@ -1877,6 +1945,14 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       const cv = await storage.createCV(cvData);
       
       console.log(`[CV] Created: ${cv.id} for user ${userId} (${userEmail}) with reference ${cv.referenceNumber}`);
+      
+      // Consume quota AFTER successful creation
+      try {
+        await consume(userHolder, 'cv_builder', 1);
+      } catch (error: any) {
+        console.error('Failed to consume CV builder quota after creation:', error);
+        // CV was created successfully, so we log the error but don't fail the request
+      }
       
       res.json({
         success: true,
@@ -2720,6 +2796,53 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         });
       }
 
+      // Get recruiter profile to determine organization for billing
+      const [recruiterProfile] = await db.select()
+        .from(recruiterProfiles)
+        .where(eq(recruiterProfiles.userId, userId));
+      
+      if (!recruiterProfile) {
+        return res.status(403).json({
+          success: false,
+          message: "Recruiter profile not found.",
+        });
+      }
+
+      // FEATURE GATE: Check AI screening quota
+      // Get organization membership to determine correct org ID for billing
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, userId))
+        .limit(1);
+      
+      // Use organization ID if user is a member, otherwise use userId as org ID (individual recruiter)
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership?.organizationId || recruiterProfile.userId
+      };
+      
+      const cvCount = cvTexts.length;
+      
+      // Check quota BEFORE processing (but don't consume yet)
+      const allowed = await checkAllowed(orgHolder, 'ai_screenings', cvCount);
+      if (!allowed.ok) {
+        const errorMsg = allowed.reason || '';
+        let userMessage = "You've reached your AI screening limit.";
+        
+        if (errorMsg.includes('QUOTA_EXCEEDED')) {
+          userMessage = `You've reached your monthly AI screening limit. You're trying to screen ${cvCount} CVs. Upgrade your plan to screen more candidates.`;
+        } else if (errorMsg.includes('FEATURE_NOT_IN_PLAN')) {
+          userMessage = "AI screening is not available in your current plan. Please upgrade.";
+        } else if (errorMsg.includes('FEATURE_DISABLED')) {
+          userMessage = "AI screening is not enabled in your current plan. Please upgrade.";
+        }
+        
+        return res.status(403).json({
+          success: false,
+          message: userMessage,
+        });
+      }
+
       // Update job status to processing
       await db.update(screeningJobs)
         .set({ status: 'processing' })
@@ -2809,6 +2932,16 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       await db.update(screeningJobs)
         .set({ status: 'completed' })
         .where(eq(screeningJobs.id, jobId));
+
+      // Consume quota AFTER successful processing (only for successfully processed CVs)
+      if (processedCandidates.length > 0) {
+        try {
+          await consume(orgHolder, 'ai_screenings', processedCandidates.length);
+        } catch (error: any) {
+          console.error('Failed to consume AI screening quota after processing:', error);
+          // CVs were processed successfully, so we log the error but don't fail the request
+        }
+      }
 
       res.json({
         success: true,
