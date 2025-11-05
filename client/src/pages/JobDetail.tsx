@@ -709,36 +709,36 @@ export default function JobDetail() {
               {(job.application?.method === "in-app" || !job.application?.method) && (
                 <Button
                   size="lg"
-                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                  className="bg-amber-600 hover:bg-amber-700 text-white min-w-[180px]"
                   onClick={handleApplyViaSebenzaHub}
                   data-testid="button-apply-sebenzahub"
                 >
                   <Briefcase className="mr-2 h-5 w-5" />
-                  Apply via SebenzaHub
+                  SebenzaHub
                 </Button>
               )}
               
               {job.application?.externalUrl && (
                 <Button
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className="bg-blue-600 hover:bg-blue-700 text-white min-w-[180px]"
                   onClick={handleApplyViaWebsite}
                   data-testid="button-apply-website"
                 >
                   <ExternalLink className="mr-2 h-5 w-5" />
-                  Apply via Website
+                  Website
                 </Button>
               )}
               
               {(job.application?.whatsappNumber || job.whatsappContact) && (
                 <Button
                   size="lg"
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-green-600 hover:bg-green-700 text-white min-w-[180px]"
                   onClick={handleApplyViaWhatsApp}
                   data-testid="button-apply-whatsapp"
                 >
                   <MessageCircle className="mr-2 h-5 w-5" />
-                  Apply via WhatsApp
+                  WhatsApp
                 </Button>
               )}
 
@@ -748,7 +748,7 @@ export default function JobDetail() {
                 onClick={handleToggleFavorite}
                 disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
                 data-testid="button-toggle-favorite"
-                className={isFavorite ? "bg-amber-600 hover:bg-amber-700 text-white border-amber-600" : ""}
+                className={`min-w-[180px] ${isFavorite ? "bg-amber-600 hover:bg-amber-700 text-white border-amber-600" : ""}`}
               >
                 <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
                 {isFavorite ? "Saved" : "Save"}
@@ -758,6 +758,7 @@ export default function JobDetail() {
                 variant="outline"
                 onClick={handleDownloadPDF}
                 data-testid="button-download-pdf"
+                className="min-w-[180px]"
               >
                 <Download className="mr-2 h-4 w-4" />
                 Download PDF
@@ -767,6 +768,7 @@ export default function JobDetail() {
                 variant="outline"
                 onClick={handleShare}
                 data-testid="button-share-job"
+                className="min-w-[180px]"
               >
                 <Share2 className="mr-2 h-4 w-4" />
                 Share

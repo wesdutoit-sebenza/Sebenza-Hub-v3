@@ -23,7 +23,8 @@ Preferred communication style: Simple, everyday language.
             - **Auto Job Search** (`/dashboard/individual/jobs/auto`): AI-powered automatic job matching where users configure preferences (job titles, locations, industries, employment type, minimum salary) for automatic notifications when jobs match their criteria
             - **Manual Job Search** (`/dashboard/individual/jobs/manual`): Simplified view showing only Live jobs without filters. Displays job cards with transparent salary ranges and WhatsApp application capability. No search/filter interface - just browse active opportunities
             - **Saved Job Searches** (`/dashboard/individual/jobs/saved`): Quick access to frequently used search criteria with indicators showing number of new matching jobs
-        - **Job Detail View** (`/jobs/:id`): Full job posting details with WhatsApp application, sharing capability, and **Download PDF** button for offline viewing and printing. PDF includes comprehensive job information formatted with professional Charcoal/Amber branding.
+        - **Job Detail View** (`/jobs/:id`): Full job posting details with multiple application methods (SebenzaHub in-app, external website, WhatsApp), job favorites functionality, sharing capability, and **Download PDF** button for offline viewing and printing. PDF includes comprehensive job information formatted with professional Charcoal/Amber branding. Features 6 uniform-sized action buttons (3 application methods + Save to Favorites + Download PDF + Share).
+        - **Job Favorites System** (November 2025): Users can save jobs to favorites from the job detail page using the heart icon button. Favorites are accessible via "My Favourite Jobs" page under the collapsible "My Applications" sidebar menu, displaying job preview cards with remove functionality and empty state messaging.
         - Uses Radix UI Collapsible component for expandable sidebar menu. Chevron icon rotates 90° when expanded, active state highlights selected sub-item.
     - **ATS**: Manages candidates with AI-powered resume ingestion and semantic search.
     - **Integrated Roles & Screening**: Facilitates management of hiring roles with configurable scoring and AI-evaluated candidate screening.
@@ -40,6 +41,7 @@ Preferred communication style: Simple, everyday language.
 - **Data Storage**: Utilizes PostgreSQL (Neon) with Drizzle ORM and the pgvector extension, employing UUID primary keys.
     - **Competency Testing Database**: Features a five-table schema (`competency_tests`, `test_sections`, `test_items`, `test_attempts`, `test_responses`) with JSONB for flexible configuration and anti-cheat event tracking.
     - **Interview Scheduling Database** (November 2025): Five-table schema (`connected_accounts`, `interview_pools`, `pool_members`, `interviews`, `holds`) supporting per-recruiter OAuth for Google Calendar, Microsoft Teams/Outlook, and Zoom. Features multi-provider support with automatic video meeting link generation (Google Meet, Teams, or Zoom), availability management across providers, interview booking with provider selection, and calendar synchronization.
+    - **Job Favorites Database** (November 2025): `job_favorites` table with unique constraint on (userId, jobId) for tracking saved jobs. API endpoints support add, remove, list, and check operations with proper authentication and cache invalidation.
 
 ### System Design Choices
 - **Monorepo Structure**: Organized into `client/`, `server/`, and `shared/` directories.
