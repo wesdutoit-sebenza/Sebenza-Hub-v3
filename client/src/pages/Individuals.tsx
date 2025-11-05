@@ -251,11 +251,12 @@ export default function Individuals() {
 
                   <CardContent className="space-y-4">
                     <Button 
-                      className="w-full bg-amber-gradient text-charcoal hover:opacity-90"
+                      className="w-full"
+                      variant={isPopular ? "default" : "outline"}
                       onClick={() => setLocation('/login')}
                       data-testid={`button-signup-${tier}`}
                     >
-                      {tier === 'free' ? 'Sign up free' : 'Start free trial'}
+                      {tier === 'free' ? 'Get Started' : 'Upgrade Now'}
                     </Button>
 
                     <div className="space-y-3">
