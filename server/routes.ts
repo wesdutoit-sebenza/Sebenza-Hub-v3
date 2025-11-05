@@ -8025,7 +8025,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       const allPlans = await db.select({
         plan: plans,
         entitlements: sql`(
-          SELECT json_agg(
+          SELECT COALESCE(json_agg(
             json_build_object(
               'featureKey', fe.feature_key,
               'enabled', fe.enabled,
@@ -8035,7 +8035,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
               'featureKind', f.kind,
               'unit', f.unit
             )
-          )
+          ), '[]'::json)
           FROM ${featureEntitlements} fe
           INNER JOIN ${features} f ON fe.feature_key = f.key
           WHERE fe.plan_id = ${plans.id}
