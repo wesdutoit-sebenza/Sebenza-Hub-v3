@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Building2, Users, Briefcase, TrendingUp } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, Search, Building2, Users, Briefcase, TrendingUp, Mail, Phone, MessageSquare, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,19 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { ClientDialog } from "@/components/recruiter/ClientDialog";
+import { ContactDialog } from "@/components/recruiter/ContactDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 type CorporateClient = {
   id: string;
@@ -33,17 +46,17 @@ type CorporateClient = {
 type ClientContact = {
   id: string;
   clientId: string;
-  firstName: string;
-  lastName: string;
-  jobTitle: string | null;
-  email: string;
+  isPrimary: number;
+  fullName: string;
+  role: string | null;
+  email: string | null;
   phone: string | null;
   whatsappNumber: string | null;
-  isPrimary: boolean;
-  canShareCandidateData: boolean;
-  popiaConsentDate: Date | null;
+  whatsappConsent: number;
+  whatsappConsentDate: Date | null;
   notes: string | null;
   createdAt: Date;
+  updatedAt: Date;
 };
 
 type ClientEngagement = {
@@ -62,11 +75,17 @@ type ClientEngagement = {
 };
 
 export default function CorporateClients() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<CorporateClient | undefined>();
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<ClientContact | undefined>();
+  const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
 
   // Fetch all clients
   const { data: clients = [], isLoading } = useQuery<CorporateClient[]>({
@@ -101,6 +120,31 @@ export default function CorporateClients() {
   const { data: stats } = useQuery<any>({
     queryKey: ["/api/recruiter/clients", selectedClientId, "stats"],
     enabled: !!selectedClientId,
+  });
+
+  // Delete contact mutation
+  const deleteContactMutation = useMutation({
+    mutationFn: async (contactId: string) => {
+      return await apiRequest(
+        `/api/recruiter/clients/${selectedClientId}/contacts/${contactId}`,
+        { method: "DELETE" }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients", selectedClientId, "contacts"] });
+      toast({
+        title: "Success",
+        description: "Contact removed successfully!",
+      });
+      setDeleteContactId(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove contact",
+        variant: "destructive",
+      });
+    },
   });
 
   // Filter clients
@@ -464,7 +508,14 @@ export default function CorporateClients() {
                   <p className="text-sm text-muted-foreground">
                     {contacts.length} contact{contacts.length !== 1 ? "s" : ""}
                   </p>
-                  <Button size="sm" data-testid="button-add-contact">
+                  <Button 
+                    size="sm" 
+                    data-testid="button-add-contact"
+                    onClick={() => {
+                      setEditingContact(undefined);
+                      setContactDialogOpen(true);
+                    }}
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Contact
                   </Button>
@@ -477,6 +528,9 @@ export default function CorporateClients() {
                       <p className="text-muted-foreground">
                         No contacts added yet
                       </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Add contact persons for this corporate client
+                      </p>
                     </CardContent>
                   </Card>
                 ) : (
@@ -484,61 +538,82 @@ export default function CorporateClients() {
                     {contacts.map((contact) => (
                       <Card key={contact.id}>
                         <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-start gap-3">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-start gap-3 flex-1">
                               <Avatar>
                                 <AvatarFallback>
-                                  {getInitials(
-                                    `${contact.firstName} ${contact.lastName}`
-                                  )}
+                                  {getInitials(contact.fullName)}
                                 </AvatarFallback>
                               </Avatar>
-                              <div>
-                                <h4 className="font-semibold">
-                                  {contact.firstName} {contact.lastName}
-                                  {contact.isPrimary && (
-                                    <Badge variant="outline" className="ml-2">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-semibold">{contact.fullName}</h4>
+                                  {contact.isPrimary === 1 && (
+                                    <Badge variant="outline" className="text-xs">
+                                      <Star className="w-3 h-3 mr-1" />
                                       Primary
                                     </Badge>
                                   )}
-                                </h4>
-                                {contact.jobTitle && (
-                                  <p className="text-sm text-muted-foreground">
-                                    {contact.jobTitle}
+                                </div>
+                                {contact.role && (
+                                  <p className="text-sm text-muted-foreground mb-2">
+                                    {contact.role}
                                   </p>
                                 )}
-                                <div className="mt-2 space-y-1">
-                                  <p className="text-sm">
-                                    Email: {contact.email}
-                                  </p>
+                                <div className="grid grid-cols-1 gap-1.5 mt-2">
+                                  {contact.email && (
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Mail className="w-3.5 h-3.5 text-muted-foreground" />
+                                      <span>{contact.email}</span>
+                                    </div>
+                                  )}
                                   {contact.phone && (
-                                    <p className="text-sm">
-                                      Phone: {contact.phone}
-                                    </p>
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Phone className="w-3.5 h-3.5 text-muted-foreground" />
+                                      <span>{contact.phone}</span>
+                                    </div>
                                   )}
                                   {contact.whatsappNumber && (
-                                    <p className="text-sm">
-                                      WhatsApp: {contact.whatsappNumber}
-                                    </p>
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <MessageSquare className="w-3.5 h-3.5 text-muted-foreground" />
+                                      <span>{contact.whatsappNumber}</span>
+                                      {contact.whatsappConsent === 1 && (
+                                        <Badge variant="secondary" className="text-xs ml-2">
+                                          POPIA Consent
+                                        </Badge>
+                                      )}
+                                    </div>
                                   )}
                                 </div>
-                                {contact.popiaConsentDate && (
+                                {contact.whatsappConsent === 1 && contact.whatsappConsentDate && (
                                   <p className="text-xs text-muted-foreground mt-2">
-                                    POPIA consent:{" "}
-                                    {new Date(
-                                      contact.popiaConsentDate
-                                    ).toLocaleDateString()}
+                                    WhatsApp consent given on{" "}
+                                    {new Date(contact.whatsappConsentDate).toLocaleDateString()}
                                   </p>
                                 )}
                               </div>
                             </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              data-testid={`button-edit-contact-${contact.id}`}
-                            >
-                              Edit
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                data-testid={`button-edit-contact-${contact.id}`}
+                                onClick={() => {
+                                  setEditingContact(contact);
+                                  setContactDialogOpen(true);
+                                }}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                data-testid={`button-delete-contact-${contact.id}`}
+                                onClick={() => setDeleteContactId(contact.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -723,6 +798,38 @@ export default function CorporateClients() {
         onOpenChange={setClientDialogOpen}
         client={editingClient}
       />
+
+      {/* Contact Dialog */}
+      {selectedClientId && (
+        <ContactDialog
+          open={contactDialogOpen}
+          onOpenChange={setContactDialogOpen}
+          clientId={selectedClientId}
+          contact={editingContact}
+        />
+      )}
+
+      {/* Delete Contact Confirmation */}
+      <AlertDialog open={!!deleteContactId} onOpenChange={(open) => !open && setDeleteContactId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Contact?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this contact? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-contact">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              data-testid="button-confirm-delete-contact"
+              onClick={() => deleteContactId && deleteContactMutation.mutate(deleteContactId)}
+              className="bg-destructive text-destructive-foreground hover-elevate"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
