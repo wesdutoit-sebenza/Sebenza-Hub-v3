@@ -707,36 +707,36 @@ export default function JobDetail() {
 
             <div className="space-y-3">
               {/* Application Methods - Row 1 */}
-              <div className="flex flex-wrap gap-3 justify-center">
+              <div className="flex flex-wrap gap-4 justify-center">
                 <Button
                   size="lg"
-                  className="bg-amber-600 hover:bg-amber-700 text-white w-[280px] h-14 text-base"
+                  className="bg-amber-600 hover:bg-amber-700 text-white w-[340px] h-16 text-lg font-semibold"
                   onClick={handleApplyViaSebenzaHub}
                   data-testid="button-apply-sebenzahub"
                 >
-                  <Briefcase className="mr-2 h-6 w-6" />
+                  <Briefcase className="mr-3 h-7 w-7" />
                   Apply via SebenzaHub
                 </Button>
                 
                 <Button
                   size="lg"
-                  className="bg-green-600 hover:bg-green-700 text-white w-[280px] h-14 text-base"
+                  className="bg-green-600 hover:bg-green-700 text-white w-[340px] h-16 text-lg font-semibold"
                   onClick={handleApplyViaWhatsApp}
                   disabled={!job.application?.whatsappNumber && !job.whatsappContact}
                   data-testid="button-apply-whatsapp"
                 >
-                  <MessageCircle className="mr-2 h-6 w-6" />
+                  <MessageCircle className="mr-3 h-7 w-7" />
                   Apply via WhatsApp
                 </Button>
 
                 <Button
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white w-[280px] h-14 text-base"
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-[340px] h-16 text-lg font-semibold"
                   onClick={handleApplyViaWebsite}
                   disabled={!job.application?.externalUrl}
                   data-testid="button-apply-website"
                 >
-                  <ExternalLink className="mr-2 h-6 w-6" />
+                  <ExternalLink className="mr-3 h-7 w-7" />
                   Apply via Website
                 </Button>
               </div>
