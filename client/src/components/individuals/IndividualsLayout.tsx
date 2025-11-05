@@ -35,6 +35,7 @@ import {
   Search,
   Save,
   List,
+  Heart,
 } from "lucide-react";
 
 interface MenuItem {
@@ -87,8 +88,19 @@ const menuItems: MenuItem[] = [
   },
   {
     title: "My Applications",
-    url: "/dashboard/individual/applications",
     icon: ClipboardList,
+    subItems: [
+      {
+        title: "All Applications",
+        url: "/dashboard/individual/applications",
+        icon: ClipboardList,
+      },
+      {
+        title: "My Favourite Jobs",
+        url: "/dashboard/individual/favourites",
+        icon: Heart,
+      },
+    ],
   },
   {
     title: "Take Competency Test",
@@ -119,7 +131,7 @@ interface IndividualsLayoutProps {
 export function IndividualsLayout({ children }: IndividualsLayoutProps) {
   const [location, setLocation] = useLocation();
   const { user, loading } = useAuth();
-  const [openItems, setOpenItems] = useState<string[]>(["Job Searches"]);
+  const [openItems, setOpenItems] = useState<string[]>(["Job Searches", "My Applications"]);
 
   const toggleItem = (title: string) => {
     setOpenItems(prev =>

@@ -54,6 +54,7 @@ import IndividualDashboardAutoJobSearch from "@/pages/individuals/AutoJobSearch"
 import IndividualDashboardManualJobSearch from "@/pages/individuals/ManualJobSearch";
 import IndividualDashboardSavedJobSearches from "@/pages/individuals/SavedJobSearches";
 import IndividualDashboardApplications from "@/pages/individuals/Applications";
+import IndividualDashboardFavouriteJobs from "@/pages/individuals/FavouriteJobs";
 import IndividualDashboardTests from "@/pages/individuals/Tests";
 import IndividualDashboardCoaching from "@/pages/individuals/Coaching";
 import IndividualDashboardBilling from "@/pages/individuals/Billing";
@@ -104,6 +105,7 @@ function IndividualsRouter() {
         <Route path="/dashboard/individual/jobs/manual" component={IndividualDashboardManualJobSearch} />
         <Route path="/dashboard/individual/jobs/saved" component={IndividualDashboardSavedJobSearches} />
         <Route path="/dashboard/individual/applications" component={IndividualDashboardApplications} />
+        <Route path="/dashboard/individual/favourites" component={IndividualDashboardFavouriteJobs} />
         <Route path="/dashboard/individual/tests" component={IndividualDashboardTests} />
         <Route path="/dashboard/individual/coaching" component={IndividualDashboardCoaching} />
         <Route path="/dashboard/individual/billing" component={IndividualDashboardBilling} />
@@ -184,6 +186,7 @@ function Router() {
       <Route path="/dashboard/individual/jobs/manual" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/jobs/saved" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/applications" component={() => <IndividualsRouter />} />
+      <Route path="/dashboard/individual/favourites" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/tests" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/coaching" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/billing" component={() => <IndividualsRouter />} />

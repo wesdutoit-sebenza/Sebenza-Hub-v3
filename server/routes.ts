@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, insertIndividualPreferencesSchema, insertIndividualNotificationSettingsSchema, type User } from "@shared/schema";
 import { db } from "./db";
-import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, testAttempts, testResponses, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema, autoSearchPreferences, autoSearchResults } from "@shared/schema";
+import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, jobFavorites, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, testAttempts, testResponses, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema, autoSearchPreferences, autoSearchResults } from "@shared/schema";
 import { eq, and, desc, sql, inArray, or } from "drizzle-orm";
 import { authenticateSession, requireRole, type AuthRequest } from "./auth-middleware";
 import { screeningQueue, isQueueAvailable } from "./queue";
@@ -507,6 +507,173 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({
         success: false,
         message: "Error fetching job.",
+      });
+    }
+  });
+
+  // Job Favorites endpoints
+  app.post("/api/jobs/favorites", authenticateSession, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { jobId } = req.body;
+      
+      if (!jobId) {
+        return res.status(400).json({
+          success: false,
+          message: "Job ID is required.",
+        });
+      }
+      
+      // Check if job exists
+      const [job] = await db.select()
+        .from(jobs)
+        .where(eq(jobs.id, jobId));
+      
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: "Job not found.",
+        });
+      }
+      
+      // Check if already favorited
+      const [existing] = await db.select()
+        .from(jobFavorites)
+        .where(and(
+          eq(jobFavorites.userId, userId),
+          eq(jobFavorites.jobId, jobId)
+        ));
+      
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: "Job is already in your favorites.",
+        });
+      }
+      
+      // Add to favorites
+      const [favorite] = await db.insert(jobFavorites)
+        .values({
+          userId,
+          jobId,
+        })
+        .returning();
+      
+      res.json({
+        success: true,
+        message: "Job added to favorites.",
+        favorite,
+      });
+    } catch (error) {
+      console.error("Error adding job to favorites:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error adding job to favorites.",
+      });
+    }
+  });
+
+  app.delete("/api/jobs/favorites/:jobId", authenticateSession, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { jobId } = req.params;
+      
+      const [deleted] = await db.delete(jobFavorites)
+        .where(and(
+          eq(jobFavorites.userId, userId),
+          eq(jobFavorites.jobId, jobId)
+        ))
+        .returning();
+      
+      if (!deleted) {
+        return res.status(404).json({
+          success: false,
+          message: "Favorite not found.",
+        });
+      }
+      
+      res.json({
+        success: true,
+        message: "Job removed from favorites.",
+      });
+    } catch (error) {
+      console.error("Error removing job from favorites:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error removing job from favorites.",
+      });
+    }
+  });
+
+  app.get("/api/jobs/favorites/list", authenticateSession, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      
+      // Get all favorite job IDs for the user
+      const favoriteRecords = await db.select()
+        .from(jobFavorites)
+        .where(eq(jobFavorites.userId, userId))
+        .orderBy(desc(jobFavorites.createdAt));
+      
+      // Fetch the actual job details
+      const jobIds = favoriteRecords.map(fav => fav.jobId);
+      
+      if (jobIds.length === 0) {
+        return res.json({
+          success: true,
+          count: 0,
+          favorites: [],
+        });
+      }
+      
+      const favoriteJobs = await db.select()
+        .from(jobs)
+        .where(sql`${jobs.id} = ANY(${jobIds})`);
+      
+      // Normalize legacy skills data and attach favorite creation date
+      const normalizedFavorites = favoriteJobs.map(job => {
+        const favoriteRecord = favoriteRecords.find(fav => fav.jobId === job.id);
+        return {
+          ...normalizeJobSkills(job),
+          favoritedAt: favoriteRecord?.createdAt,
+        };
+      });
+      
+      res.json({
+        success: true,
+        count: normalizedFavorites.length,
+        favorites: normalizedFavorites,
+      });
+    } catch (error) {
+      console.error("Error fetching favorite jobs:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching favorite jobs.",
+      });
+    }
+  });
+
+  app.get("/api/jobs/favorites/check/:jobId", authenticateSession, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const { jobId } = req.params;
+      
+      const [favorite] = await db.select()
+        .from(jobFavorites)
+        .where(and(
+          eq(jobFavorites.userId, userId),
+          eq(jobFavorites.jobId, jobId)
+        ));
+      
+      res.json({
+        success: true,
+        isFavorite: !!favorite,
+      });
+    } catch (error) {
+      console.error("Error checking favorite status:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error checking favorite status.",
       });
     }
   });

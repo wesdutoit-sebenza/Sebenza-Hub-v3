@@ -43,7 +43,8 @@ import {
   Target,
   Sparkles,
   Search,
-  Download
+  Download,
+  Heart
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -123,6 +124,80 @@ export default function JobDetail() {
       });
     },
   });
+
+  // Check if job is favorited
+  const { data: favoriteData } = useQuery<{
+    success: boolean;
+    isFavorite: boolean;
+  }>({
+    queryKey: [`/api/jobs/favorites/check/${id}`],
+    enabled: !!user && !!id,
+  });
+
+  const isFavorite = favoriteData?.isFavorite || false;
+
+  // Add to favorites mutation
+  const addFavoriteMutation = useMutation({
+    mutationFn: async (jobId: string) => {
+      return apiRequest("POST", "/api/jobs/favorites", { jobId });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/jobs/favorites/check/${id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/jobs/favorites/list"] });
+      toast({
+        title: "Saved to Favourites!",
+        description: "This job has been added to your favourite jobs.",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save job. Please try again.",
+      });
+    },
+  });
+
+  // Remove from favorites mutation
+  const removeFavoriteMutation = useMutation({
+    mutationFn: async (jobId: string) => {
+      return apiRequest("DELETE", `/api/jobs/favorites/${jobId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/jobs/favorites/check/${id}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/jobs/favorites/list"] });
+      toast({
+        title: "Removed from Favourites",
+        description: "This job has been removed from your favourites.",
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to remove job. Please try again.",
+      });
+    },
+  });
+
+  const handleToggleFavorite = () => {
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Login Required",
+        description: "Please log in to save jobs to your favourites.",
+      });
+      return;
+    }
+
+    if (!job?.id) return;
+
+    if (isFavorite) {
+      removeFavoriteMutation.mutate(job.id);
+    } else {
+      addFavoriteMutation.mutate(job.id);
+    }
+  };
 
   const handleApplyViaWhatsApp = () => {
     const whatsapp = job?.application?.whatsappNumber || job?.whatsappContact;
@@ -600,6 +675,17 @@ export default function JobDetail() {
               >
                 <MessageCircle className="mr-2 h-5 w-5" />
                 {existingApplication ? "Apply Again via WhatsApp" : "Apply via WhatsApp"}
+              </Button>
+              <Button
+                size="lg"
+                variant={isFavorite ? "default" : "outline"}
+                onClick={handleToggleFavorite}
+                disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
+                data-testid="button-toggle-favorite"
+                className={isFavorite ? "bg-amber-600 hover:bg-amber-700 text-white border-amber-600" : ""}
+              >
+                <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
+                {isFavorite ? "Saved" : "Save"}
               </Button>
               <Button
                 size="lg"
