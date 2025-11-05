@@ -707,10 +707,10 @@ export default function JobDetail() {
 
             <div className="space-y-3">
               {/* Application Methods - Row 1 */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 justify-center">
                 <Button
                   size="lg"
-                  className="bg-amber-600 hover:bg-amber-700 text-white min-w-[180px]"
+                  className="bg-amber-600 hover:bg-amber-700 text-white w-[220px]"
                   onClick={handleApplyViaSebenzaHub}
                   data-testid="button-apply-sebenzahub"
                 >
@@ -720,7 +720,7 @@ export default function JobDetail() {
                 
                 <Button
                   size="lg"
-                  className="bg-green-600 hover:bg-green-700 text-white min-w-[180px]"
+                  className="bg-green-600 hover:bg-green-700 text-white w-[220px]"
                   onClick={handleApplyViaWhatsApp}
                   disabled={!job.application?.whatsappNumber && !job.whatsappContact}
                   data-testid="button-apply-whatsapp"
@@ -731,7 +731,7 @@ export default function JobDetail() {
 
                 <Button
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white min-w-[180px]"
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-[220px]"
                   onClick={handleApplyViaWebsite}
                   disabled={!job.application?.externalUrl}
                   data-testid="button-apply-website"
