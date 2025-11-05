@@ -39,10 +39,10 @@ interface Subscription {
 }
 
 interface Entitlement {
-  feature: string;
+  featureKey: string;
   featureName: string;
-  type: 'TOGGLE' | 'QUOTA' | 'METERED';
-  allowed: boolean;
+  kind: 'TOGGLE' | 'QUOTA' | 'METERED';
+  enabled: boolean;
   limit: number | null;
   used: number;
   remaining: number | null;
@@ -64,8 +64,8 @@ export default function RecruiterBilling() {
   const entitlements = entitlementsData?.entitlements || [];
 
   // Categorize entitlements
-  const toggleFeatures = entitlements.filter(e => e.type === 'TOGGLE');
-  const quotaFeatures = entitlements.filter(e => e.type === 'QUOTA' && e.allowed);
+  const toggleFeatures = entitlements.filter(e => e.kind === 'TOGGLE');
+  const quotaFeatures = entitlements.filter(e => e.kind === 'QUOTA' && e.enabled);
 
   // Format feature names for display
   const formatFeatureName = (name: string) => {
@@ -281,7 +281,7 @@ export default function RecruiterBilling() {
                 const isNearLimit = percentage >= 80;
 
                 return (
-                  <div key={entitlement.feature} className="space-y-2" data-testid={`usage-${entitlement.feature}`}>
+                  <div key={entitlement.featureKey} className="space-y-2" data-testid={`usage-${entitlement.featureKey}`}>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">
                         {formatFeatureName(entitlement.featureName)}
@@ -293,7 +293,7 @@ export default function RecruiterBilling() {
                     <Progress
                       value={percentage}
                       className={isNearLimit ? 'bg-red-100' : ''}
-                      data-testid={`progress-${entitlement.feature}`}
+                      data-testid={`progress-${entitlement.featureKey}`}
                     />
                     {isNearLimit && entitlement.remaining !== null && (
                       <p className="text-xs text-destructive">
@@ -325,11 +325,11 @@ export default function RecruiterBilling() {
               <div className="grid sm:grid-cols-2 gap-4">
                 {toggleFeatures.map((entitlement) => (
                   <div
-                    key={entitlement.feature}
+                    key={entitlement.featureKey}
                     className="flex items-center gap-3 p-3 rounded-lg border"
-                    data-testid={`feature-${entitlement.feature}`}
+                    data-testid={`feature-${entitlement.featureKey}`}
                   >
-                    {entitlement.allowed ? (
+                    {entitlement.enabled ? (
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
                         <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
                       </div>
@@ -343,7 +343,7 @@ export default function RecruiterBilling() {
                         {formatFeatureName(entitlement.featureName)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {entitlement.allowed ? 'Included' : 'Upgrade required'}
+                        {entitlement.enabled ? 'Included' : 'Upgrade required'}
                       </p>
                     </div>
                   </div>
