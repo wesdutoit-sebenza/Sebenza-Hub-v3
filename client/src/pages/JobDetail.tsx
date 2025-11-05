@@ -705,78 +705,72 @@ export default function JobDetail() {
               </div>
             )}
 
-            <div className="space-y-3">
-              {/* Application Methods */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                {(job.application?.method === "in-app" || !job.application?.method) && (
-                  <Button
-                    size="lg"
-                    className="bg-amber-600 hover:bg-amber-700 text-white flex-1"
-                    onClick={handleApplyViaSebenzaHub}
-                    data-testid="button-apply-sebenzahub"
-                  >
-                    <Briefcase className="mr-2 h-5 w-5" />
-                    {existingApplication ? "Apply Again via SebenzaHub" : "Apply via SebenzaHub"}
-                  </Button>
-                )}
-                
-                {job.application?.externalUrl && (
-                  <Button
-                    size="lg"
-                    className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
-                    onClick={handleApplyViaWebsite}
-                    data-testid="button-apply-website"
-                  >
-                    <ExternalLink className="mr-2 h-5 w-5" />
-                    {existingApplication ? "Apply Again via Website" : "Apply via Website"}
-                  </Button>
-                )}
-                
-                {(job.application?.whatsappNumber || job.whatsappContact) && (
-                  <Button
-                    size="lg"
-                    className="bg-green-600 hover:bg-green-700 text-white flex-1"
-                    onClick={handleApplyViaWhatsApp}
-                    data-testid="button-apply-whatsapp"
-                  >
-                    <MessageCircle className="mr-2 h-5 w-5" />
-                    {existingApplication ? "Apply Again via WhatsApp" : "Apply via WhatsApp"}
-                  </Button>
-                )}
-              </div>
+            <div className="flex flex-wrap gap-2">
+              {(job.application?.method === "in-app" || !job.application?.method) && (
+                <Button
+                  size="lg"
+                  className="bg-amber-600 hover:bg-amber-700 text-white"
+                  onClick={handleApplyViaSebenzaHub}
+                  data-testid="button-apply-sebenzahub"
+                >
+                  <Briefcase className="mr-2 h-5 w-5" />
+                  Apply via SebenzaHub
+                </Button>
+              )}
+              
+              {job.application?.externalUrl && (
+                <Button
+                  size="lg"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={handleApplyViaWebsite}
+                  data-testid="button-apply-website"
+                >
+                  <ExternalLink className="mr-2 h-5 w-5" />
+                  Apply via Website
+                </Button>
+              )}
+              
+              {(job.application?.whatsappNumber || job.whatsappContact) && (
+                <Button
+                  size="lg"
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={handleApplyViaWhatsApp}
+                  data-testid="button-apply-whatsapp"
+                >
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  Apply via WhatsApp
+                </Button>
+              )}
 
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  size="lg"
-                  variant={isFavorite ? "default" : "outline"}
-                  onClick={handleToggleFavorite}
-                  disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
-                  data-testid="button-toggle-favorite"
-                  className={isFavorite ? "bg-amber-600 hover:bg-amber-700 text-white border-amber-600" : ""}
-                >
-                  <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
-                  {isFavorite ? "Saved" : "Save"}
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={handleDownloadPDF}
-                  data-testid="button-download-pdf"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download PDF
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={handleShare}
-                  data-testid="button-share-job"
-                >
-                  <Share2 className="mr-2 h-4 w-4" />
-                  Share
-                </Button>
-              </div>
+              <Button
+                size="lg"
+                variant={isFavorite ? "default" : "outline"}
+                onClick={handleToggleFavorite}
+                disabled={addFavoriteMutation.isPending || removeFavoriteMutation.isPending}
+                data-testid="button-toggle-favorite"
+                className={isFavorite ? "bg-amber-600 hover:bg-amber-700 text-white border-amber-600" : ""}
+              >
+                <Heart className={`mr-2 h-4 w-4 ${isFavorite ? "fill-current" : ""}`} />
+                {isFavorite ? "Saved" : "Save"}
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleDownloadPDF}
+                data-testid="button-download-pdf"
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download PDF
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={handleShare}
+                data-testid="button-share-job"
+              >
+                <Share2 className="mr-2 h-4 w-4" />
+                Share
+              </Button>
             </div>
           </CardContent>
         </Card>
