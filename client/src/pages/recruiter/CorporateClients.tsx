@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
 import { ClientDialog } from "@/components/recruiter/ClientDialog";
 import { ContactDialog } from "@/components/recruiter/ContactDialog";
+import { EngagementDialog } from "@/components/recruiter/EngagementDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,16 +63,16 @@ type ClientContact = {
 type ClientEngagement = {
   id: string;
   clientId: string;
-  feeType: string;
-  feePercentage: number | null;
-  feeFixed: number | null;
-  guaranteePeriodDays: number;
-  paymentTermsDays: number;
-  specialTerms: any;
+  agreementType: string;
   startDate: Date;
   endDate: Date | null;
-  isActive: boolean;
+  feePercent: number | null;
+  retainerAmount: number | null;
+  termsDocument: string | null;
+  status: string;
+  notes: string | null;
   createdAt: Date;
+  updatedAt: Date;
 };
 
 export default function CorporateClients() {
@@ -86,6 +87,9 @@ export default function CorporateClients() {
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<ClientContact | undefined>();
   const [deleteContactId, setDeleteContactId] = useState<string | null>(null);
+  const [engagementDialogOpen, setEngagementDialogOpen] = useState(false);
+  const [editingEngagement, setEditingEngagement] = useState<ClientEngagement | undefined>();
+  const [deleteEngagementId, setDeleteEngagementId] = useState<string | null>(null);
 
   // Fetch all clients
   const { data: clients = [], isLoading } = useQuery<CorporateClient[]>({
@@ -142,6 +146,31 @@ export default function CorporateClients() {
       toast({
         title: "Error",
         description: error.message || "Failed to remove contact",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete engagement mutation
+  const deleteEngagementMutation = useMutation({
+    mutationFn: async (engagementId: string) => {
+      return await apiRequest(
+        `/api/recruiter/clients/${selectedClientId}/engagements/${engagementId}`,
+        { method: "DELETE" }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients", selectedClientId, "engagements"] });
+      toast({
+        title: "Success",
+        description: "Agreement removed successfully!",
+      });
+      setDeleteEngagementId(null);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove agreement",
         variant: "destructive",
       });
     },
@@ -628,7 +657,14 @@ export default function CorporateClients() {
                     {engagements.length} agreement
                     {engagements.length !== 1 ? "s" : ""}
                   </p>
-                  <Button size="sm" data-testid="button-add-agreement">
+                  <Button 
+                    size="sm" 
+                    data-testid="button-add-agreement"
+                    onClick={() => {
+                      setEditingEngagement(undefined);
+                      setEngagementDialogOpen(true);
+                    }}
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Add Agreement
                   </Button>
@@ -641,6 +677,9 @@ export default function CorporateClients() {
                       <p className="text-muted-foreground">
                         No fee agreements added yet
                       </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Add commercial terms and fee agreements
+                      </p>
                     </CardContent>
                   </Card>
                 ) : (
@@ -648,53 +687,37 @@ export default function CorporateClients() {
                     {engagements.map((engagement) => (
                       <Card key={engagement.id}>
                         <CardContent className="p-4">
-                          <div className="flex items-start justify-between">
+                          <div className="flex items-start justify-between gap-4">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <h4 className="font-semibold">
-                                  {engagement.feeType === "percentage"
-                                    ? "Percentage-based"
-                                    : engagement.feeType === "fixed"
-                                    ? "Fixed Fee"
-                                    : "Hybrid"}
+                                <h4 className="font-semibold capitalize">
+                                  {engagement.agreementType}
                                 </h4>
                                 <Badge
                                   variant={
-                                    engagement.isActive ? "default" : "secondary"
+                                    engagement.status === "active" ? "default" : "secondary"
                                   }
                                 >
-                                  {engagement.isActive ? "Active" : "Inactive"}
+                                  {engagement.status}
                                 </Badge>
                               </div>
                               <div className="grid grid-cols-2 gap-3 text-sm">
-                                {engagement.feePercentage && (
+                                {engagement.feePercent && (
                                   <div>
                                     <span className="text-muted-foreground">
-                                      Fee:
+                                      Fee Percentage:
                                     </span>{" "}
-                                    {engagement.feePercentage}%
+                                    {engagement.feePercent}%
                                   </div>
                                 )}
-                                {engagement.feeFixed && (
+                                {engagement.retainerAmount && (
                                   <div>
                                     <span className="text-muted-foreground">
-                                      Fixed Fee:
+                                      Retainer:
                                     </span>{" "}
-                                    R{engagement.feeFixed.toLocaleString()}
+                                    R{(engagement.retainerAmount / 100).toLocaleString()}
                                   </div>
                                 )}
-                                <div>
-                                  <span className="text-muted-foreground">
-                                    Guarantee:
-                                  </span>{" "}
-                                  {engagement.guaranteePeriodDays} days
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground">
-                                    Payment Terms:
-                                  </span>{" "}
-                                  {engagement.paymentTermsDays} days
-                                </div>
                                 <div>
                                   <span className="text-muted-foreground">
                                     Start Date:
@@ -703,7 +726,7 @@ export default function CorporateClients() {
                                     engagement.startDate
                                   ).toLocaleDateString()}
                                 </div>
-                                {engagement.endDate && (
+                                {engagement.endDate ? (
                                   <div>
                                     <span className="text-muted-foreground">
                                       End Date:
@@ -712,16 +735,49 @@ export default function CorporateClients() {
                                       engagement.endDate
                                     ).toLocaleDateString()}
                                   </div>
+                                ) : (
+                                  <div>
+                                    <span className="text-muted-foreground">
+                                      Duration:
+                                    </span>{" "}
+                                    Ongoing
+                                  </div>
+                                )}
+                                {engagement.termsDocument && (
+                                  <div className="col-span-2">
+                                    <a
+                                      href={engagement.termsDocument}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-primary hover:underline"
+                                    >
+                                      View Agreement Document →
+                                    </a>
+                                  </div>
                                 )}
                               </div>
                             </div>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              data-testid={`button-edit-agreement-${engagement.id}`}
-                            >
-                              Edit
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                data-testid={`button-edit-agreement-${engagement.id}`}
+                                onClick={() => {
+                                  setEditingEngagement(engagement);
+                                  setEngagementDialogOpen(true);
+                                }}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                data-testid={`button-delete-agreement-${engagement.id}`}
+                                onClick={() => setDeleteEngagementId(engagement.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -809,6 +865,16 @@ export default function CorporateClients() {
         />
       )}
 
+      {/* Engagement Dialog */}
+      {selectedClientId && (
+        <EngagementDialog
+          open={engagementDialogOpen}
+          onOpenChange={setEngagementDialogOpen}
+          clientId={selectedClientId}
+          engagement={editingEngagement}
+        />
+      )}
+
       {/* Delete Contact Confirmation */}
       <AlertDialog open={!!deleteContactId} onOpenChange={(open) => !open && setDeleteContactId(null)}>
         <AlertDialogContent>
@@ -823,6 +889,28 @@ export default function CorporateClients() {
             <AlertDialogAction
               data-testid="button-confirm-delete-contact"
               onClick={() => deleteContactId && deleteContactMutation.mutate(deleteContactId)}
+              className="bg-destructive text-destructive-foreground hover-elevate"
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Engagement Confirmation */}
+      <AlertDialog open={!!deleteEngagementId} onOpenChange={(open) => !open && setDeleteEngagementId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Agreement?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this fee agreement? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-agreement">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              data-testid="button-confirm-delete-agreement"
+              onClick={() => deleteEngagementId && deleteEngagementMutation.mutate(deleteEngagementId)}
               className="bg-destructive text-destructive-foreground hover-elevate"
             >
               Remove
