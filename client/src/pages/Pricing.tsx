@@ -1,88 +1,10 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Check, Loader2 } from "lucide-react";
+import { Users, Briefcase, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface Plan {
-  plan: {
-    id: string;
-    product: 'individual' | 'recruiter' | 'corporate';
-    tier: 'free' | 'standard' | 'premium';
-    name: string;
-    description: string;
-    priceMonthly: string;
-    interval: 'monthly' | 'annual';
-    isPublic: number;
-  };
-  entitlements: Array<{
-    featureKey: string;
-    featureName: string;
-    featureDescription: string;
-    featureKind: 'TOGGLE' | 'QUOTA' | 'METERED';
-    enabled: number;
-    monthlyCap: number | null;
-    unit: string | null;
-  }>;
-}
-
-const PRODUCT_INFO = {
-  individual: {
-    name: "Individual",
-    description: "For job seekers building their careers",
-  },
-  recruiter: {
-    name: "Recruiter",
-    description: "For recruiting agencies and talent teams",
-  },
-  corporate: {
-    name: "Corporate",
-    description: "For businesses hiring direct",
-  },
-};
-
-const TIER_INFO = {
-  free: {
-    name: "Free",
-    badge: "Get Started",
-  },
-  standard: {
-    name: "Standard",
-    badge: "Most Popular",
-  },
-  premium: {
-    name: "Premium",
-    badge: "Full Power",
-  },
-};
 
 export default function Pricing() {
   const [, navigate] = useLocation();
-  const [interval, setInterval] = useState<'monthly' | 'annual'>('monthly');
-  
-  const { data, isLoading } = useQuery<{ success: boolean; plans: Plan[] }>({
-    queryKey: ['/api/public/plans'],
-  });
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" data-testid="loading-pricing">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  const plans = data?.plans || [];
-  
-  // Filter only Individual plans
-  const individualPlans = {
-    free: plans.find(p => p.plan.product === 'individual' && p.plan.tier === 'free' && p.plan.interval === interval),
-    standard: plans.find(p => p.plan.product === 'individual' && p.plan.tier === 'standard' && p.plan.interval === interval),
-    premium: plans.find(p => p.plan.product === 'individual' && p.plan.tier === 'premium' && p.plan.interval === interval),
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,150 +19,75 @@ export default function Pricing() {
               Choose the plan that's right for you. Start free, upgrade anytime.
             </p>
           </div>
-
-          {/* Billing Interval Toggle */}
-          <div className="mt-8 flex justify-center">
-            <Tabs value={interval} onValueChange={(v) => setInterval(v as 'monthly' | 'annual')} className="w-auto">
-              <TabsList data-testid="toggle-billing-interval">
-                <TabsTrigger value="monthly" data-testid="tab-monthly">
-                  Monthly
-                </TabsTrigger>
-                <TabsTrigger value="annual" data-testid="tab-annual">
-                  Annual
-                  <Badge variant="secondary" className="ml-2 text-xs">Save 17%</Badge>
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
         </div>
       </div>
 
-      {/* Pricing Tables - Individual Plans Only */}
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold mb-2" data-testid="heading-individual">
-            Individual
-          </h2>
-          <p className="text-muted-foreground">
-            For job seekers building their careers
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {Object.entries(individualPlans).map(([tier, planData]) => {
-            if (!planData) return null;
-            
-            const { plan, entitlements } = planData;
-            const tierInfo = TIER_INFO[tier as keyof typeof TIER_INFO];
-            const isPopular = tier === 'standard';
-            
-            return (
-              <Card 
-                key={plan.id} 
-                className={isPopular ? "border-primary border-2" : ""}
-                data-testid={`card-plan-individual-${tier}`}
+      {/* Pricing Categories Navigation */}
+      <div className="max-w-7xl mx-auto px-6 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Individual Pricing Card */}
+          <Card className="hover-elevate cursor-pointer" onClick={() => navigate('/individuals')}>
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Users className="w-6 h-6 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Job Seekers</CardTitle>
+              </div>
+              <CardDescription className="text-base">
+                For individuals building their careers
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 mb-6 text-sm text-muted-foreground">
+                <li>• Free plan available</li>
+                <li>• CV builder & upload</li>
+                <li>• Job matching & alerts</li>
+                <li>• WhatsApp applications</li>
+                <li>• AI interview coach</li>
+              </ul>
+              <Button 
+                className="w-full" 
+                variant="default"
+                data-testid="button-view-individual-pricing"
               >
-                <CardHeader>
-                  {isPopular && (
-                    <Badge className="w-fit mb-2" data-testid="badge-popular-individual">
-                      {tierInfo.badge}
-                    </Badge>
-                  )}
-                  <CardTitle className="text-2xl" data-testid={`title-individual-${tier}`}>
-                    {tierInfo.name}
-                  </CardTitle>
-                  <CardDescription data-testid={`description-individual-${tier}`}>
-                    {plan.description}
-                  </CardDescription>
-                  
-                  <div className="mt-4">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold" data-testid={`price-individual-${tier}`}>
-                        R{parseFloat(plan.priceMonthly).toLocaleString()}
-                      </span>
-                      <span className="text-muted-foreground">
-                        /{interval === 'monthly' ? 'mo' : 'year'}
-                      </span>
-                    </div>
-                    {interval === 'annual' && parseFloat(plan.priceMonthly) > 0 && (
-                      <p className="text-sm text-muted-foreground mt-1">
-                        R{(parseFloat(plan.priceMonthly) / 12).toFixed(0)}/month billed annually
-                      </p>
-                    )}
-                  </div>
-                </CardHeader>
+                View Individual Pricing
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </CardContent>
+          </Card>
 
-                <CardContent className="space-y-4">
-                  <Button 
-                    className="w-full" 
-                    variant={isPopular ? "default" : "outline"}
-                    onClick={() => {
-                      // Free tier: navigate to signup/login
-                      if (tier === 'free') {
-                        navigate('/login');
-                      } else {
-                        // Paid tiers: navigate to login (checkout flow coming soon)
-                        // TODO: Implement checkout flow with Netcash
-                        navigate('/login');
-                      }
-                    }}
-                    data-testid={`button-select-individual-${tier}`}
-                  >
-                    {tier === 'free' ? 'Get Started' : 'Upgrade Now'}
-                  </Button>
-
-                  <div className="space-y-2">
-                    <p className="text-sm font-semibold">Features:</p>
-                    {entitlements
-                      .filter(ent => {
-                        // Only show enabled features
-                        if (ent.featureKind === 'TOGGLE') {
-                          return ent.enabled === 1;
-                        }
-                        // Show all QUOTA and METERED features
-                        return true;
-                      })
-                      .map((ent) => (
-                        <div 
-                          key={ent.featureKey} 
-                          className="flex items-start gap-2 text-sm"
-                          data-testid={`feature-individual-${tier}-${ent.featureKey}`}
-                        >
-                          <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                          <div>
-                            <span>{ent.featureName}</span>
-                            {ent.featureKind === 'QUOTA' && ent.monthlyCap !== null && (
-                              <span className="text-muted-foreground">
-                                {' '}({ent.monthlyCap >= 1000000000 ? 'Unlimited' : `${ent.monthlyCap} ${ent.unit || 'per month'}`})
-                              </span>
-                            )}
-                            {ent.featureKind === 'METERED' && (
-                              <span className="text-muted-foreground">
-                                {' '}(Usage-based)
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Links to other pricing pages */}
-        <div className="mt-12 text-center">
-          <p className="text-muted-foreground mb-4">Looking for business pricing?</p>
-          <div className="flex gap-4 justify-center">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/recruiters')}
-              data-testid="button-view-recruiter-pricing"
-            >
-              View Recruiter Pricing
-            </Button>
-          </div>
+          {/* Recruiter/Corporate Pricing Card */}
+          <Card className="hover-elevate cursor-pointer" onClick={() => navigate('/recruiters')}>
+            <CardHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Briefcase className="w-6 h-6 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Recruiters & Companies</CardTitle>
+              </div>
+              <CardDescription className="text-base">
+                For recruiting agencies and businesses
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 mb-6 text-sm text-muted-foreground">
+                <li>• Free plan available</li>
+                <li>• Job posting & management</li>
+                <li>• ATS & candidate pipeline</li>
+                <li>• Corporate client management</li>
+                <li>• Interview scheduling</li>
+              </ul>
+              <Button 
+                className="w-full" 
+                variant="default"
+                data-testid="button-view-recruiter-pricing"
+              >
+                View Recruiter Pricing
+                <ArrowRight className="ml-2 w-4 h-4" />
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
