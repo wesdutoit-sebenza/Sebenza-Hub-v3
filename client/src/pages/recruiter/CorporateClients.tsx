@@ -623,6 +623,21 @@ export default function CorporateClients() {
                               </div>
                             </div>
                             <div className="flex gap-2">
+                              {contact.whatsappNumber && contact.whatsappConsent === 1 && (
+                                <Button
+                                  size="sm"
+                                  variant="default"
+                                  data-testid={`button-whatsapp-contact-${contact.id}`}
+                                  onClick={() => {
+                                    const cleanNumber = contact.whatsappNumber!.replace(/\D/g, '');
+                                    const whatsappUrl = `https://wa.me/${cleanNumber}`;
+                                    window.open(whatsappUrl, '_blank');
+                                  }}
+                                >
+                                  <MessageSquare className="w-4 h-4 mr-2" />
+                                  WhatsApp
+                                </Button>
+                              )}
                               <Button
                                 size="sm"
                                 variant="outline"
