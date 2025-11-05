@@ -628,7 +628,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const favoriteJobs = await db.select()
         .from(jobs)
-        .where(sql`${jobs.id} = ANY(${jobIds})`);
+        .where(inArray(jobs.id, jobIds));
       
       // Normalize legacy skills data and attach favorite creation date
       const normalizedFavorites = favoriteJobs.map(job => {
