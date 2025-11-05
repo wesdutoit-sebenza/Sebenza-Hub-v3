@@ -708,41 +708,37 @@ export default function JobDetail() {
             <div className="space-y-3">
               {/* Application Methods - Row 1 */}
               <div className="flex flex-wrap gap-2">
-                {(job.application?.method === "in-app" || !job.application?.method) && (
-                  <Button
-                    size="lg"
-                    className="bg-amber-600 hover:bg-amber-700 text-white min-w-[180px]"
-                    onClick={handleApplyViaSebenzaHub}
-                    data-testid="button-apply-sebenzahub"
-                  >
-                    <Briefcase className="mr-2 h-5 w-5" />
-                    Apply via SebenzaHub
-                  </Button>
-                )}
+                <Button
+                  size="lg"
+                  className="bg-amber-600 hover:bg-amber-700 text-white min-w-[180px]"
+                  onClick={handleApplyViaSebenzaHub}
+                  data-testid="button-apply-sebenzahub"
+                >
+                  <Briefcase className="mr-2 h-5 w-5" />
+                  Apply via SebenzaHub
+                </Button>
                 
-                {job.application?.externalUrl && (
-                  <Button
-                    size="lg"
-                    className="bg-blue-600 hover:bg-blue-700 text-white min-w-[180px]"
-                    onClick={handleApplyViaWebsite}
-                    data-testid="button-apply-website"
-                  >
-                    <ExternalLink className="mr-2 h-5 w-5" />
-                    Apply via Website
-                  </Button>
-                )}
-                
-                {(job.application?.whatsappNumber || job.whatsappContact) && (
-                  <Button
-                    size="lg"
-                    className="bg-green-600 hover:bg-green-700 text-white min-w-[180px]"
-                    onClick={handleApplyViaWhatsApp}
-                    data-testid="button-apply-whatsapp"
-                  >
-                    <MessageCircle className="mr-2 h-5 w-5" />
-                    Apply via WhatsApp
-                  </Button>
-                )}
+                <Button
+                  size="lg"
+                  className="bg-green-600 hover:bg-green-700 text-white min-w-[180px]"
+                  onClick={handleApplyViaWhatsApp}
+                  disabled={!job.application?.whatsappNumber && !job.whatsappContact}
+                  data-testid="button-apply-whatsapp"
+                >
+                  <MessageCircle className="mr-2 h-5 w-5" />
+                  Apply via WhatsApp
+                </Button>
+
+                <Button
+                  size="lg"
+                  className="bg-blue-600 hover:bg-blue-700 text-white min-w-[180px]"
+                  onClick={handleApplyViaWebsite}
+                  disabled={!job.application?.externalUrl}
+                  data-testid="button-apply-website"
+                >
+                  <ExternalLink className="mr-2 h-5 w-5" />
+                  Apply via Website
+                </Button>
               </div>
 
               {/* Action Buttons - Row 2 */}
