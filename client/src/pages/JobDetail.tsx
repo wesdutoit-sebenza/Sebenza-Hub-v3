@@ -707,36 +707,36 @@ export default function JobDetail() {
 
             <div className="space-y-3">
               {/* Application Methods - Row 1 */}
-              <div className="flex flex-wrap gap-2 justify-center">
+              <div className="flex flex-wrap gap-3 justify-center">
                 <Button
                   size="lg"
-                  className="bg-amber-600 hover:bg-amber-700 text-white w-[220px]"
+                  className="bg-amber-600 hover:bg-amber-700 text-white w-[280px] h-14 text-base"
                   onClick={handleApplyViaSebenzaHub}
                   data-testid="button-apply-sebenzahub"
                 >
-                  <Briefcase className="mr-2 h-5 w-5" />
+                  <Briefcase className="mr-2 h-6 w-6" />
                   Apply via SebenzaHub
                 </Button>
                 
                 <Button
                   size="lg"
-                  className="bg-green-600 hover:bg-green-700 text-white w-[220px]"
+                  className="bg-green-600 hover:bg-green-700 text-white w-[280px] h-14 text-base"
                   onClick={handleApplyViaWhatsApp}
                   disabled={!job.application?.whatsappNumber && !job.whatsappContact}
                   data-testid="button-apply-whatsapp"
                 >
-                  <MessageCircle className="mr-2 h-5 w-5" />
+                  <MessageCircle className="mr-2 h-6 w-6" />
                   Apply via WhatsApp
                 </Button>
 
                 <Button
                   size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white w-[220px]"
+                  className="bg-blue-600 hover:bg-blue-700 text-white w-[280px] h-14 text-base"
                   onClick={handleApplyViaWebsite}
                   disabled={!job.application?.externalUrl}
                   data-testid="button-apply-website"
                 >
-                  <ExternalLink className="mr-2 h-5 w-5" />
+                  <ExternalLink className="mr-2 h-6 w-6" />
                   Apply via Website
                 </Button>
               </div>
