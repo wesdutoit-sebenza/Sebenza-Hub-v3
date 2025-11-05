@@ -1940,3 +1940,159 @@ export const insertHoldSchema = createInsertSchema(holds).omit({
 
 export type InsertHold = z.infer<typeof insertHoldSchema>;
 export type Hold = typeof holds.$inferSelect;
+
+// ============================================================================
+// BILLING SYSTEM - Feature-based entitlement model
+// ============================================================================
+
+// Plans - Subscription tiers for each product family (Individual/Recruiter/Corporate)
+export const plans = pgTable("plans", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  product: text("product").notNull(), // 'individual', 'recruiter', 'corporate'
+  tier: text("tier").notNull(), // 'free', 'standard', 'premium'
+  interval: text("interval").notNull(), // 'monthly', 'annual'
+  priceCents: integer("price_cents").notNull(), // Price in cents (ZAR)
+  currency: text("currency").notNull().default('ZAR'),
+  isPublic: integer("is_public").notNull().default(1), // 0 = hidden, 1 = visible
+  version: integer("version").notNull().default(1), // Bump when changing entitlements
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("idx_plan_unique").on(table.product, table.tier, table.interval, table.version),
+  index("idx_plan_product").on(table.product),
+]);
+
+export const insertPlanSchema = createInsertSchema(plans).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertPlan = z.infer<typeof insertPlanSchema>;
+export type Plan = typeof plans.$inferSelect;
+
+// Features - Billable/gateable capabilities (job posts, AI screenings, etc)
+export const features = pgTable("features", {
+  key: varchar("key").primaryKey(), // e.g., 'job_posts', 'ai_screenings'
+  name: text("name").notNull(), // Display name
+  description: text("description").notNull(),
+  kind: text("kind").notNull(), // 'TOGGLE' (on/off), 'QUOTA' (monthly limit), 'METERED' (pay-as-go)
+  unit: text("unit"), // e.g., 'posts', 'calls', 'screenings'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertFeatureSchema = createInsertSchema(features).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertFeature = z.infer<typeof insertFeatureSchema>;
+export type Feature = typeof features.$inferSelect;
+
+// Feature Entitlements - Maps features to plans with limits/settings
+export const featureEntitlements = pgTable("feature_entitlements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  planId: varchar("plan_id").notNull(),
+  featureKey: varchar("feature_key").notNull(),
+  enabled: integer("enabled").notNull().default(0), // For TOGGLE features: 0 = off, 1 = on
+  monthlyCap: integer("monthly_cap"), // For QUOTA features: null = unlimited (or set to 1e9)
+  overageUnitCents: integer("overage_unit_cents"), // For METERED features: cost per unit over limit
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("idx_entitlement_unique").on(table.planId, table.featureKey),
+  index("idx_entitlement_plan").on(table.planId),
+  index("idx_entitlement_feature").on(table.featureKey),
+]);
+
+export const insertFeatureEntitlementSchema = createInsertSchema(featureEntitlements).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertFeatureEntitlement = z.infer<typeof insertFeatureEntitlementSchema>;
+export type FeatureEntitlement = typeof featureEntitlements.$inferSelect;
+
+// Subscriptions - Active billing subscriptions for users/orgs
+export const subscriptions = pgTable("subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  planId: varchar("plan_id").notNull(),
+  holderType: text("holder_type").notNull(), // 'user' (individuals) or 'org' (recruiters/corporate)
+  holderId: varchar("holder_id").notNull(), // userId or organizationId
+  status: text("status").notNull().default('pending'), // 'pending', 'trialing', 'active', 'past_due', 'canceled'
+  currentPeriodStart: timestamp("current_period_start"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  trialEndsAt: timestamp("trial_ends_at"), // If in trial, when it ends
+  cancelAtPeriodEnd: integer("cancel_at_period_end").notNull().default(0), // 0 = auto-renew, 1 = cancel at end
+  netcashRef: text("netcash_ref"), // Netcash subscription/customer ID
+  metadata: jsonb("metadata"), // Additional payment gateway data
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_subscription_holder").on(table.holderType, table.holderId),
+  index("idx_subscription_status").on(table.status),
+  index("idx_subscription_period").on(table.currentPeriodEnd),
+]);
+
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type Subscription = typeof subscriptions.$inferSelect;
+
+// Usage - Tracks consumption of QUOTA features per billing period
+export const usage = pgTable("usage", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  holderType: text("holder_type").notNull(), // 'user' or 'org'
+  holderId: varchar("holder_id").notNull(),
+  featureKey: varchar("feature_key").notNull(),
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  used: integer("used").notNull().default(0), // Current usage count
+  extraAllowance: integer("extra_allowance").notNull().default(0), // Add-on packs/credits
+  lastResetAt: timestamp("last_reset_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("idx_usage_unique").on(table.holderType, table.holderId, table.featureKey, table.periodStart, table.periodEnd),
+  index("idx_usage_holder").on(table.holderType, table.holderId),
+  index("idx_usage_period").on(table.periodEnd),
+]);
+
+export const insertUsageSchema = createInsertSchema(usage).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertUsage = z.infer<typeof insertUsageSchema>;
+export type Usage = typeof usage.$inferSelect;
+
+// Payment Events - Webhook event log from payment gateway (Netcash)
+export const paymentEvents = pgTable("payment_events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  gateway: text("gateway").notNull(), // 'netcash', 'payfast', etc
+  eventId: text("event_id").notNull().unique(), // Gateway's unique event ID (idempotency)
+  eventType: text("event_type").notNull(), // 'subscription.activated', 'payment.failed', etc
+  payload: jsonb("payload").notNull(), // Full webhook payload
+  processed: integer("processed").notNull().default(0), // 0 = pending, 1 = processed
+  processedAt: timestamp("processed_at"),
+  error: text("error"), // If processing failed
+  receivedAt: timestamp("received_at").notNull().defaultNow(),
+}, (table) => [
+  index("idx_payment_event_type").on(table.eventType),
+  index("idx_payment_event_processed").on(table.processed),
+]);
+
+export const insertPaymentEventSchema = createInsertSchema(paymentEvents).omit({
+  id: true,
+  receivedAt: true,
+});
+
+export type InsertPaymentEvent = z.infer<typeof insertPaymentEventSchema>;
+export type PaymentEvent = typeof paymentEvents.$inferSelect;

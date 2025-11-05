@@ -7647,7 +7647,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   // Cancel interview
   app.delete("/api/interviews/:id", authenticateSession, async (req, res) => {
     try {
-      const { id } = req.params;
+      const { id} = req.params;
       
       const { cancelInterview } = await import('./calendar/booking-service');
       await cancelInterview(id, dbStorage);
@@ -7658,6 +7658,317 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       res.status(500).json({
         success: false,
         message: error.message || "Failed to cancel interview",
+      });
+    }
+  });
+
+  // ============================================================================
+  // BILLING SYSTEM ROUTES
+  // ============================================================================
+
+  // Public: Get all plans catalog (for pricing page)
+  app.get("/api/public/plans", async (req, res) => {
+    try {
+      const allPlans = await db.select({
+        plan: plans,
+        entitlements: sql`(
+          SELECT json_agg(
+            json_build_object(
+              'featureKey', fe.feature_key,
+              'enabled', fe.enabled,
+              'monthlyCap', fe.monthly_cap,
+              'featureName', f.name,
+              'featureDescription', f.description,
+              'featureKind', f.kind,
+              'unit', f.unit
+            )
+          )
+          FROM ${featureEntitlements} fe
+          INNER JOIN ${features} f ON fe.feature_key = f.key
+          WHERE fe.plan_id = ${plans.id}
+        )`,
+      })
+        .from(plans)
+        .where(eq(plans.isPublic, 1))
+        .orderBy(plans.product, plans.tier, plans.interval);
+
+      res.json({
+        success: true,
+        plans: allPlans,
+      });
+    } catch (error: any) {
+      console.error("[Billing] Error fetching plans:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch plans",
+      });
+    }
+  });
+
+  // Get current user's subscription
+  app.get("/api/me/subscription", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      // Determine holder type and ID based on user role
+      let holderType: 'user' | 'org' = 'user';
+      let holderId = user.id;
+      
+      if (user.role === 'recruiter' || user.role === 'business') {
+        // Check if user has organization membership
+        const [membership] = await db.select()
+          .from(memberships)
+          .where(eq(memberships.userId, user.id))
+          .limit(1);
+        
+        if (membership) {
+          holderType = 'org';
+          holderId = membership.organizationId;
+        }
+      }
+      
+      // Get active subscription
+      const now = new Date();
+      const [subscription] = await db.select({
+        subscription: subscriptions,
+        plan: plans,
+      })
+        .from(subscriptions)
+        .innerJoin(plans, eq(subscriptions.planId, plans.id))
+        .where(and(
+          eq(subscriptions.holderType, holderType),
+          eq(subscriptions.holderId, holderId),
+          eq(subscriptions.status, 'active'),
+          gte(subscriptions.currentPeriodEnd, now)
+        ))
+        .orderBy(desc(subscriptions.createdAt))
+        .limit(1);
+      
+      res.json({
+        success: true,
+        subscription: subscription || null,
+      });
+    } catch (error: any) {
+      console.error("[Billing] Error fetching subscription:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch subscription",
+      });
+    }
+  });
+
+  // Get current user's entitlements and usage
+  app.get("/api/me/entitlements", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { getEntitlements } = await import('./services/entitlements');
+      
+      // Determine holder type and ID
+      let holderType: 'user' | 'org' = 'user';
+      let holderId = user.id;
+      
+      if (user.role === 'recruiter' || user.role === 'business') {
+        const [membership] = await db.select()
+          .from(memberships)
+          .where(eq(memberships.userId, user.id))
+          .limit(1);
+        
+        if (membership) {
+          holderType = 'org';
+          holderId = membership.organizationId;
+        }
+      }
+      
+      const entitlements = await getEntitlements({ type: holderType, id: holderId });
+      
+      res.json({
+        success: true,
+        entitlements,
+      });
+    } catch (error: any) {
+      console.error("[Billing] Error fetching entitlements:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch entitlements",
+      });
+    }
+  });
+
+  // Create checkout session (Netcash integration - stub for now)
+  app.post("/api/billing/checkout", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { planId, interval } = req.body;
+      
+      // Validate plan exists
+      const [plan] = await db.select()
+        .from(plans)
+        .where(and(
+          eq(plans.id, planId),
+          eq(plans.isPublic, 1)
+        ))
+        .limit(1);
+      
+      if (!plan) {
+        return res.status(404).json({
+          success: false,
+          message: "Plan not found",
+        });
+      }
+      
+      // TODO: Create Netcash checkout session
+      // For now, return stub response
+      res.json({
+        success: true,
+        message: "Checkout session creation - Netcash integration coming soon",
+        plan,
+        // checkoutUrl: netcashCheckoutUrl,
+      });
+    } catch (error: any) {
+      console.error("[Billing] Error creating checkout:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create checkout session",
+      });
+    }
+  });
+
+  // Handle Netcash webhooks (stub for now)
+  app.post("/api/billing/webhook", async (req, res) => {
+    try {
+      // TODO: Verify Netcash signature
+      const event = req.body;
+      
+      // Store event
+      await db.insert(paymentEvents).values({
+        gateway: 'netcash',
+        eventId: event.id || `evt_${Date.now()}`,
+        eventType: event.type || 'unknown',
+        payload: event,
+        processed: 0,
+      });
+      
+      // TODO: Process event based on type
+      // - subscription.activated -> activate subscription
+      // - payment.failed -> mark past_due
+      // - subscription.canceled -> cancel subscription
+      
+      res.json({ received: true });
+    } catch (error: any) {
+      console.error("[Billing] Error processing webhook:", error);
+      res.status(500).json({ error: "Webhook processing failed" });
+    }
+  });
+
+  // Get billing portal link (stub for now)
+  app.get("/api/billing/portal", authenticateSession, async (req, res) => {
+    try {
+      // TODO: Generate Netcash customer portal URL
+      res.json({
+        success: true,
+        message: "Billing portal - Netcash integration coming soon",
+        // portalUrl: netcashPortalUrl,
+      });
+    } catch (error: any) {
+      console.error("[Billing] Error generating portal link:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to generate portal link",
+      });
+    }
+  });
+
+  // Admin: Get all subscriptions
+  app.get("/api/admin/billing/subscriptions", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+      
+      const allSubscriptions = await db.select({
+        subscription: subscriptions,
+        plan: plans,
+      })
+        .from(subscriptions)
+        .innerJoin(plans, eq(subscriptions.planId, plans.id))
+        .orderBy(desc(subscriptions.createdAt))
+        .limit(100);
+      
+      res.json({
+        success: true,
+        subscriptions: allSubscriptions,
+      });
+    } catch (error: any) {
+      console.error("[Billing] Error fetching subscriptions:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch subscriptions",
+      });
+    }
+  });
+
+  // Admin: Get payment events log
+  app.get("/api/admin/billing/events", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+      
+      const events = await db.select()
+        .from(paymentEvents)
+        .orderBy(desc(paymentEvents.receivedAt))
+        .limit(100);
+      
+      res.json({
+        success: true,
+        events,
+      });
+    } catch (error: any) {
+      console.error("[Billing] Error fetching payment events:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch payment events",
+      });
+    }
+  });
+
+  // Admin: Grant extra allowance (credits)
+  app.post("/api/admin/billing/grant-credits", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+      
+      const { holderType, holderId, featureKey, amount } = req.body;
+      const { grantExtraAllowance } = await import('./services/entitlements');
+      
+      await grantExtraAllowance(
+        { type: holderType, id: holderId },
+        featureKey,
+        amount
+      );
+      
+      res.json({
+        success: true,
+        message: `Granted ${amount} ${featureKey} credits`,
+      });
+    } catch (error: any) {
+      console.error("[Billing] Error granting credits:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to grant credits",
       });
     }
   });
