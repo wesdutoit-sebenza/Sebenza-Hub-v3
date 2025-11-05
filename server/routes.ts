@@ -841,6 +841,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // FEATURE GATE: Check corporate clients feature (org-level)
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership.organizationId
+      };
+      
+      const allowed = await checkAllowed(orgHolder, 'corporate_clients');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "Corporate client management is not available in your current plan. Please upgrade to access this feature.",
+        });
+      }
+      
       // Validate input
       const validatedData = insertCorporateClientSchema.parse(req.body);
       
@@ -1024,6 +1038,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ success: false, message: "Client not found." });
       }
       
+      // FEATURE GATE: Check corporate clients feature (org-level)
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership.organizationId
+      };
+      
+      const allowed = await checkAllowed(orgHolder, 'corporate_clients');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "Corporate client management is not available in your current plan. Please upgrade to access this feature.",
+        });
+      }
+      
       // Validate and create contact
       const validatedData = insertCorporateClientContactSchema.parse(req.body);
       const [contact] = await db.insert(corporateClientContacts).values({
@@ -1158,6 +1186,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!client) {
         return res.status(404).json({ success: false, message: "Client not found." });
+      }
+      
+      // FEATURE GATE: Check corporate clients feature (org-level)
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership.organizationId
+      };
+      
+      const allowed = await checkAllowed(orgHolder, 'corporate_clients');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "Corporate client management is not available in your current plan. Please upgrade to access this feature.",
+        });
       }
       
       // Validate and create engagement
@@ -3033,6 +3075,25 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       const user = req.user as any;
       const userId = user.id;
 
+      // FEATURE GATE: Check ATS access (org-level for recruiters)
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, userId))
+        .limit(1);
+      
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership?.organizationId || userId
+      };
+      
+      const allowed = await checkAllowed(orgHolder, 'ats_access');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "ATS access is not available in your current plan. Please upgrade to access this feature.",
+        });
+      }
+
       const validatedData = insertCandidateSchema.parse(req.body);
       const [candidate] = await db.insert(candidates)
         .values(validatedData)
@@ -3066,6 +3127,25 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
     try {
       const user = req.user as any;
       const userId = user.id;
+
+      // FEATURE GATE: Check ATS access (org-level for recruiters)
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, userId))
+        .limit(1);
+      
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership?.organizationId || userId
+      };
+      
+      const allowed = await checkAllowed(orgHolder, 'ats_access');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "ATS access is not available in your current plan. Please upgrade to access this feature.",
+        });
+      }
 
       const searchQuery = req.query.search as string || '';
       const city = req.query.city as string || '';
@@ -4205,6 +4285,25 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
     const userId = authReq.user!.id;
 
     try {
+      // FEATURE GATE: Check ATS access (org-level for recruiters)
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, userId))
+        .limit(1);
+      
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership?.organizationId || userId
+      };
+      
+      const allowed = await checkAllowed(orgHolder, 'ats_access');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "ATS access is not available in your current plan. Please upgrade to access this feature.",
+        });
+      }
+
       // Check if AI is configured
       if (!isAIConfiguredForCV()) {
         return res.status(503).json({
@@ -6143,6 +6242,25 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
         return res.status(401).json({ success: false, message: "Not authenticated" });
       }
 
+      // FEATURE GATE: Check competency tests feature (org-level for recruiters)
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, userId))
+        .limit(1);
+      
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership?.organizationId || userId
+      };
+      
+      const allowed = await checkAllowed(orgHolder, 'competency_tests');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "Competency testing is not available in your current plan. Please upgrade to access this feature.",
+        });
+      }
+
       const input = req.body as GenerateTestInput;
 
       if (!input.jobTitle) {
@@ -6205,6 +6323,20 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       const organizationId = membership.length > 0 
         ? membership[0].organizationId 
         : `user-org-${userId}`; // Fallback for individual recruiters
+      
+      // FEATURE GATE: Check competency tests feature (org-level)
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership.length > 0 ? membership[0].organizationId : userId
+      };
+      
+      const allowed = await checkAllowed(orgHolder, 'competency_tests');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "Competency testing is not available in your current plan. Please upgrade to access this feature.",
+        });
+      }
 
       // Parse and validate input
       const {
@@ -6584,6 +6716,20 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       const userId = req.user?.id;
       if (!userId) {
         return res.status(401).json({ success: false, message: "Not authenticated" });
+      }
+
+      // FEATURE GATE: Check competency tests feature (user-level for individuals)
+      const userHolder = {
+        type: 'user' as const,
+        id: userId
+      };
+      
+      const allowed = await checkAllowed(userHolder, 'competency_tests');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "Competency testing is not available in your current plan. Please upgrade to access this feature.",
+        });
       }
 
       const { testId, deviceMeta } = req.body;
@@ -7378,6 +7524,26 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   app.get("/api/calendar/google/connect", authenticateSession, async (req, res) => {
     try {
       const userId = (req as any).user.id;
+      
+      // FEATURE GATE: Check interview scheduling feature (org-level for recruiters)
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, userId))
+        .limit(1);
+      
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership?.organizationId || userId
+      };
+      
+      const allowed = await checkAllowed(orgHolder, 'interview_scheduling');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "Interview scheduling is not available in your current plan. Please upgrade to access this feature.",
+        });
+      }
+      
       const baseUrl = `https://${req.get('host')}`;
       
       const { getAuthorizationUrl } = await import('./calendar/google-oauth');
@@ -7437,6 +7603,26 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   app.get("/api/calendar/microsoft/connect", authenticateSession, async (req, res) => {
     try {
       const userId = (req as any).user.id;
+      
+      // FEATURE GATE: Check interview scheduling feature (org-level for recruiters)
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, userId))
+        .limit(1);
+      
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership?.organizationId || userId
+      };
+      
+      const allowed = await checkAllowed(orgHolder, 'interview_scheduling');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "Interview scheduling is not available in your current plan. Please upgrade to access this feature.",
+        });
+      }
+      
       const baseUrl = `https://${req.get('host')}`;
       
       const { getMicrosoftAuthUrl } = await import('./calendar/microsoft-oauth');
@@ -7495,6 +7681,26 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   app.get("/api/calendar/zoom/connect", authenticateSession, async (req, res) => {
     try {
       const userId = (req as any).user.id;
+      
+      // FEATURE GATE: Check interview scheduling feature (org-level for recruiters)
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, userId))
+        .limit(1);
+      
+      const orgHolder = {
+        type: 'org' as const,
+        id: membership?.organizationId || userId
+      };
+      
+      const allowed = await checkAllowed(orgHolder, 'interview_scheduling');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "Interview scheduling is not available in your current plan. Please upgrade to access this feature.",
+        });
+      }
+      
       const baseUrl = `https://${req.get('host')}`;
       
       const { getZoomAuthUrl } = await import('./calendar/zoom-oauth');
@@ -7634,6 +7840,20 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
         endTime,
         timezone,
       } = req.body;
+      
+      // FEATURE GATE: Check interview scheduling feature (org-level)
+      const orgHolder = {
+        type: 'org' as const,
+        id: organizationId
+      };
+      
+      const allowed = await checkAllowed(orgHolder, 'interview_scheduling');
+      if (!allowed.ok) {
+        return res.status(403).json({
+          success: false,
+          message: "Interview scheduling is not available in your current plan. Please upgrade to access this feature.",
+        });
+      }
       
       const { bookInterview } = await import('./calendar/booking-service');
       
