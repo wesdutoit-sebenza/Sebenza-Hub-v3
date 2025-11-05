@@ -8,6 +8,12 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
+### Performance Optimizations (November 2025)
+- **Backend Compression**: Brotli and Gzip compression enabled for all responses with threshold: 0
+- **Static Asset Caching**: Aggressive caching headers configured - images (1 year immutable), documents (1 hour), other assets (1 day)
+- **Image Optimization**: All below-the-fold images use lazy loading with width/height attributes to prevent CLS
+- **Font Optimization**: Google Fonts already optimized with `display=swap` for no FOIT/FOUT
+
 ### UI/UX Decisions
 - **Design System**: Utilizes a Charcoal/Amber color palette, Montserrat typography, custom theming, and mobile-first responsive design built with shadcn/ui (Radix UI) and Tailwind CSS. Section component uses semantic color tokens (bg-background, text-foreground) for consistent warm beige background palette across marketing pages.
 - **Accessibility & Performance**: Prioritizes ARIA labels, semantic HTML, keyboard navigation, code splitting, and lazy loading.
