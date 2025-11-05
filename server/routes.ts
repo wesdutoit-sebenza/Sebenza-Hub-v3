@@ -8354,6 +8354,430 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
     }
   });
 
+  // ========================================================================
+  // FEATURE MANAGEMENT - Admin CRUD for features
+  // ========================================================================
+
+  // Get all features
+  app.get("/api/admin/features", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const allFeatures = await db.select()
+        .from(features)
+        .orderBy(features.key);
+
+      res.json({
+        success: true,
+        features: allFeatures,
+      });
+    } catch (error: any) {
+      console.error("[Features] Error fetching features:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch features",
+      });
+    }
+  });
+
+  // Create a new feature
+  app.post("/api/admin/features", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const validation = insertFeatureSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid feature data",
+          errors: validation.error.errors,
+        });
+      }
+
+      const [newFeature] = await db.insert(features)
+        .values(validation.data)
+        .returning();
+
+      res.json({
+        success: true,
+        feature: newFeature,
+      });
+    } catch (error: any) {
+      console.error("[Features] Error creating feature:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to create feature",
+      });
+    }
+  });
+
+  // Update a feature
+  app.patch("/api/admin/features/:key", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const { key } = req.params;
+      
+      // Validate update data (exclude key - cannot be changed)
+      const updateSchema = insertFeatureSchema.partial().omit({ key: true });
+      const validation = updateSchema.safeParse(req.body);
+      
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid update data",
+          errors: validation.error.errors,
+        });
+      }
+
+      const [updatedFeature] = await db.update(features)
+        .set({
+          ...validation.data,
+          updatedAt: new Date(),
+        })
+        .where(eq(features.key, key))
+        .returning();
+
+      if (!updatedFeature) {
+        return res.status(404).json({
+          success: false,
+          message: "Feature not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        feature: updatedFeature,
+      });
+    } catch (error: any) {
+      console.error("[Features] Error updating feature:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update feature",
+      });
+    }
+  });
+
+  // Delete a feature
+  app.delete("/api/admin/features/:key", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const { key } = req.params;
+
+      // Delete associated entitlements first
+      await db.delete(featureEntitlements)
+        .where(eq(featureEntitlements.featureKey, key));
+
+      // Delete the feature
+      await db.delete(features)
+        .where(eq(features.key, key));
+
+      res.json({
+        success: true,
+        message: "Feature deleted successfully",
+      });
+    } catch (error: any) {
+      console.error("[Features] Error deleting feature:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete feature",
+      });
+    }
+  });
+
+  // ========================================================================
+  // PLAN MANAGEMENT - Admin CRUD for plans and entitlements
+  // ========================================================================
+
+  // Get all plans with entitlements
+  app.get("/api/admin/plans", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const allPlans = await db.select()
+        .from(plans)
+        .orderBy(plans.product, plans.tier, plans.interval);
+
+      // Get entitlements for all plans
+      const plansWithEntitlements = await Promise.all(
+        allPlans.map(async (plan) => {
+          const entitlements = await db.select()
+            .from(featureEntitlements)
+            .where(eq(featureEntitlements.planId, plan.id));
+
+          return {
+            ...plan,
+            entitlements,
+          };
+        })
+      );
+
+      res.json({
+        success: true,
+        plans: plansWithEntitlements,
+      });
+    } catch (error: any) {
+      console.error("[Plans] Error fetching plans:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch plans",
+      });
+    }
+  });
+
+  // Create a new plan
+  app.post("/api/admin/plans", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const validation = insertPlanSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid plan data",
+          errors: validation.error.errors,
+        });
+      }
+
+      const [newPlan] = await db.insert(plans)
+        .values(validation.data)
+        .returning();
+
+      res.json({
+        success: true,
+        plan: newPlan,
+      });
+    } catch (error: any) {
+      console.error("[Plans] Error creating plan:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to create plan",
+      });
+    }
+  });
+
+  // Update a plan
+  app.patch("/api/admin/plans/:id", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const { id } = req.params;
+      
+      // Validate update data (exclude id - cannot be changed)
+      const updateSchema = insertPlanSchema.partial().omit({ id: true });
+      const validation = updateSchema.safeParse(req.body);
+      
+      if (!validation.success) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid update data",
+          errors: validation.error.errors,
+        });
+      }
+
+      const [updatedPlan] = await db.update(plans)
+        .set({
+          ...validation.data,
+          updatedAt: new Date(),
+        })
+        .where(eq(plans.id, id))
+        .returning();
+
+      if (!updatedPlan) {
+        return res.status(404).json({
+          success: false,
+          message: "Plan not found",
+        });
+      }
+
+      res.json({
+        success: true,
+        plan: updatedPlan,
+      });
+    } catch (error: any) {
+      console.error("[Plans] Error updating plan:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update plan",
+      });
+    }
+  });
+
+  // Delete a plan
+  app.delete("/api/admin/plans/:id", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const { id } = req.params;
+
+      // Check if any subscriptions use this plan
+      const activeSubscriptions = await db.select()
+        .from(subscriptions)
+        .where(eq(subscriptions.planId, id));
+
+      if (activeSubscriptions.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot delete plan with ${activeSubscriptions.length} active subscription(s)`,
+        });
+      }
+
+      // Delete associated entitlements first
+      await db.delete(featureEntitlements)
+        .where(eq(featureEntitlements.planId, id));
+
+      // Delete the plan
+      await db.delete(plans)
+        .where(eq(plans.id, id));
+
+      res.json({
+        success: true,
+        message: "Plan deleted successfully",
+      });
+    } catch (error: any) {
+      console.error("[Plans] Error deleting plan:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to delete plan",
+      });
+    }
+  });
+
+  // Get entitlements for a specific plan
+  app.get("/api/admin/plans/:id/entitlements", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const { id } = req.params;
+
+      const entitlements = await db.select()
+        .from(featureEntitlements)
+        .where(eq(featureEntitlements.planId, id));
+
+      res.json({
+        success: true,
+        entitlements,
+      });
+    } catch (error: any) {
+      console.error("[Plans] Error fetching entitlements:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch entitlements",
+      });
+    }
+  });
+
+  // Update entitlements for a plan (bulk upsert)
+  app.post("/api/admin/plans/:id/entitlements", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+
+      const { id } = req.params;
+      const { entitlements: newEntitlements } = req.body;
+
+      if (!Array.isArray(newEntitlements)) {
+        return res.status(400).json({
+          success: false,
+          message: "Entitlements must be an array",
+        });
+      }
+
+      // Delete existing entitlements
+      await db.delete(featureEntitlements)
+        .where(eq(featureEntitlements.planId, id));
+
+      // Insert new entitlements
+      if (newEntitlements.length > 0) {
+        await db.insert(featureEntitlements)
+          .values(
+            newEntitlements.map((ent: any) => ({
+              planId: id,
+              featureKey: ent.featureKey,
+              enabled: ent.enabled ?? 0,
+              monthlyCap: ent.monthlyCap ?? null,
+              overageUnitCents: ent.overageUnitCents ?? null,
+            }))
+          );
+      }
+
+      const updatedEntitlements = await db.select()
+        .from(featureEntitlements)
+        .where(eq(featureEntitlements.planId, id));
+
+      res.json({
+        success: true,
+        entitlements: updatedEntitlements,
+      });
+    } catch (error: any) {
+      console.error("[Plans] Error updating entitlements:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update entitlements",
+      });
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

@@ -46,6 +46,8 @@ import AdminRoles from "@/pages/admin/Roles";
 import AdminCVs from "@/pages/admin/CVs";
 import AdminFraudDetection from "@/pages/admin/FraudDetection";
 import AdminBilling from "@/pages/admin/Billing";
+import AdminFeatures from "@/pages/admin/Features";
+import AdminPlans from "@/pages/admin/Plans";
 
 // Individuals Dashboard pages
 import { IndividualsLayout } from "@/components/individuals/IndividualsLayout";
@@ -88,6 +90,8 @@ function AdminRouter() {
         <Route path="/admin/cvs" component={AdminCVs} />
         <Route path="/admin/fraud" component={AdminFraudDetection} />
         <Route path="/admin/billing" component={AdminBilling} />
+        <Route path="/admin/features" component={AdminFeatures} />
+        <Route path="/admin/plans" component={AdminPlans} />
         <Route path="/admin" component={() => {
           const [, navigate] = useLocation();
           navigate("/admin/overview");
@@ -185,6 +189,8 @@ function Router() {
       <Route path="/admin/cvs" component={() => <AdminRouter />} />
       <Route path="/admin/fraud" component={() => <AdminRouter />} />
       <Route path="/admin/billing" component={() => <AdminRouter />} />
+      <Route path="/admin/features" component={() => <AdminRouter />} />
+      <Route path="/admin/plans" component={() => <AdminRouter />} />
       <Route path="/admin" component={() => <AdminRouter />} />
       <Route path="/dashboard/individual/profile" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/cvs" component={() => <IndividualsRouter />} />
