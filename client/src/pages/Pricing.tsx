@@ -77,23 +77,11 @@ export default function Pricing() {
 
   const plans = data?.plans || [];
   
-  // Group plans by product and tier
-  const plansByProduct = {
-    individual: {
-      free: plans.find(p => p.plan.product === 'individual' && p.plan.tier === 'free' && p.plan.interval === interval),
-      standard: plans.find(p => p.plan.product === 'individual' && p.plan.tier === 'standard' && p.plan.interval === interval),
-      premium: plans.find(p => p.plan.product === 'individual' && p.plan.tier === 'premium' && p.plan.interval === interval),
-    },
-    recruiter: {
-      free: plans.find(p => p.plan.product === 'recruiter' && p.plan.tier === 'free' && p.plan.interval === interval),
-      standard: plans.find(p => p.plan.product === 'recruiter' && p.plan.tier === 'standard' && p.plan.interval === interval),
-      premium: plans.find(p => p.plan.product === 'recruiter' && p.plan.tier === 'premium' && p.plan.interval === interval),
-    },
-    corporate: {
-      free: plans.find(p => p.plan.product === 'corporate' && p.plan.tier === 'free' && p.plan.interval === interval),
-      standard: plans.find(p => p.plan.product === 'corporate' && p.plan.tier === 'standard' && p.plan.interval === interval),
-      premium: plans.find(p => p.plan.product === 'corporate' && p.plan.tier === 'premium' && p.plan.interval === interval),
-    },
+  // Filter only Individual plans
+  const individualPlans = {
+    free: plans.find(p => p.plan.product === 'individual' && p.plan.tier === 'free' && p.plan.interval === interval),
+    standard: plans.find(p => p.plan.product === 'individual' && p.plan.tier === 'standard' && p.plan.interval === interval),
+    premium: plans.find(p => p.plan.product === 'individual' && p.plan.tier === 'premium' && p.plan.interval === interval),
   };
 
   return (
@@ -127,127 +115,133 @@ export default function Pricing() {
         </div>
       </div>
 
-      {/* Pricing Tables - One section per product */}
-      <div className="max-w-7xl mx-auto px-6 py-12 space-y-16">
-        {Object.entries(plansByProduct).map(([product, tiers]) => {
-          const productInfo = PRODUCT_INFO[product as keyof typeof PRODUCT_INFO];
-          
-          return (
-            <div key={product} data-testid={`section-${product}`}>
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold mb-2" data-testid={`heading-${product}`}>
-                  {productInfo.name}
-                </h2>
-                <p className="text-muted-foreground">
-                  {productInfo.description}
-                </p>
-              </div>
+      {/* Pricing Tables - Individual Plans Only */}
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-2" data-testid="heading-individual">
+            Individual
+          </h2>
+          <p className="text-muted-foreground">
+            For job seekers building their careers
+          </p>
+        </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {Object.entries(tiers).map(([tier, planData]) => {
-                  if (!planData) return null;
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {Object.entries(individualPlans).map(([tier, planData]) => {
+            if (!planData) return null;
+            
+            const { plan, entitlements } = planData;
+            const tierInfo = TIER_INFO[tier as keyof typeof TIER_INFO];
+            const isPopular = tier === 'standard';
+            
+            return (
+              <Card 
+                key={plan.id} 
+                className={isPopular ? "border-primary border-2" : ""}
+                data-testid={`card-plan-individual-${tier}`}
+              >
+                <CardHeader>
+                  {isPopular && (
+                    <Badge className="w-fit mb-2" data-testid="badge-popular-individual">
+                      {tierInfo.badge}
+                    </Badge>
+                  )}
+                  <CardTitle className="text-2xl" data-testid={`title-individual-${tier}`}>
+                    {tierInfo.name}
+                  </CardTitle>
+                  <CardDescription data-testid={`description-individual-${tier}`}>
+                    {plan.description}
+                  </CardDescription>
                   
-                  const { plan, entitlements } = planData;
-                  const tierInfo = TIER_INFO[tier as keyof typeof TIER_INFO];
-                  const isPopular = tier === 'standard';
-                  
-                  return (
-                    <Card 
-                      key={plan.id} 
-                      className={isPopular ? "border-primary border-2" : ""}
-                      data-testid={`card-plan-${product}-${tier}`}
-                    >
-                      <CardHeader>
-                        {isPopular && (
-                          <Badge className="w-fit mb-2" data-testid={`badge-popular-${product}`}>
-                            {tierInfo.badge}
-                          </Badge>
-                        )}
-                        <CardTitle className="text-2xl" data-testid={`title-${product}-${tier}`}>
-                          {tierInfo.name}
-                        </CardTitle>
-                        <CardDescription data-testid={`description-${product}-${tier}`}>
-                          {plan.description}
-                        </CardDescription>
-                        
-                        <div className="mt-4">
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-4xl font-bold" data-testid={`price-${product}-${tier}`}>
-                              R{parseFloat(plan.priceMonthly).toLocaleString()}
-                            </span>
-                            <span className="text-muted-foreground">
-                              /{interval === 'monthly' ? 'mo' : 'year'}
-                            </span>
-                          </div>
-                          {interval === 'annual' && parseFloat(plan.priceMonthly) > 0 && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              R{(parseFloat(plan.priceMonthly) / 12).toFixed(0)}/month billed annually
-                            </p>
-                          )}
-                        </div>
-                      </CardHeader>
+                  <div className="mt-4">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-bold" data-testid={`price-individual-${tier}`}>
+                        R{parseFloat(plan.priceMonthly).toLocaleString()}
+                      </span>
+                      <span className="text-muted-foreground">
+                        /{interval === 'monthly' ? 'mo' : 'year'}
+                      </span>
+                    </div>
+                    {interval === 'annual' && parseFloat(plan.priceMonthly) > 0 && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        R{(parseFloat(plan.priceMonthly) / 12).toFixed(0)}/month billed annually
+                      </p>
+                    )}
+                  </div>
+                </CardHeader>
 
-                      <CardContent className="space-y-4">
-                        <Button 
-                          className="w-full" 
-                          variant={isPopular ? "default" : "outline"}
-                          onClick={() => {
-                            // Free tier: navigate to signup/login
-                            if (tier === 'free') {
-                              navigate('/login');
-                            } else {
-                              // Paid tiers: navigate to login (checkout flow coming soon)
-                              // TODO: Implement checkout flow with Netcash
-                              navigate('/login');
-                            }
-                          }}
-                          data-testid={`button-select-${product}-${tier}`}
+                <CardContent className="space-y-4">
+                  <Button 
+                    className="w-full" 
+                    variant={isPopular ? "default" : "outline"}
+                    onClick={() => {
+                      // Free tier: navigate to signup/login
+                      if (tier === 'free') {
+                        navigate('/login');
+                      } else {
+                        // Paid tiers: navigate to login (checkout flow coming soon)
+                        // TODO: Implement checkout flow with Netcash
+                        navigate('/login');
+                      }
+                    }}
+                    data-testid={`button-select-individual-${tier}`}
+                  >
+                    {tier === 'free' ? 'Get Started' : 'Upgrade Now'}
+                  </Button>
+
+                  <div className="space-y-2">
+                    <p className="text-sm font-semibold">Features:</p>
+                    {entitlements
+                      .filter(ent => {
+                        // Only show enabled features
+                        if (ent.featureKind === 'TOGGLE') {
+                          return ent.enabled === 1;
+                        }
+                        // Show all QUOTA and METERED features
+                        return true;
+                      })
+                      .map((ent) => (
+                        <div 
+                          key={ent.featureKey} 
+                          className="flex items-start gap-2 text-sm"
+                          data-testid={`feature-individual-${tier}-${ent.featureKey}`}
                         >
-                          {tier === 'free' ? 'Get Started' : 'Upgrade Now'}
-                        </Button>
-
-                        <div className="space-y-2">
-                          <p className="text-sm font-semibold">Features:</p>
-                          {entitlements
-                            .filter(ent => {
-                              // Only show enabled features
-                              if (ent.featureKind === 'TOGGLE') {
-                                return ent.enabled === 1;
-                              }
-                              // Show all QUOTA and METERED features
-                              return true;
-                            })
-                            .map((ent) => (
-                              <div 
-                                key={ent.featureKey} 
-                                className="flex items-start gap-2 text-sm"
-                                data-testid={`feature-${product}-${tier}-${ent.featureKey}`}
-                              >
-                                <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                                <div>
-                                  <span>{ent.featureName}</span>
-                                  {ent.featureKind === 'QUOTA' && ent.monthlyCap !== null && (
-                                    <span className="text-muted-foreground">
-                                      {' '}({ent.monthlyCap === -1 ? 'Unlimited' : `${ent.monthlyCap} ${ent.unit || 'per month'}`})
-                                    </span>
-                                  )}
-                                  {ent.featureKind === 'METERED' && (
-                                    <span className="text-muted-foreground">
-                                      {' '}(Usage-based)
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
+                          <Check className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                          <div>
+                            <span>{ent.featureName}</span>
+                            {ent.featureKind === 'QUOTA' && ent.monthlyCap !== null && (
+                              <span className="text-muted-foreground">
+                                {' '}({ent.monthlyCap >= 1000000000 ? 'Unlimited' : `${ent.monthlyCap} ${ent.unit || 'per month'}`})
+                              </span>
+                            )}
+                            {ent.featureKind === 'METERED' && (
+                              <span className="text-muted-foreground">
+                                {' '}(Usage-based)
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Links to other pricing pages */}
+        <div className="mt-12 text-center">
+          <p className="text-muted-foreground mb-4">Looking for business pricing?</p>
+          <div className="flex gap-4 justify-center">
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/recruiters')}
+              data-testid="button-view-recruiter-pricing"
+            >
+              View Recruiter Pricing
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* FAQ Section */}
