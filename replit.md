@@ -45,7 +45,7 @@ Preferred communication style: Simple, everyday language.
     - **Job Favorites Database** (November 2025): `job_favorites` table with unique constraint on (userId, jobId) for tracking saved jobs. API endpoints support add, remove, list, and check operations with proper authentication and cache invalidation.
     - **Corporate Clients Database** (November 2025): Three-table schema (`corporate_clients`, `corporate_client_contacts`, `corporate_client_engagements`) with `clientId` foreign key added to `jobs` table. All clients scoped to `agencyOrganizationId` for team collaboration. Contacts include POPIA consent tracking. Engagements store fee agreements (fixed, percentage, hybrid), guarantee periods, and payment terms with JSONB for flexible configuration.
     - **Billing System Database** (November 2025): Six-table feature-entitlement architecture:
-        - `plans` - 18 subscription plans (3 products × 3 tiers × 2 intervals): Individual (R0-R299/mo), Recruiter (R0-R1999/mo), Corporate (R0-R1999/mo)
+        - `plans` - 18 subscription plans (3 products × 3 tiers × 2 intervals): Individual (R0-R299/mo, R0-R2990/yr), Recruiter (R0-R1999/mo, R0-R19990/yr), Corporate (R0-R1999/mo, R0-R19990/yr)
         - `features` - 16 platform features with TOGGLE/QUOTA/METERED types
         - `featureEntitlements` - Plan-to-feature mapping with quotas and limits
         - `subscriptions` - User/org subscriptions with auto-provisioned free tier fallback
