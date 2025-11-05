@@ -45,6 +45,7 @@ import AdminCandidates from "@/pages/admin/Candidates";
 import AdminRoles from "@/pages/admin/Roles";
 import AdminCVs from "@/pages/admin/CVs";
 import AdminFraudDetection from "@/pages/admin/FraudDetection";
+import AdminBilling from "@/pages/admin/Billing";
 
 // Individuals Dashboard pages
 import { IndividualsLayout } from "@/components/individuals/IndividualsLayout";
@@ -86,6 +87,7 @@ function AdminRouter() {
         <Route path="/admin/roles" component={AdminRoles} />
         <Route path="/admin/cvs" component={AdminCVs} />
         <Route path="/admin/fraud" component={AdminFraudDetection} />
+        <Route path="/admin/billing" component={AdminBilling} />
         <Route path="/admin" component={() => {
           const [, navigate] = useLocation();
           navigate("/admin/overview");
@@ -182,6 +184,7 @@ function Router() {
       <Route path="/admin/roles" component={() => <AdminRouter />} />
       <Route path="/admin/cvs" component={() => <AdminRouter />} />
       <Route path="/admin/fraud" component={() => <AdminRouter />} />
+      <Route path="/admin/billing" component={() => <AdminRouter />} />
       <Route path="/admin" component={() => <AdminRouter />} />
       <Route path="/dashboard/individual/profile" component={() => <IndividualsRouter />} />
       <Route path="/dashboard/individual/cvs" component={() => <IndividualsRouter />} />
