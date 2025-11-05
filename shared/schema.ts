@@ -222,6 +222,25 @@ export const jobs = pgTable("jobs", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Job Favorites - tracks which jobs users have saved
+export const jobFavorites = pgTable("job_favorites", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  jobId: varchar("job_id").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => [
+  uniqueIndex("idx_job_favorites_unique").on(table.userId, table.jobId),
+  index("idx_job_favorites_user").on(table.userId),
+]);
+
+export const insertJobFavoriteSchema = createInsertSchema(jobFavorites).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type InsertJobFavorite = z.infer<typeof insertJobFavoriteSchema>;
+export type JobFavorite = typeof jobFavorites.$inferSelect;
+
 // Zod schemas for JSONB structures
 export const jobLocationSchema = z.object({
   country: z.string().default("South Africa"),
