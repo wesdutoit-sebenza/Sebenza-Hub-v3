@@ -8022,31 +8022,47 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
   // Public: Get all plans catalog (for pricing page)
   app.get("/api/public/plans", async (req, res) => {
     try {
-      const rawPlans = await db.select({
-        plan: plans,
-        entitlements: sql`(
-          SELECT COALESCE(json_agg(
-            json_build_object(
-              'featureKey', fe.feature_key,
-              'enabled', fe.enabled,
-              'monthlyCap', fe.monthly_cap,
-              'featureName', f.name,
-              'featureDescription', f.description,
-              'featureKind', f.kind,
-              'unit', f.unit
-            )
-          ), '[]'::json)
-          FROM ${featureEntitlements} fe
-          INNER JOIN ${features} f ON fe.feature_key = f.key
-          WHERE fe.plan_id = ${plans.id}
-        )`,
-      })
+      // First, get all public plans
+      const publicPlans = await db.select()
         .from(plans)
         .where(eq(plans.isPublic, 1))
         .orderBy(plans.product, plans.tier, plans.interval);
 
-      // Transform to include priceMonthly, name, description for frontend
-      const allPlans = rawPlans.map(({ plan, entitlements }) => {
+      // Then, get all entitlements for these plans
+      const planIds = publicPlans.map(p => p.id);
+      const allEntitlements = await db.select({
+        planId: featureEntitlements.planId,
+        featureKey: featureEntitlements.featureKey,
+        enabled: featureEntitlements.enabled,
+        monthlyCap: featureEntitlements.monthlyCap,
+        featureName: features.name,
+        featureDescription: features.description,
+        featureKind: features.kind,
+        unit: features.unit,
+      })
+        .from(featureEntitlements)
+        .innerJoin(features, eq(featureEntitlements.featureKey, features.key))
+        .where(inArray(featureEntitlements.planId, planIds));
+
+      // Group entitlements by planId
+      const entitlementsByPlan: Record<string, any[]> = {};
+      for (const ent of allEntitlements) {
+        if (!entitlementsByPlan[ent.planId]) {
+          entitlementsByPlan[ent.planId] = [];
+        }
+        entitlementsByPlan[ent.planId].push({
+          featureKey: ent.featureKey,
+          enabled: ent.enabled,
+          monthlyCap: ent.monthlyCap,
+          featureName: ent.featureName,
+          featureDescription: ent.featureDescription,
+          featureKind: ent.featureKind,
+          unit: ent.unit,
+        });
+      }
+
+      // Transform to include priceMonthly, name, description, and entitlements
+      const allPlans = publicPlans.map((plan) => {
         // Generate name from product and tier
         const productName = plan.product.charAt(0).toUpperCase() + plan.product.slice(1);
         const tierName = plan.tier.charAt(0).toUpperCase() + plan.tier.slice(1);
@@ -8066,7 +8082,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
             description: descriptions[plan.product] || '',
             priceMonthly: (plan.priceCents / 100).toFixed(2), // Convert cents to rands
           },
-          entitlements,
+          entitlements: entitlementsByPlan[plan.id] || [],
         };
       });
 

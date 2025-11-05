@@ -202,7 +202,7 @@ export default function Recruiters() {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div key={currentProduct} className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
             {Object.entries(monthlyPlans).map(([tier, planData]) => {
               if (!planData) return null;
               
@@ -212,7 +212,7 @@ export default function Recruiters() {
               
               return (
                 <Card 
-                  key={plan.id} 
+                  key={`${currentProduct}-${tier}`} 
                   className={isPopular ? "border-primary border-2" : ""}
                   data-testid={`card-plan-${currentProduct}-${tier}`}
                 >
