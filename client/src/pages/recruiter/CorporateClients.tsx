@@ -9,17 +9,23 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
+import { ClientDialog } from "@/components/recruiter/ClientDialog";
 
 type CorporateClient = {
   id: string;
-  companyName: string;
-  industry: string | null;
-  size: string | null;
-  location: string | null;
-  description: string | null;
-  website: string | null;
-  status: string;
   agencyOrganizationId: string;
+  name: string;
+  registrationNumber: string | null;
+  industry: string | null;
+  province: string | null;
+  city: string | null;
+  status: string;
+  tier: string | null;
+  rating: number | null;
+  defaultFeePercent: number | null;
+  guaranteePeriodDays: number | null;
+  paymentTerms: string | null;
+  notes: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -59,6 +65,8 @@ export default function CorporateClients() {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [clientDialogOpen, setClientDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<CorporateClient | undefined>();
 
   // Fetch all clients
   const { data: clients = [], isLoading } = useQuery<CorporateClient[]>({
@@ -97,7 +105,7 @@ export default function CorporateClients() {
 
   // Filter clients
   const filteredClients = clients.filter((client) => {
-    const matchesSearch = client.companyName
+    const matchesSearch = client.name
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
     const matchesStatus =
@@ -113,6 +121,17 @@ export default function CorporateClients() {
       .join("")
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  // Dialog handlers
+  const handleAddClient = () => {
+    setEditingClient(undefined);
+    setClientDialogOpen(true);
+  };
+
+  const handleEditClient = (client: CorporateClient) => {
+    setEditingClient(client);
+    setClientDialogOpen(true);
   };
 
   if (isLoading) {
@@ -131,7 +150,7 @@ export default function CorporateClients() {
         <div className="p-4 border-b space-y-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold">Corporate Clients</h1>
-            <Button size="icon" data-testid="button-add-client">
+            <Button size="icon" onClick={handleAddClient} data-testid="button-add-client">
               <Plus className="w-4 h-4" />
             </Button>
           </div>
@@ -201,19 +220,19 @@ export default function CorporateClients() {
                     <div className="flex items-start gap-3">
                       <Avatar>
                         <AvatarFallback>
-                          {getInitials(client.companyName)}
+                          {getInitials(client.name)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold truncate">
-                          {client.companyName}
+                          {client.name}
                         </h3>
                         <p className="text-sm text-muted-foreground truncate">
                           {client.industry || "No industry specified"}
                         </p>
-                        {client.location && (
+                        {(client.city || client.province) && (
                           <p className="text-xs text-muted-foreground mt-1">
-                            {client.location}
+                            {[client.city, client.province].filter(Boolean).join(", ")}
                           </p>
                         )}
                         <div className="flex items-center gap-2 mt-2">
@@ -226,10 +245,10 @@ export default function CorporateClients() {
                           >
                             {client.status}
                           </Badge>
-                          {client.size && (
-                            <span className="text-xs text-muted-foreground">
-                              {client.size}
-                            </span>
+                          {client.tier && (
+                            <Badge variant="outline" className="capitalize">
+                              {client.tier}
+                            </Badge>
                           )}
                         </div>
                       </div>
@@ -260,12 +279,12 @@ export default function CorporateClients() {
               <div className="flex items-start gap-4">
                 <Avatar className="w-16 h-16">
                   <AvatarFallback className="text-lg">
-                    {getInitials(selectedClient.companyName)}
+                    {getInitials(selectedClient.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <h1 className="text-3xl font-bold">
-                    {selectedClient.companyName}
+                    {selectedClient.name}
                   </h1>
                   <p className="text-muted-foreground mt-1">
                     {selectedClient.industry || "No industry specified"}
@@ -280,20 +299,29 @@ export default function CorporateClients() {
                     >
                       {selectedClient.status}
                     </Badge>
-                    {selectedClient.size && (
+                    {selectedClient.tier && (
+                      <Badge variant="outline" className="capitalize">
+                        {selectedClient.tier}
+                      </Badge>
+                    )}
+                    {selectedClient.rating && (
                       <span className="text-sm text-muted-foreground">
-                        {selectedClient.size} employees
+                        Rating: {selectedClient.rating}/5
                       </span>
                     )}
-                    {selectedClient.location && (
+                    {(selectedClient.city || selectedClient.province) && (
                       <span className="text-sm text-muted-foreground">
-                        • {selectedClient.location}
+                        • {[selectedClient.city, selectedClient.province].filter(Boolean).join(", ")}
                       </span>
                     )}
                   </div>
                 </div>
               </div>
-              <Button variant="outline" data-testid="button-edit-client">
+              <Button 
+                variant="outline" 
+                onClick={() => handleEditClient(selectedClient)} 
+                data-testid="button-edit-client"
+              >
                 Edit Client
               </Button>
             </div>
@@ -373,29 +401,23 @@ export default function CorporateClients() {
               <TabsContent value="overview" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>About</CardTitle>
+                    <CardTitle>Company Information</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {selectedClient.description && (
+                    {selectedClient.registrationNumber && (
                       <div>
-                        <h4 className="font-medium mb-2">Description</h4>
+                        <h4 className="font-medium mb-2">Registration Number</h4>
                         <p className="text-sm text-muted-foreground">
-                          {selectedClient.description}
+                          {selectedClient.registrationNumber}
                         </p>
                       </div>
                     )}
-                    {selectedClient.website && (
+                    {selectedClient.notes && (
                       <div>
-                        <h4 className="font-medium mb-2">Website</h4>
-                        <a
-                          href={selectedClient.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-primary hover:underline"
-                          data-testid="link-client-website"
-                        >
-                          {selectedClient.website}
-                        </a>
+                        <h4 className="font-medium mb-2">Internal Notes</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {selectedClient.notes}
+                        </p>
                       </div>
                     )}
                     <div>
@@ -407,6 +429,34 @@ export default function CorporateClients() {
                     </div>
                   </CardContent>
                 </Card>
+                
+                {(selectedClient.defaultFeePercent || selectedClient.guaranteePeriodDays || selectedClient.paymentTerms) && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Default Commercial Terms</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {selectedClient.defaultFeePercent && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Default Fee</span>
+                          <span className="text-sm font-medium">{selectedClient.defaultFeePercent}%</span>
+                        </div>
+                      )}
+                      {selectedClient.guaranteePeriodDays && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Guarantee Period</span>
+                          <span className="text-sm font-medium">{selectedClient.guaranteePeriodDays} days</span>
+                        </div>
+                      )}
+                      {selectedClient.paymentTerms && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">Payment Terms</span>
+                          <span className="text-sm font-medium">{selectedClient.paymentTerms}</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               <TabsContent value="contacts" className="space-y-4">
@@ -666,6 +716,13 @@ export default function CorporateClients() {
           </div>
         )}
       </div>
+
+      {/* Client Dialog */}
+      <ClientDialog
+        open={clientDialogOpen}
+        onOpenChange={setClientDialogOpen}
+        client={editingClient}
+      />
     </div>
   );
 }
