@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, insertIndividualPreferencesSchema, insertIndividualNotificationSettingsSchema, type User } from "@shared/schema";
 import { db } from "./db";
-import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, jobFavorites, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, testAttempts, testResponses, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema, autoSearchPreferences, autoSearchResults } from "@shared/schema";
+import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, jobFavorites, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, testAttempts, testResponses, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema, autoSearchPreferences, autoSearchResults, corporateClients, corporateClientContacts, corporateClientEngagements, insertCorporateClientSchema, insertCorporateClientContactSchema, insertCorporateClientEngagementSchema } from "@shared/schema";
 import { eq, and, desc, sql, inArray, or } from "drizzle-orm";
 import { authenticateSession, requireRole, type AuthRequest } from "./auth-middleware";
 import { screeningQueue, isQueueAvailable } from "./queue";
@@ -675,6 +675,559 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false,
         message: "Error checking favorite status.",
       });
+    }
+  });
+
+  // ============================================
+  // CORPORATE CLIENTS ROUTES (for Recruiters)
+  // ============================================
+
+  // Get all clients for recruiter's organization with search and filters
+  app.get("/api/recruiter/clients", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { q, status, industry, tier } = req.query;
+      
+      // Get recruiter's organization from memberships
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, user.id))
+        .limit(1);
+      
+      if (!membership) {
+        return res.status(403).json({
+          success: false,
+          message: "No organization membership found.",
+        });
+      }
+      
+      // Build query conditions
+      const conditions: any[] = [eq(corporateClients.agencyOrganizationId, membership.organizationId)];
+      
+      if (status && typeof status === 'string') {
+        conditions.push(eq(corporateClients.status, status));
+      }
+      if (industry && typeof industry === 'string') {
+        conditions.push(eq(corporateClients.industry, industry));
+      }
+      if (tier && typeof tier === 'string') {
+        conditions.push(eq(corporateClients.tier, tier));
+      }
+      
+      // Fetch clients with filters
+      let clients = await db.select()
+        .from(corporateClients)
+        .where(and(...conditions))
+        .orderBy(desc(corporateClients.updatedAt));
+      
+      // Apply search filter if provided
+      if (q && typeof q === 'string') {
+        const searchLower = q.toLowerCase();
+        clients = clients.filter(client => 
+          client.name.toLowerCase().includes(searchLower) ||
+          (client.industry && client.industry.toLowerCase().includes(searchLower)) ||
+          (client.city && client.city.toLowerCase().includes(searchLower))
+        );
+      }
+      
+      // Enrich with job counts for each client
+      const enrichedClients = await Promise.all(
+        clients.map(async (client) => {
+          const clientJobs = await db.select()
+            .from(jobs)
+            .where(eq(jobs.clientId, client.id));
+          
+          const activeJobs = clientJobs.filter(job => {
+            const status = (job.admin as any)?.status;
+            return status === 'Live' || status === 'Paused';
+          });
+          
+          return {
+            ...client,
+            activeJobsCount: activeJobs.length,
+            totalJobsCount: clientJobs.length,
+          };
+        })
+      );
+      
+      res.json({
+        success: true,
+        count: enrichedClients.length,
+        clients: enrichedClients,
+      });
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching clients.",
+      });
+    }
+  });
+
+  // Create a new corporate client
+  app.post("/api/recruiter/clients", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      // Get recruiter's organization from memberships
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, user.id))
+        .limit(1);
+      
+      if (!membership) {
+        return res.status(403).json({
+          success: false,
+          message: "No organization membership found.",
+        });
+      }
+      
+      // Validate input
+      const validatedData = insertCorporateClientSchema.parse(req.body);
+      
+      // Create client
+      const [client] = await db.insert(corporateClients).values({
+        ...validatedData,
+        agencyOrganizationId: membership.organizationId,
+      }).returning();
+      
+      console.log(`New corporate client created: ${client.name} by user ${user.id}`);
+      
+      res.status(201).json({
+        success: true,
+        message: "Client created successfully!",
+        client,
+      });
+    } catch (error: any) {
+      console.error("Error creating client:", error);
+      res.status(400).json({
+        success: false,
+        message: error.errors ? "Invalid client data." : "Error creating client.",
+      });
+    }
+  });
+
+  // Get a specific client with full details (contacts, engagements, jobs)
+  app.get("/api/recruiter/clients/:id", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { id } = req.params;
+      
+      // Get recruiter's organization from memberships
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, user.id))
+        .limit(1);
+      
+      if (!membership) {
+        return res.status(403).json({
+          success: false,
+          message: "No organization membership found.",
+        });
+      }
+      
+      // Fetch client and verify ownership
+      const [client] = await db.select()
+        .from(corporateClients)
+        .where(and(
+          eq(corporateClients.id, id),
+          eq(corporateClients.agencyOrganizationId, membership.organizationId)
+        ));
+      
+      if (!client) {
+        return res.status(404).json({
+          success: false,
+          message: "Client not found.",
+        });
+      }
+      
+      // Fetch related data in parallel
+      const [contacts, engagements, clientJobs] = await Promise.all([
+        db.select()
+          .from(corporateClientContacts)
+          .where(eq(corporateClientContacts.clientId, id))
+          .orderBy(desc(corporateClientContacts.isPrimary)),
+        
+        db.select()
+          .from(corporateClientEngagements)
+          .where(eq(corporateClientEngagements.clientId, id))
+          .orderBy(desc(corporateClientEngagements.startDate)),
+        
+        db.select()
+          .from(jobs)
+          .where(eq(jobs.clientId, id))
+          .orderBy(desc(jobs.createdAt)),
+      ]);
+      
+      res.json({
+        success: true,
+        client: {
+          ...client,
+          contacts,
+          engagements,
+          jobs: clientJobs.map(normalizeJobSkills),
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching client details:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error fetching client details.",
+      });
+    }
+  });
+
+  // Update a corporate client
+  app.patch("/api/recruiter/clients/:id", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { id } = req.params;
+      
+      // Get recruiter's organization from memberships
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, user.id))
+        .limit(1);
+      
+      if (!membership) {
+        return res.status(403).json({
+          success: false,
+          message: "No organization membership found.",
+        });
+      }
+      
+      // Verify client ownership
+      const [existingClient] = await db.select()
+        .from(corporateClients)
+        .where(and(
+          eq(corporateClients.id, id),
+          eq(corporateClients.agencyOrganizationId, membership.organizationId)
+        ));
+      
+      if (!existingClient) {
+        return res.status(404).json({
+          success: false,
+          message: "Client not found.",
+        });
+      }
+      
+      // Update client
+      const [updatedClient] = await db.update(corporateClients)
+        .set({
+          ...req.body,
+          updatedAt: new Date(),
+        })
+        .where(eq(corporateClients.id, id))
+        .returning();
+      
+      res.json({
+        success: true,
+        message: "Client updated successfully!",
+        client: updatedClient,
+      });
+    } catch (error) {
+      console.error("Error updating client:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error updating client.",
+      });
+    }
+  });
+
+  // ============================================
+  // CLIENT CONTACTS ROUTES
+  // ============================================
+
+  // Add contact to a client
+  app.post("/api/recruiter/clients/:clientId/contacts", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { clientId } = req.params;
+      
+      // Get recruiter's organization from memberships
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, user.id))
+        .limit(1);
+      
+      if (!membership) {
+        return res.status(403).json({ success: false, message: "No organization membership found." });
+      }
+      
+      const [client] = await db.select()
+        .from(corporateClients)
+        .where(and(
+          eq(corporateClients.id, clientId),
+          eq(corporateClients.agencyOrganizationId, membership.organizationId)
+        ));
+      
+      if (!client) {
+        return res.status(404).json({ success: false, message: "Client not found." });
+      }
+      
+      // Validate and create contact
+      const validatedData = insertCorporateClientContactSchema.parse(req.body);
+      const [contact] = await db.insert(corporateClientContacts).values({
+        ...validatedData,
+        clientId,
+      }).returning();
+      
+      res.status(201).json({
+        success: true,
+        message: "Contact added successfully!",
+        contact,
+      });
+    } catch (error: any) {
+      console.error("Error creating contact:", error);
+      res.status(400).json({
+        success: false,
+        message: error.errors ? "Invalid contact data." : "Error creating contact.",
+      });
+    }
+  });
+
+  // Update a contact
+  app.patch("/api/recruiter/clients/:clientId/contacts/:contactId", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { clientId, contactId } = req.params;
+      
+      // Get recruiter's organization from memberships
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, user.id))
+        .limit(1);
+      
+      if (!membership) {
+        return res.status(403).json({ success: false, message: "No organization membership found." });
+      }
+      
+      const [client] = await db.select()
+        .from(corporateClients)
+        .where(and(
+          eq(corporateClients.id, clientId),
+          eq(corporateClients.agencyOrganizationId, membership.organizationId)
+        ));
+      
+      if (!client) {
+        return res.status(404).json({ success: false, message: "Client not found." });
+      }
+      
+      // Update contact
+      const [updatedContact] = await db.update(corporateClientContacts)
+        .set({ ...req.body, updatedAt: new Date() })
+        .where(eq(corporateClientContacts.id, contactId))
+        .returning();
+      
+      res.json({
+        success: true,
+        message: "Contact updated successfully!",
+        contact: updatedContact,
+      });
+    } catch (error) {
+      console.error("Error updating contact:", error);
+      res.status(500).json({ success: false, message: "Error updating contact." });
+    }
+  });
+
+  // Delete a contact
+  app.delete("/api/recruiter/clients/:clientId/contacts/:contactId", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { clientId, contactId } = req.params;
+      
+      // Get recruiter's organization from memberships
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, user.id))
+        .limit(1);
+      
+      if (!membership) {
+        return res.status(403).json({ success: false, message: "No organization membership found." });
+      }
+      
+      const [client] = await db.select()
+        .from(corporateClients)
+        .where(and(
+          eq(corporateClients.id, clientId),
+          eq(corporateClients.agencyOrganizationId, membership.organizationId)
+        ));
+      
+      if (!client) {
+        return res.status(404).json({ success: false, message: "Client not found." });
+      }
+      
+      await db.delete(corporateClientContacts)
+        .where(eq(corporateClientContacts.id, contactId));
+      
+      res.json({
+        success: true,
+        message: "Contact removed successfully!",
+      });
+    } catch (error) {
+      console.error("Error deleting contact:", error);
+      res.status(500).json({ success: false, message: "Error deleting contact." });
+    }
+  });
+
+  // ============================================
+  // CLIENT ENGAGEMENTS ROUTES
+  // ============================================
+
+  // Add engagement/agreement to a client
+  app.post("/api/recruiter/clients/:clientId/engagements", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { clientId } = req.params;
+      
+      // Get recruiter's organization from memberships
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, user.id))
+        .limit(1);
+      
+      if (!membership) {
+        return res.status(403).json({ success: false, message: "No organization membership found." });
+      }
+      
+      const [client] = await db.select()
+        .from(corporateClients)
+        .where(and(
+          eq(corporateClients.id, clientId),
+          eq(corporateClients.agencyOrganizationId, membership.organizationId)
+        ));
+      
+      if (!client) {
+        return res.status(404).json({ success: false, message: "Client not found." });
+      }
+      
+      // Validate and create engagement
+      const validatedData = insertCorporateClientEngagementSchema.parse(req.body);
+      const [engagement] = await db.insert(corporateClientEngagements).values({
+        ...validatedData,
+        clientId,
+      }).returning();
+      
+      res.status(201).json({
+        success: true,
+        message: "Engagement created successfully!",
+        engagement,
+      });
+    } catch (error: any) {
+      console.error("Error creating engagement:", error);
+      res.status(400).json({
+        success: false,
+        message: error.errors ? "Invalid engagement data." : "Error creating engagement.",
+      });
+    }
+  });
+
+  // ============================================
+  // CLIENT JOBS & STATS ROUTES
+  // ============================================
+
+  // Get all jobs for a specific client
+  app.get("/api/recruiter/clients/:id/jobs", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { id } = req.params;
+      
+      // Get recruiter's organization from memberships
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, user.id))
+        .limit(1);
+      
+      if (!membership) {
+        return res.status(403).json({ success: false, message: "No organization membership found." });
+      }
+      
+      const [client] = await db.select()
+        .from(corporateClients)
+        .where(and(
+          eq(corporateClients.id, id),
+          eq(corporateClients.agencyOrganizationId, membership.organizationId)
+        ));
+      
+      if (!client) {
+        return res.status(404).json({ success: false, message: "Client not found." });
+      }
+      
+      // Fetch jobs for this client
+      const clientJobs = await db.select()
+        .from(jobs)
+        .where(eq(jobs.clientId, id))
+        .orderBy(desc(jobs.createdAt));
+      
+      res.json({
+        success: true,
+        count: clientJobs.length,
+        jobs: clientJobs.map(normalizeJobSkills),
+      });
+    } catch (error) {
+      console.error("Error fetching client jobs:", error);
+      res.status(500).json({ success: false, message: "Error fetching client jobs." });
+    }
+  });
+
+  // Get analytics/stats for a specific client
+  app.get("/api/recruiter/clients/:id/stats", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const { id } = req.params;
+      
+      // Get recruiter's organization from memberships
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, user.id))
+        .limit(1);
+      
+      if (!membership) {
+        return res.status(403).json({ success: false, message: "No organization membership found." });
+      }
+      
+      const [client] = await db.select()
+        .from(corporateClients)
+        .where(and(
+          eq(corporateClients.id, id),
+          eq(corporateClients.agencyOrganizationId, membership.organizationId)
+        ));
+      
+      if (!client) {
+        return res.status(404).json({ success: false, message: "Client not found." });
+      }
+      
+      // Fetch all jobs for this client
+      const clientJobs = await db.select()
+        .from(jobs)
+        .where(eq(jobs.clientId, id));
+      
+      // Calculate statistics
+      const totalJobs = clientJobs.length;
+      const liveJobs = clientJobs.filter(job => (job.admin as any)?.status === 'Live').length;
+      const filledJobs = clientJobs.filter(job => (job.admin as any)?.status === 'Filled').length;
+      const closedJobs = clientJobs.filter(job => (job.admin as any)?.status === 'Closed').length;
+      const draftJobs = clientJobs.filter(job => (job.admin as any)?.status === 'Draft').length;
+      
+      // Calculate average days to fill (simplified - would need placement dates in real implementation)
+      // For now, return placeholder data
+      const avgDaysToFill = filledJobs > 0 ? 45 : null; // Placeholder
+      
+      res.json({
+        success: true,
+        stats: {
+          totalJobs,
+          liveJobs,
+          filledJobs,
+          closedJobs,
+          draftJobs,
+          avgDaysToFill,
+          placementRate: totalJobs > 0 ? ((filledJobs / totalJobs) * 100).toFixed(1) : '0',
+        },
+      });
+    } catch (error) {
+      console.error("Error fetching client stats:", error);
+      res.status(500).json({ success: false, message: "Error fetching client stats." });
     }
   });
 

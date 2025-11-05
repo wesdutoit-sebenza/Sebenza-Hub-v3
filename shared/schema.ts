@@ -183,11 +183,95 @@ export const insertSubscriberSchema = createInsertSchema(subscribers).pick({
 export type InsertSubscriber = z.infer<typeof insertSubscriberSchema>;
 export type Subscriber = typeof subscribers.$inferSelect;
 
+// Corporate Clients - Companies that are clients of recruiting agencies
+export const corporateClients = pgTable("corporate_clients", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  agencyOrganizationId: varchar("agency_organization_id").notNull(), // FK to organizations table (recruiting agency)
+  name: text("name").notNull(), // Company name
+  registrationNumber: text("registration_number"), // Company registration number
+  industry: text("industry"), // Industry sector
+  province: text("province"), // South African province
+  city: text("city"), // City/town
+  status: text("status").notNull().default('active'), // 'active', 'inactive', 'on-hold'
+  tier: text("tier"), // 'platinum', 'gold', 'silver' - client importance/priority
+  rating: integer("rating"), // 1-5 star rating
+  
+  // Commercial terms
+  defaultFeePercent: integer("default_fee_percent"), // Default recruitment fee percentage (e.g., 15 = 15%)
+  guaranteePeriodDays: integer("guarantee_period_days"), // Placement guarantee period (e.g., 90 days)
+  paymentTerms: text("payment_terms"), // e.g., "30 days", "Upon placement"
+  notes: text("notes"), // Internal notes about the client
+  
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertCorporateClientSchema = createInsertSchema(corporateClients).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertCorporateClient = z.infer<typeof insertCorporateClientSchema>;
+export type CorporateClient = typeof corporateClients.$inferSelect;
+
+// Corporate Client Contacts - Contact persons at client companies
+export const corporateClientContacts = pgTable("corporate_client_contacts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  clientId: varchar("client_id").notNull(), // FK to corporate_clients
+  isPrimary: integer("is_primary").notNull().default(0), // 1 = primary contact, 0 = additional
+  fullName: text("full_name").notNull(),
+  role: text("role"), // Job title/position
+  email: text("email"),
+  phone: text("phone"),
+  whatsappNumber: text("whatsapp_number"),
+  whatsappConsent: integer("whatsapp_consent").notNull().default(0), // 0 = no, 1 = yes (POPIA)
+  whatsappConsentDate: timestamp("whatsapp_consent_date"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertCorporateClientContactSchema = createInsertSchema(corporateClientContacts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertCorporateClientContact = z.infer<typeof insertCorporateClientContactSchema>;
+export type CorporateClientContact = typeof corporateClientContacts.$inferSelect;
+
+// Corporate Client Engagements - Fee agreements and commercial terms history
+export const corporateClientEngagements = pgTable("corporate_client_engagements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  clientId: varchar("client_id").notNull(), // FK to corporate_clients
+  agreementType: text("agreement_type").notNull(), // 'retained', 'contingent', 'contract'
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date"), // Null for ongoing
+  feePercent: integer("fee_percent"), // Fee percentage for this agreement
+  retainerAmount: integer("retainer_amount"), // Retainer fee in ZAR cents (if applicable)
+  termsDocument: text("terms_document"), // URL to signed agreement document
+  status: text("status").notNull().default('active'), // 'active', 'expired', 'terminated'
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const insertCorporateClientEngagementSchema = createInsertSchema(corporateClientEngagements).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertCorporateClientEngagement = z.infer<typeof insertCorporateClientEngagementSchema>;
+export type CorporateClientEngagement = typeof corporateClientEngagements.$inferSelect;
+
 // Job Posting - Comprehensive schema with JSONB columns for nested data
 export const jobs = pgTable("jobs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   organizationId: varchar("organization_id"),
   postedByUserId: varchar("posted_by_user_id"),
+  clientId: varchar("client_id"), // FK to corporate_clients (nullable - for agency jobs posted on behalf of corporate clients)
   referenceNumber: varchar("reference_number").unique(), // Unique reference e.g. JOB-X7Y8Z9
   
   // Legacy fields (kept for backward compatibility - nullable for new comprehensive jobs)
