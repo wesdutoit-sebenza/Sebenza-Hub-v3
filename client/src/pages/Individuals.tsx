@@ -128,6 +128,17 @@ export default function Individuals() {
         description="Stop wasting time on mystery jobs. See transparent salaries, apply via WhatsApp, and prove your skills with quick assessments."
         breadcrumb="For Individuals"
       />
+
+      <Section className="bg-graphite" id="pricing">
+        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-pricing-title">
+          Pricing for Job Seekers
+        </h2>
+        <p className="text-center mb-12 max-w-2xl mx-auto text-[#ffffff]">
+          Find your next opportunity with our free or premium plans. All plans include profile creation and job search tools.
+        </p>
+        <PricingTable plans={individualPricingPlans} />
+      </Section>
+
       <Section>
         <h2 className="text-3xl font-serif font-semibold text-center mb-12 text-white-brand" data-testid="text-section-title">
           How it works
@@ -533,16 +544,6 @@ export default function Individuals() {
             </>
           )}
         </div>
-      </Section>
-
-      <Section className="bg-graphite" id="pricing">
-        <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-pricing-title">
-          Pricing for Job Seekers
-        </h2>
-        <p className="text-center mb-12 max-w-2xl mx-auto text-[#ffffff]">
-          Find your next opportunity with our free or premium plans. All plans include profile creation and job search tools.
-        </p>
-        <PricingTable plans={individualPricingPlans} />
       </Section>
       
       <Section id="faq">
