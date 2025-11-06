@@ -4188,6 +4188,9 @@ Return format:
 
       // Parse the extracted job data
       const jobData = JSON.parse(responseContent);
+      
+      // Log the extracted data for debugging
+      console.log('[AI Extraction] Successfully extracted job data:', JSON.stringify(jobData, null, 2));
 
       res.json({
         success: true,
