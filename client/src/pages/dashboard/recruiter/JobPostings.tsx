@@ -3291,6 +3291,23 @@ export default function RecruiterJobPostings() {
             return field;
           };
           
+          // Helper to convert dates from dd-MM-yyyy to yyyy-MM-dd format
+          const convertDateFormat = (dateStr: string): string => {
+            if (!dateStr) return "";
+            
+            // Check if it's already in yyyy-MM-dd format
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+            
+            // Convert from dd-MM-yyyy to yyyy-MM-dd
+            const match = dateStr.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+            if (match) {
+              const [, day, month, year] = match;
+              return `${year}-${month}-${day}`;
+            }
+            
+            return dateStr;
+          };
+          
           // Transform AI-extracted data to match exact form structure and dropdown values
           const transformedData: any = {
             clientId: extractedData.clientId || null,
