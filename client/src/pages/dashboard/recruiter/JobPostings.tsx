@@ -3379,7 +3379,7 @@ export default function RecruiterJobPostings() {
                       extractedData.application?.method?.toLowerCase().includes('external') ? 'external' : 'in-app',
               externalUrl: decodeField(extractedData.application?.externalUrl) || "",
               whatsappNumber: decodeField(extractedData.application?.whatsappNumber) || "",
-              closingDate: decodeField(extractedData.application?.closingDate) || "",
+              closingDate: convertDateFormat(decodeField(extractedData.application?.closingDate) || ""),
               competencyTestRequired: extractedData.screening?.competencyTestRequired === true ? "Yes" : "No",
             },
             
@@ -3403,7 +3403,7 @@ export default function RecruiterJobPostings() {
               visibility: decodeField(extractedData.admin?.visibility) || "Public",
               status: "Draft",
               owner: decodeField(extractedData.admin?.owner) || "",
-              closingDate: decodeField(extractedData.application?.closingDate) || "",
+              closingDate: convertDateFormat(decodeField(extractedData.application?.closingDate) || ""),
             },
             
             benefits: {
