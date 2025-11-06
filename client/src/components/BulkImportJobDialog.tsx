@@ -100,7 +100,10 @@ export function BulkImportJobDialog({ open, onOpenChange, onJobsImported }: Bulk
       // Step 3: Create job as draft
       const createRes = await apiRequest("POST", "/api/jobs", {
         ...extractData.jobData,
-        status: "draft", // Always create as draft for review
+        admin: {
+          ...extractData.jobData.admin,
+          status: "Draft", // Always create as draft for review
+        },
       });
       const createData = await createRes.json();
 

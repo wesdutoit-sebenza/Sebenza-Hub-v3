@@ -1544,8 +1544,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Verify user owns this job (either posted it or owns the organization)
-      if (existingJob.postedByUserId !== user.id && existingJob.organizationId !== user.id) {
+      // Check if user is member of the organization that owns this job
+      const [membership] = await db.select()
+        .from(memberships)
+        .where(and(
+          eq(memberships.userId, user.id),
+          eq(memberships.organizationId, existingJob.organizationId)
+        ))
+        .limit(1);
+      
+      // Verify user owns this job (posted it, owns the organization, or is a member of the organization)
+      const hasPermission = 
+        existingJob.postedByUserId === user.id || 
+        existingJob.organizationId === user.id ||
+        membership !== undefined;
+      
+      if (!hasPermission) {
         return res.status(403).json({
           success: false,
           message: "You don't have permission to delete this job.",
