@@ -3366,20 +3366,27 @@ export default function RecruiterJobPostings() {
               competencyTestRequired: extractedData.screening?.competencyTestRequired === true ? "Yes" : "No",
             },
             
+            vetting: {
+              criminal: extractedData.screening?.backgroundChecks?.criminal || false,
+              credit: extractedData.screening?.backgroundChecks?.credit || false,
+              qualification: extractedData.screening?.backgroundChecks?.qualification || false,
+              references: extractedData.screening?.backgroundChecks?.references || false,
+            },
+            
             compliance: {
               rightToWork: decodeField(extractedData.screening?.rightToWorkRequired) || "Citizen/PR",
-              backgroundChecks: {
-                criminal: extractedData.screening?.backgroundChecks?.criminal || false,
-                credit: extractedData.screening?.backgroundChecks?.credit || false,
-                qualification: extractedData.screening?.backgroundChecks?.qualification || false,
-                references: extractedData.screening?.backgroundChecks?.references || false,
-              },
+              popiaConsent: extractedData.admin?.popiaCompliance || false,
+              checksConsent: (extractedData.screening?.backgroundChecks?.criminal || 
+                              extractedData.screening?.backgroundChecks?.credit || 
+                              extractedData.screening?.backgroundChecks?.qualification || 
+                              extractedData.screening?.backgroundChecks?.references) || false,
             },
             
             admin: {
               visibility: decodeField(extractedData.admin?.visibility) || "Public",
               status: "Draft",
-              popiaCompliance: extractedData.admin?.popiaCompliance || false,
+              owner: decodeField(extractedData.admin?.owner) || "",
+              closingDate: decodeField(extractedData.application?.closingDate) || "",
             },
             
             benefits: {
