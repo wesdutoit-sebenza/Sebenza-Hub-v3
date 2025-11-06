@@ -651,14 +651,24 @@ export default function Individuals() {
                     </div>
 
                     <div className="mb-4">
-                      <h4 className="font-semibold text-sm mb-2 text-white-brand">About the role:</h4>
-                      <p className="text-slate text-sm mb-3 line-clamp-3" data-testid="text-job-description">
-                        {job.description}
-                      </p>
-                      <h4 className="font-semibold text-sm mb-2 text-white-brand">Requirements:</h4>
-                      <p className="text-slate text-sm line-clamp-2" data-testid="text-job-requirements">
-                        {job.requirements}
-                      </p>
+                      {(job.core?.summary || job.description) && (
+                        <>
+                          <h4 className="font-semibold text-sm mb-2 text-white-brand">About the role:</h4>
+                          <p className="text-slate text-sm mb-3 line-clamp-3" data-testid="text-job-description">
+                            {job.core?.summary || job.description}
+                          </p>
+                        </>
+                      )}
+                      {((job.core?.qualifications && job.core.qualifications.length > 0) || job.requirements) && (
+                        <>
+                          <h4 className="font-semibold text-sm mb-2 text-white-brand">Requirements:</h4>
+                          <p className="text-slate text-sm line-clamp-2" data-testid="text-job-requirements">
+                            {job.core?.qualifications 
+                              ? job.core.qualifications.join(', ')
+                              : job.requirements}
+                          </p>
+                        </>
+                      )}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
