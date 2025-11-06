@@ -3274,21 +3274,98 @@ export default function RecruiterJobPostings() {
       <ImportJobDialog
         open={showImportDialog}
         onOpenChange={setShowImportDialog}
-        onJobImported={(jobData) => {
-          // Populate form with imported data and show form
-          // Preserve recruitingAgency from profile
-          const mergedData = {
-            ...jobData,
+        onJobImported={(extractedData) => {
+          // Transform AI-extracted data to match exact form structure and dropdown values
+          const transformedData: any = {
+            title: extractedData.title || "",
+            employmentType: extractedData.employmentType || "Permanent",
+            industry: extractedData.industry || "",
+            
             companyDetails: {
-              ...jobData.companyDetails,
-              recruitingAgency: recruiterProfile?.agencyName || jobData.companyDetails?.recruitingAgency || "",
+              name: extractedData.company || extractedData.companyDetails?.name || "",
+              industry: extractedData.companyDetails?.industry || extractedData.industry || "",
+              size: extractedData.companyDetails?.size || null,
+              website: extractedData.companyDetails?.website || "",
+              description: extractedData.companyDetails?.description || "",
+              recruitingAgency: recruiterProfile?.agencyName || extractedData.companyDetails?.recruitingAgency || "",
             },
-            // Filter out any invalid skills
-            skills: (jobData.skills || []).filter((s: any) => 
-              s && typeof s === 'object' && s.skill && typeof s.skill === 'string'
-            ),
+            
+            core: {
+              location: {
+                city: extractedData.location || "",
+                province: extractedData.province || "",
+                postalCode: extractedData.postalCode || "",
+              },
+              seniority: extractedData.core?.seniority || "",
+              department: extractedData.core?.department || "",
+              workArrangement: extractedData.core?.workArrangement || "On-site",
+              summary: extractedData.description || extractedData.core?.summary || "",
+              responsibilities: extractedData.core?.responsibilities || [],
+            },
+            
+            skills: (extractedData.core?.requiredSkills || [])
+              .filter((s: any) => s && typeof s === 'string')
+              .map((skillName: string) => ({
+                skill: skillName,
+                level: "Intermediate" as const,
+                priority: "Must-Have" as const,
+              })),
+            
+            roleDetails: {
+              qualifications: extractedData.roleDetails?.qualifications || [],
+              experience: extractedData.roleDetails?.experience || "",
+              driversLicenseRequired: extractedData.roleDetails?.driversLicenseRequired || false,
+              languagesRequired: extractedData.roleDetails?.languagesRequired || [],
+            },
+            
+            compensation: {
+              payType: extractedData.compensation?.payType || "Monthly",
+              currency: "ZAR",
+              min: extractedData.compensation?.min || null,
+              max: extractedData.compensation?.max || null,
+              displayRange: true,
+              commissionAvailable: extractedData.compensation?.commissionAvailable || false,
+              performanceBonus: extractedData.compensation?.performanceBonus || false,
+              medicalAid: extractedData.compensation?.medicalAid || false,
+              pensionFund: extractedData.compensation?.pensionFund || false,
+            },
+            
+            application: {
+              method: extractedData.application?.method?.toLowerCase().includes('whatsapp') ? 'in-app' : 
+                      extractedData.application?.method?.toLowerCase().includes('external') ? 'external' : 'in-app',
+              externalUrl: extractedData.application?.externalUrl || "",
+              contactEmail: extractedData.application?.contactEmail || "",
+              whatsappNumber: extractedData.application?.whatsappNumber || "",
+              closingDate: extractedData.application?.closingDate || "",
+            },
+            
+            compliance: {
+              rightToWork: extractedData.screening?.rightToWorkRequired || "Citizen/PR",
+              backgroundChecks: {
+                criminal: extractedData.screening?.backgroundChecks?.criminal || false,
+                credit: extractedData.screening?.backgroundChecks?.credit || false,
+                qualification: extractedData.screening?.backgroundChecks?.qualification || false,
+                references: extractedData.screening?.backgroundChecks?.references || false,
+              },
+            },
+            
+            screening: {
+              competencyTestRequired: extractedData.screening?.competencyTestRequired || false,
+              testId: null,
+            },
+            
+            admin: {
+              visibility: extractedData.admin?.visibility || "Public",
+              status: "Draft",
+              popiaCompliance: extractedData.admin?.popiaCompliance || false,
+            },
+            
+            benefits: {
+              benefits: extractedData.benefits?.benefits || [],
+            },
           };
-          form.reset(mergedData);
+          
+          form.reset(transformedData);
           setShowForm(true);
         }}
       />
