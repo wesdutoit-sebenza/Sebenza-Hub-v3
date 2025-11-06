@@ -4,6 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { UpgradeProvider } from "./contexts/UpgradeContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Home from "@/pages/Home";
@@ -226,16 +227,18 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
-          <div className="min-h-screen flex flex-col bg-charcoal">
-            <Header />
-            <div className="flex-1">
-              <Router />
+          <UpgradeProvider>
+            <div className="min-h-screen flex flex-col bg-charcoal">
+              <Header />
+              <div className="flex-1">
+                <Router />
+              </div>
+              <Footer />
             </div>
-            <Footer />
-          </div>
-          <Toaster />
-        </TooltipProvider>
-      </AuthProvider>
+            <Toaster />
+          </UpgradeProvider>
+        </AuthProvider>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

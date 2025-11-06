@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,7 @@ import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import html2pdf from "html2pdf.js";
+import { useFeatureGate } from "@/hooks/use-feature-gate";
 
 type FormData = z.infer<typeof insertJobSchema>;
 
@@ -102,7 +103,7 @@ function MultiAdd({
       setVal("");
     }
   };
-  
+
   return (
     <div>
       <div className="flex gap-2 mb-3">
@@ -225,13 +226,13 @@ function JobFormNavigation() {
   useEffect(() => {
     const activeNavButton = navRefs.current[activeSection];
     const container = scrollContainerRef.current;
-    
+
     if (activeNavButton && container) {
       const buttonTop = activeNavButton.offsetTop;
       const buttonHeight = activeNavButton.offsetHeight;
       const containerScrollTop = container.scrollTop;
       const containerHeight = container.clientHeight;
-      
+
       // Check if button is outside visible area
       if (buttonTop < containerScrollTop) {
         // Button is above visible area, scroll up
@@ -252,7 +253,7 @@ function JobFormNavigation() {
   const scrollToSection = (sectionId: string) => {
     // Immediately update active section when clicking
     setActiveSection(sectionId);
-    
+
     const element = document.getElementById(sectionId);
     if (element) {
       const offset = 80; // Adjust for sticky header
@@ -301,6 +302,8 @@ function JobFormNavigation() {
 
 export default function RecruiterJobPostings() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { checkFeature } = useFeatureGate();
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -332,7 +335,7 @@ export default function RecruiterJobPostings() {
 
   const corporateClients = corporateClientsData?.clients || [];
   const jobs = jobsData?.jobs || [];
-  
+
   const filteredJobs = jobs.filter((job) =>
     searchTerm
       ? job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -486,7 +489,7 @@ export default function RecruiterJobPostings() {
 
   // Debounced job title for skill suggestions
   const [debouncedJobTitle, setDebouncedJobTitle] = useState("");
-  
+
   useEffect(() => {
     const timer = setTimeout(() => {
       if (jobTitle && jobTitle.trim().length >= 3) {
@@ -495,7 +498,7 @@ export default function RecruiterJobPostings() {
         setDebouncedJobTitle("");
       }
     }, 500);
-    
+
     return () => clearTimeout(timer);
   }, [jobTitle]);
 
@@ -584,7 +587,7 @@ export default function RecruiterJobPostings() {
       const cleanedData = Object.fromEntries(
         Object.entries(transformedData).filter(([_, v]) => v !== null)
       );
-      
+
       return apiRequest("PUT", `/api/jobs/${jobId}`, cleanedData);
     },
     onSuccess: () => {
@@ -627,7 +630,7 @@ export default function RecruiterJobPostings() {
       const cleanedData = Object.fromEntries(
         Object.entries(transformedData).filter(([_, v]) => v !== null)
       );
-      
+
       return apiRequest("POST", "/api/jobs", cleanedData);
     },
     onSuccess: () => {
@@ -652,13 +655,13 @@ export default function RecruiterJobPostings() {
   const normalizeToBoolean = (value: any): boolean => {
     // If already a boolean, return as-is
     if (typeof value === 'boolean') return value;
-    
+
     // If string, check for explicit affirmative values
     if (typeof value === 'string') {
       const normalized = value.trim().toLowerCase();
       return normalized === 'yes' || normalized === 'true' || normalized === '1';
     }
-    
+
     // For any other type (null, undefined, number, etc.), treat as false
     return false;
   };
@@ -676,7 +679,7 @@ export default function RecruiterJobPostings() {
         pensionContribution: normalizeToBoolean((job.compensation as any)?.pensionContribution),
       } : job.compensation,
     };
-    
+
     // Load normalized job data into form
     setEditingJobId(job.id);
     form.reset(normalizedJob as any);
@@ -694,7 +697,7 @@ export default function RecruiterJobPostings() {
   const generateJobPDFHTML = (data: FormData) => {
     const formatDate = (dateStr?: string) => dateStr ? new Date(dateStr).toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
     const formatCurrency = (amount?: number) => amount ? `R ${amount.toLocaleString()}` : 'N/A';
-    
+
     return `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 850px; margin: 0 auto; padding: 50px; line-height: 1.7; color: #1f2937; background: #ffffff;">
         <!-- Header -->
@@ -747,7 +750,7 @@ export default function RecruiterJobPostings() {
         <!-- Requirements Section -->
         <div style="margin-bottom: 30px;">
           <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #D97706;">Requirements</h2>
-          
+
           <!-- Required Skills -->
           ${data.core?.requiredSkills && data.core.requiredSkills.length > 0 ? `
             <div style="margin-bottom: 20px;">
@@ -807,7 +810,7 @@ export default function RecruiterJobPostings() {
         <!-- Compensation & Benefits -->
         <div style="background: #f0fdf4; padding: 25px; margin-bottom: 30px; border-radius: 8px; border-left: 5px solid #10b981;">
           <h2 style="color: #1f2937; font-size: 20px; font-weight: 600; margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 2px solid #10b981;">Compensation & Benefits</h2>
-          
+
           ${data.compensation?.min || data.compensation?.max ? `
             <div style="margin-bottom: 15px;">
               <div style="font-size: 16px; font-weight: 600; color: #065f46; margin-bottom: 8px;">Salary Range</div>
@@ -907,7 +910,7 @@ export default function RecruiterJobPostings() {
     try {
       const formData = form.getValues();
       const htmlContent = generateJobPDFHTML(formData);
-      
+
       const opt = {
         margin: 10,
         filename: `job-posting-${formData.title?.replace(/\s+/g, '-').toLowerCase() || 'draft'}.pdf`,
@@ -917,7 +920,7 @@ export default function RecruiterJobPostings() {
       };
 
       await html2pdf().set(opt).from(htmlContent).save();
-      
+
       toast({
         title: "PDF Downloaded",
         description: "Job posting PDF has been downloaded successfully.",
@@ -945,7 +948,7 @@ export default function RecruiterJobPostings() {
     setIsGeneratingPDF(true);
     try {
       const htmlContent = generateJobPDFHTML(job as any);
-      
+
       const opt = {
         margin: 10,
         filename: `job-posting-${job.title?.replace(/\s+/g, '-').toLowerCase() || 'draft'}.pdf`,
@@ -955,7 +958,7 @@ export default function RecruiterJobPostings() {
       };
 
       await html2pdf().set(opt).from(htmlContent).save();
-      
+
       toast({
         title: "PDF Downloaded",
         description: "Job posting PDF has been downloaded successfully.",
@@ -975,7 +978,7 @@ export default function RecruiterJobPostings() {
   const onSubmit = (data: FormData) => {
     console.log("Form submitted with data:", data);
     console.log("Job status:", data.admin?.status);
-    
+
     // Clean up data: remove null values for optional fields to avoid validation errors
     const cleanedData = {
       ...data,
@@ -986,7 +989,7 @@ export default function RecruiterJobPostings() {
       branding: data.branding || undefined,
       seo: data.seo || undefined,
     };
-    
+
     // If status is Draft, skip strict validation
     if (cleanedData.admin?.status === "Draft") {
       console.log("Saving as draft - skipping strict validation");
@@ -997,19 +1000,19 @@ export default function RecruiterJobPostings() {
       }
       return;
     }
-    
+
     // For Live/Paused/Closed/Filled, validate strictly
     const validationResult = insertJobSchema.safeParse(cleanedData);
-    
+
     if (!validationResult.success) {
       const errors = validationResult.error.format();
       console.log("Validation errors for non-draft:", errors);
-      
+
       // Extract first error message
       const firstError = validationResult.error.errors[0];
       const errorPath = firstError.path.join(" > ");
       const errorMessage = `${errorPath}: ${firstError.message}`;
-      
+
       toast({
         title: "Cannot save - validation failed",
         description: errorMessage,
@@ -1017,7 +1020,7 @@ export default function RecruiterJobPostings() {
       });
       return;
     }
-    
+
     // Validation passed, submit the form
     if (editingJobId) {
       updateJobMutation.mutate({ jobId: editingJobId, data: cleanedData });
@@ -1028,11 +1031,11 @@ export default function RecruiterJobPostings() {
 
   const onInvalid = (errors: any) => {
     console.log("Form validation errors:", errors);
-    
+
     // Show toast with first error
     const firstError = Object.values(errors)[0] as any;
     const errorMessage = firstError?.message || "Please check required fields";
-    
+
     toast({
       title: "Form validation failed",
       description: errorMessage,
@@ -1100,7 +1103,7 @@ export default function RecruiterJobPostings() {
                       <FormLabel>Recruiting Agency</FormLabel>
                       <FormControl>
                         <Input 
- 
+
                           {...field} 
                           disabled 
                           data-testid="input-recruiting-agency" 
@@ -1328,22 +1331,22 @@ export default function RecruiterJobPostings() {
                         value={field.value}
                         onChange={(address, placeDetails) => {
                           field.onChange(address);
-                          
+
                           if (placeDetails?.address_components) {
                             const components = placeDetails.address_components;
-                            
+
                             const city = components.find(c => 
                               c.types.includes('locality') || c.types.includes('sublocality')
                             )?.long_name;
-                            
+
                             const province = components.find(c => 
                               c.types.includes('administrative_area_level_1')
                             )?.long_name;
-                            
+
                             const postalCode = components.find(c => 
                               c.types.includes('postal_code')
                             )?.long_name;
-                            
+
                             if (city) form.setValue('core.location.city', city);
                             if (province) form.setValue('core.location.province', province);
                             if (postalCode) form.setValue('core.location.postalCode', postalCode);
@@ -1695,7 +1698,7 @@ export default function RecruiterJobPostings() {
                           <FormLabel>Custom Job Title *</FormLabel>
                           <FormControl>
                             <Input 
- 
+
                               value={field.value === "Other" ? "" : field.value}
                               onChange={field.onChange}
                               data-testid="input-custom-job-title" 
@@ -1918,7 +1921,7 @@ export default function RecruiterJobPostings() {
                   {form.formState.errors.core?.requiredSkills && (
                     <p className="text-sm text-destructive">{form.formState.errors.core.requiredSkills.message}</p>
                   )}
-                  
+
                   {/* AI Skill Suggestions */}
                   {debouncedJobTitle && (
                     <div className="mt-3 space-y-2">
@@ -1926,7 +1929,7 @@ export default function RecruiterJobPostings() {
                         <Sparkles className="h-3.5 w-3.5" />
                         <span>Suggested skills</span>
                       </div>
-                      
+
                       {isLoadingSuggestions ? (
                         <div className="flex flex-wrap gap-2">
                           {[1, 2, 3, 4, 5].map((i) => (
@@ -2165,7 +2168,7 @@ export default function RecruiterJobPostings() {
                 <div className="pt-6 border-t space-y-6">
                   <div>
                     <h4 className="text-sm font-semibold mb-4">Other Requirements</h4>
-                    
+
                     {/* Driver's License */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <FormField
@@ -2568,7 +2571,7 @@ export default function RecruiterJobPostings() {
                       <FormControl>
                         <Input 
                           type="tel" 
- 
+
                           {...field} 
                           data-testid="input-whatsapp-number" 
                         />
@@ -2823,7 +2826,7 @@ export default function RecruiterJobPostings() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormItem>
                   <FormLabel>Days Left</FormLabel>
                   <FormControl>
@@ -2832,18 +2835,18 @@ export default function RecruiterJobPostings() {
                       value={(() => {
                         const closingDateStr = form.watch("admin.closingDate");
                         if (!closingDateStr) return "N/A";
-                        
+
                         // Parse the date string (YYYY-MM-DD) manually to avoid timezone issues
                         const [year, month, day] = closingDateStr.split('-').map(Number);
                         const closing = new Date(year, month - 1, day); // month is 0-indexed
-                        
+
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
                         closing.setHours(0, 0, 0, 0);
-                        
+
                         const diffTime = closing.getTime() - today.getTime();
                         const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-                        
+
                         if (diffDays < 0) return "Closed";
                         if (diffDays === 0) return "Today";
                         if (diffDays === 1) return "1 day";
@@ -3101,6 +3104,18 @@ export default function RecruiterJobPostings() {
     );
   }
 
+  // HandleCreateJob function is gated by a feature check
+  const handleCreateJob = () => {
+    if (!checkFeature("job_posts", "Job Postings", { 
+      showToast: true, 
+      redirectToBilling: false,
+      product: "recruiter" 
+    })) {
+      return;
+    }
+    setShowForm(true);
+  };
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="mb-6 flex items-center justify-between">
@@ -3109,7 +3124,7 @@ export default function RecruiterJobPostings() {
           <p className="text-muted-foreground">Manage and create job listings</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setShowForm(true)} data-testid="button-create-job-manual">
+          <Button onClick={handleCreateJob} data-testid="button-create-job-manual">
             <Plus className="mr-2 h-4 w-4" />
             Create Job Manually
           </Button>
@@ -3149,7 +3164,7 @@ export default function RecruiterJobPostings() {
               {searchTerm ? "Try a different search term" : "Get started by creating your first job posting"}
             </p>
             {!searchTerm && (
-              <Button onClick={() => setShowForm(true)} data-testid="button-create-first-job">
+              <Button onClick={handleCreateJob} data-testid="button-create-first-job">
                 <Plus className="mr-2 h-4 w-4" />
                 Create Job
               </Button>
@@ -3208,7 +3223,7 @@ export default function RecruiterJobPostings() {
                   {/* Status-based action button */}
                   {(() => {
                     const status = (job as any).admin?.status || "Draft";
-                    
+
                     if (status === "Draft") {
                       return (
                         <Button
@@ -3222,7 +3237,7 @@ export default function RecruiterJobPostings() {
                         </Button>
                       );
                     }
-                    
+
                     if (status === "Live") {
                       return (
                         <Button
@@ -3237,7 +3252,7 @@ export default function RecruiterJobPostings() {
                         </Button>
                       );
                     }
-                    
+
                     if (status === "Paused") {
                       return (
                         <Button
@@ -3251,7 +3266,7 @@ export default function RecruiterJobPostings() {
                         </Button>
                       );
                     }
-                    
+
                     if (status === "Closed") {
                       return (
                         <Button
@@ -3266,7 +3281,7 @@ export default function RecruiterJobPostings() {
                         </Button>
                       );
                     }
-                    
+
                     if (status === "Filled") {
                       return (
                         <Badge variant="default" className="gap-1" data-testid={`badge-filled-${job.id}`}>
@@ -3275,16 +3290,16 @@ export default function RecruiterJobPostings() {
                         </Badge>
                       );
                     }
-                    
+
                     return null;
                   })()}
-                  
+
                   {/* Status badge */}
                   <Badge variant="outline" data-testid={`badge-status-${job.id}`}>
                     {(job as any).admin?.status || "Draft"}
                   </Badge>
                 </div>
-                
+
                 <div className="flex gap-2">
                   <Button
                     size="sm"
@@ -3342,7 +3357,7 @@ export default function RecruiterJobPostings() {
             textarea.innerHTML = text;
             return textarea.value;
           };
-          
+
           // Helper to decode strings or arrays of strings
           const decodeField = (field: any): any => {
             if (typeof field === 'string') return decodeHtmlEntities(field);
@@ -3351,24 +3366,24 @@ export default function RecruiterJobPostings() {
             );
             return field;
           };
-          
+
           // Helper to convert dates from dd-MM-yyyy to yyyy-MM-dd format
           const convertDateFormat = (dateStr: string): string => {
             if (!dateStr) return "";
-            
+
             // Check if it's already in yyyy-MM-dd format
             if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
-            
+
             // Convert from dd-MM-yyyy to yyyy-MM-dd
             const match = dateStr.match(/^(\d{2})-(\d{2})-(\d{4})$/);
             if (match) {
               const [, day, month, year] = match;
               return `${year}-${month}-${day}`;
             }
-            
+
             return dateStr;
           };
-          
+
           // Transform AI-extracted data to match exact form structure and dropdown values
           const transformedData: any = {
             clientId: extractedData.clientId || null,
@@ -3376,7 +3391,7 @@ export default function RecruiterJobPostings() {
             company: decodeField(extractedData.company || extractedData.companyDetails?.name) || "",
             employmentType: decodeField(extractedData.employmentType) || "Permanent",
             industry: decodeField(extractedData.industry) || "",
-            
+
             companyDetails: {
               name: decodeField(extractedData.company || extractedData.companyDetails?.name) || "",
               industry: decodeField(extractedData.companyDetails?.industry || extractedData.industry) || "",
@@ -3386,7 +3401,7 @@ export default function RecruiterJobPostings() {
               recruitingAgency: recruiterProfile?.agencyName || decodeField(extractedData.companyDetails?.recruitingAgency) || "",
               contactEmail: decodeField(extractedData.application?.contactEmail) || "",
             },
-            
+
             core: {
               location: {
                 city: decodeField(extractedData.location) || "",
@@ -3423,7 +3438,7 @@ export default function RecruiterJobPostings() {
                   proficiency: "Fluent" as const,
                 })),
             },
-            
+
             compensation: {
               payType: decodeField(extractedData.compensation?.payType) || "Monthly",
               currency: "ZAR",
@@ -3435,7 +3450,7 @@ export default function RecruiterJobPostings() {
               medicalAid: extractedData.compensation?.medicalAid || false,
               pensionFund: extractedData.compensation?.pensionFund || false,
             },
-            
+
             application: {
               method: extractedData.application?.method?.toLowerCase().includes('whatsapp') ? 'in-app' : 
                       extractedData.application?.method?.toLowerCase().includes('external') ? 'external' : 'in-app',
@@ -3444,14 +3459,14 @@ export default function RecruiterJobPostings() {
               closingDate: convertDateFormat(decodeField(extractedData.application?.closingDate) || ""),
               competencyTestRequired: extractedData.screening?.competencyTestRequired === true ? "Yes" : "No",
             },
-            
+
             vetting: {
               criminal: extractedData.screening?.backgroundChecks?.criminal || false,
               credit: extractedData.screening?.backgroundChecks?.credit || false,
               qualification: extractedData.screening?.backgroundChecks?.qualification || false,
               references: extractedData.screening?.backgroundChecks?.references || false,
             },
-            
+
             compliance: {
               rightToWork: decodeField(extractedData.screening?.rightToWorkRequired) || "Citizen/PR",
               popiaConsent: extractedData.admin?.popiaCompliance || false,
@@ -3460,22 +3475,22 @@ export default function RecruiterJobPostings() {
                               extractedData.screening?.backgroundChecks?.qualification || 
                               extractedData.screening?.backgroundChecks?.references) || false,
             },
-            
+
             admin: {
               visibility: decodeField(extractedData.admin?.visibility) || "Public",
               status: "Draft",
               owner: decodeField(extractedData.admin?.owner) || "",
               closingDate: convertDateFormat(decodeField(extractedData.application?.closingDate) || ""),
             },
-            
+
             benefits: {
               benefits: decodeField(extractedData.benefits?.benefits) || [],
             },
           };
-          
+
           console.log('[Import] Final transformed data:', transformedData);
           console.log('[Import] Skills array:', transformedData.core?.requiredSkills);
-          
+
           form.reset(transformedData);
           setShowForm(true);
         }}
