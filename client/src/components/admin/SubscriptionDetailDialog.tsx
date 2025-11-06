@@ -190,9 +190,16 @@ export function SubscriptionDetailDialog({
     });
   };
 
-  const formatPrice = (price: number | undefined) => {
-    if (price === undefined || price === null) return 'R0.00';
+  const formatPrice = (priceCents: number | undefined) => {
+    if (priceCents === undefined || priceCents === null) return 'R0.00';
+    const price = priceCents / 100;
     return `R${price.toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`;
+  };
+
+  const formatPlanName = (product: string, tier: string) => {
+    const productName = product.charAt(0).toUpperCase() + product.slice(1);
+    const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+    return `${productName} ${tierName}`;
   };
 
   const getStatusColor = (status: string) => {
@@ -306,7 +313,7 @@ export function SubscriptionDetailDialog({
                     <div>
                       <Label className="text-sm text-muted-foreground">Price</Label>
                       <p className="font-medium">
-                        {formatPrice(data.plan.price)}/{data.plan.interval}
+                        {formatPrice(data.plan.priceCents)}/{data.plan.interval}
                       </p>
                     </div>
                     <div>
@@ -521,7 +528,7 @@ export function SubscriptionDetailDialog({
               <SelectContent>
                 {plansData?.plans.map((plan: any) => (
                   <SelectItem key={plan.id} value={plan.id}>
-                    {plan.name} - {formatPrice(plan.price)}/{plan.interval}
+                    {formatPlanName(plan.product, plan.tier)} - {formatPrice(plan.priceCents)}/{plan.interval}
                   </SelectItem>
                 ))}
               </SelectContent>

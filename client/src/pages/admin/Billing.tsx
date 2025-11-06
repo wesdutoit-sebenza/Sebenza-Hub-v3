@@ -123,15 +123,15 @@ export default function AdminBilling() {
     return (
       item.subscription.id.toLowerCase().includes(searchLower) ||
       item.subscription.holderId.toLowerCase().includes(searchLower) ||
-      item.plan.name.toLowerCase().includes(searchLower) ||
       item.plan.product.toLowerCase().includes(searchLower) ||
+      item.plan.tier.toLowerCase().includes(searchLower) ||
       holderName.toLowerCase().includes(searchLower)
     );
   });
 
   // Calculate metrics
   const activeSubscriptions = subscriptions.filter(s => s.subscription.status === 'active');
-  const totalRevenue = activeSubscriptions.reduce((sum, s) => sum + s.plan.price, 0);
+  const totalRevenue = activeSubscriptions.reduce((sum, s) => sum + (s.plan.priceCents || 0), 0);
   const averageRevenue = activeSubscriptions.length > 0 ? totalRevenue / activeSubscriptions.length : 0;
 
   // Count by product
@@ -158,8 +158,9 @@ export default function AdminBilling() {
     });
   };
 
-  const formatPrice = (price: number | undefined) => {
-    if (price === undefined || price === null) return 'R0.00';
+  const formatPrice = (priceCents: number | undefined) => {
+    if (priceCents === undefined || priceCents === null) return 'R0.00';
+    const price = priceCents / 100;
     return `R${price.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
@@ -436,7 +437,7 @@ export default function AdminBilling() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            {formatPrice(item.plan.price)}/{item.plan.interval}
+                            {formatPrice(item.plan.priceCents)}/{item.plan.interval}
                           </TableCell>
                           <TableCell className="text-xs">
                             {formatDate(item.subscription.currentPeriodEnd)}
