@@ -237,8 +237,8 @@ function App() {
             </div>
             <Toaster />
           </UpgradeProvider>
-        </AuthProvider>
-      </TooltipProvider>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
