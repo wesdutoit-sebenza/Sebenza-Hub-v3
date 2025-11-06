@@ -32,25 +32,25 @@ export default function RecruitersAdmin() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const buildQueryUrl = () => {
-    const params = new URLSearchParams();
-    if (searchQuery) params.append('search', searchQuery);
-    if (statusFilter !== 'all') params.append('verificationStatus', statusFilter);
-    const queryString = params.toString();
-    return `/api/admin/recruiters${queryString ? `?${queryString}` : ''}`;
-  };
-
   const { data: recruiters = [], isLoading, refetch } = useQuery<Recruiter[]>({
-    queryKey: [buildQueryUrl()],
+    queryKey: ['/api/admin/recruiters', searchQuery, statusFilter],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (statusFilter !== 'all') params.append('verificationStatus', statusFilter);
+      const queryString = params.toString();
+      const url = `/api/admin/recruiters${queryString ? `?${queryString}` : ''}`;
+      const response = await fetch(url, { credentials: 'include' });
+      if (!response.ok) throw new Error('Failed to fetch recruiters');
+      return response.json();
+    },
     select: (data: any) => data.recruiters || [],
   });
 
   const verifyMutation = useMutation({
     mutationFn: async ({ id, verificationStatus }: { id: string; verificationStatus: string }) => {
-      return apiRequest<{ success: boolean }>(`/api/admin/recruiters/${id}/verify`, {
-        method: 'PATCH',
-        body: JSON.stringify({ verificationStatus }),
-      });
+      const response = await apiRequest('PATCH', `/api/admin/recruiters/${id}/verify`, { verificationStatus });
+      return response.json();
     },
     onSuccess: () => {
       toast({ title: "Recruiter verification status updated" });
