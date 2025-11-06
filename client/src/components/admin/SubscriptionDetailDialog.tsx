@@ -190,7 +190,8 @@ export function SubscriptionDetailDialog({
     });
   };
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (price: number | undefined) => {
+    if (price === undefined || price === null) return 'R0.00';
     return `R${price.toLocaleString("en-ZA", { minimumFractionDigits: 2 })}`;
   };
 
