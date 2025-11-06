@@ -314,6 +314,8 @@ export default function RecruiterJobPostings() {
   const [companyDescriptionAIDialogOpen, setCompanyDescriptionAIDialogOpen] = useState(false);
   const [previewDialogOpen, setPreviewDialogOpen] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [previewingJob, setPreviewingJob] = useState<Job | null>(null);
+  const [cardPreviewDialogOpen, setCardPreviewDialogOpen] = useState(false);
 
   const { data: jobsData, isLoading } = useQuery<{ success: boolean; count: number; jobs: Job[] }>({
     queryKey: ["/api/jobs"],
@@ -909,6 +911,44 @@ export default function RecruiterJobPostings() {
       const opt = {
         margin: 10,
         filename: `job-posting-${formData.title?.replace(/\s+/g, '-').toLowerCase() || 'draft'}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(htmlContent).save();
+      
+      toast({
+        title: "PDF Downloaded",
+        description: "Job posting PDF has been downloaded successfully.",
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
+
+  // Preview job from card
+  const handlePreviewJobCard = (job: Job) => {
+    setPreviewingJob(job);
+    setCardPreviewDialogOpen(true);
+  };
+
+  // Download PDF from job card
+  const handleDownloadJobCardPDF = async (job: Job) => {
+    setIsGeneratingPDF(true);
+    try {
+      const htmlContent = generateJobPDFHTML(job as any);
+      
+      const opt = {
+        margin: 10,
+        filename: `job-posting-${job.title?.replace(/\s+/g, '-').toLowerCase() || 'draft'}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
@@ -3248,6 +3288,25 @@ export default function RecruiterJobPostings() {
                 <div className="flex gap-2">
                   <Button
                     size="sm"
+                    variant="outline"
+                    onClick={() => handlePreviewJobCard(job)}
+                    data-testid={`button-preview-${job.id}`}
+                  >
+                    <Eye className="mr-1 h-3 w-3" />
+                    Preview
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownloadJobCardPDF(job)}
+                    disabled={isGeneratingPDF}
+                    data-testid={`button-download-pdf-${job.id}`}
+                  >
+                    <Download className="mr-1 h-3 w-3" />
+                    {isGeneratingPDF ? "Generating..." : "Download PDF"}
+                  </Button>
+                  <Button
+                    size="sm"
                     variant="ghost"
                     onClick={() => handleEditJob(job)}
                     data-testid={`button-edit-${job.id}`}
@@ -3431,6 +3490,23 @@ export default function RecruiterJobPostings() {
           queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
         }}
       />
+
+      {/* Preview Dialog for Job Cards */}
+      <Dialog open={cardPreviewDialogOpen} onOpenChange={setCardPreviewDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Job Posting Preview</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="h-[70vh]">
+            {previewingJob && (
+              <div 
+                className="p-6"
+                dangerouslySetInnerHTML={{ __html: generateJobPDFHTML(previewingJob as any) }}
+              />
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
