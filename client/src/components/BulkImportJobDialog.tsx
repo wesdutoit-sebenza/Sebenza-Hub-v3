@@ -140,6 +140,7 @@ export function BulkImportJobDialog({ open, onOpenChange, onJobsImported, recrui
       const transformedData: any = {
         clientId: extractedData.clientId || null,
         title: decodeField(extractedData.title) || "",
+        company: decodeField(extractedData.company || extractedData.companyDetails?.name) || "",
         employmentType: decodeField(extractedData.employmentType) || "Permanent",
         industry: decodeField(extractedData.industry) || "",
         
