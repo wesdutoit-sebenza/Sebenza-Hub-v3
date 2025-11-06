@@ -3156,9 +3156,11 @@ export default function RecruiterJobPostings() {
                   </div>
                 </div>
               </CardHeader>
-              {job.description && (
+              {(job.description || job.core?.summary) && (
                 <CardContent>
-                  <p className="text-sm text-muted-foreground line-clamp-2">{job.description}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {job.core?.summary || job.description}
+                  </p>
                 </CardContent>
               )}
               <CardFooter className="flex flex-wrap gap-2 justify-between border-t pt-4">
