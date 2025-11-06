@@ -4429,7 +4429,10 @@ Return format:
       }
 
       // Authorization: verify user is a recruiter and owns this job
+      console.log("[SEO Generate] Auth check - User role:", authReq.user.role, "User orgId:", authReq.user.organizationId, "Job orgId:", job.organizationId);
+      
       if (authReq.user.role !== "recruiter") {
+        console.log("[SEO Generate] Authorization failed: User is not a recruiter");
         return res.status(403).json({
           success: false,
           message: "Only recruiters can manage SEO for jobs",
@@ -4437,7 +4440,8 @@ Return format:
       }
 
       // Check job ownership: job must belong to user's organization
-      if (job.organizationId !== authReq.user.organizationId) {
+      if (job.organizationId && authReq.user.organizationId && job.organizationId !== authReq.user.organizationId) {
+        console.log("[SEO Generate] Authorization failed: Organization mismatch");
         return res.status(403).json({
           success: false,
           message: "You can only manage SEO for jobs in your organization",
@@ -4514,7 +4518,10 @@ Return format:
       }
 
       // Authorization: verify user is a recruiter and owns this job
+      console.log("[SEO Save] Auth check - User role:", authReq.user.role, "User orgId:", authReq.user.organizationId, "Job orgId:", job.organizationId);
+      
       if (authReq.user.role !== "recruiter") {
+        console.log("[SEO Save] Authorization failed: User is not a recruiter");
         return res.status(403).json({
           success: false,
           message: "Only recruiters can manage SEO for jobs",
@@ -4522,7 +4529,8 @@ Return format:
       }
 
       // Check job ownership: job must belong to user's organization
-      if (job.organizationId !== authReq.user.organizationId) {
+      if (job.organizationId && authReq.user.organizationId && job.organizationId !== authReq.user.organizationId) {
+        console.log("[SEO Save] Authorization failed: Organization mismatch");
         return res.status(403).json({
           success: false,
           message: "You can only manage SEO for jobs in your organization",
