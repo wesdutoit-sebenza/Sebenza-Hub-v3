@@ -46,6 +46,12 @@ import { JobDescriptionAIDialog } from "@/components/JobDescriptionAIDialog";
 import { CompanyDescriptionAIDialog } from "@/components/CompanyDescriptionAIDialog";
 import { ImportJobDialog } from "@/components/ImportJobDialog";
 import { BulkImportJobDialog } from "@/components/BulkImportJobDialog";
+import SeoAssistantPanel from "@/components/recruiter/SeoAssistantPanel";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   SA_PROVINCES,
   EMPLOYMENT_TYPES,
@@ -3007,6 +3013,38 @@ export default function RecruiterJobPostings() {
                 </p>
               )}
             </FormSection>
+
+            {/* SEO Assistant - Collapsible Section */}
+            {selectedJob && (
+              <Collapsible className="space-y-4">
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    className="w-full flex items-center justify-between"
+                    data-testid="button-toggle-seo"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      AI SEO Assistant
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      Click to expand
+                    </span>
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-4">
+                  <SeoAssistantPanel
+                    jobId={selectedJob.id}
+                    existingSEO={selectedJob.seo as any}
+                    onSave={(seo) => {
+                      // Update the selected job with new SEO data
+                      queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
+                    }}
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+            )}
 
             {/* Form Actions */}
             <div className="flex gap-4 justify-between sticky bottom-0 bg-background border-t pt-4 pb-2">

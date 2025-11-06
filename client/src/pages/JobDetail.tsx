@@ -1,6 +1,6 @@
 import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -105,6 +105,85 @@ export default function JobDetail() {
   const existingApplication = applicationsData?.applications?.find(
     (app) => app.jobId === job?.id
   );
+
+  // Set SEO meta tags and JSON-LD when job data loads
+  useEffect(() => {
+    if (!job) return;
+
+    const seo = job.seo as any;
+
+    // Set document title
+    if (seo?.titleTag) {
+      document.title = seo.titleTag;
+    } else {
+      document.title = `${job.title} at ${job.company} | Sebenza Hub`;
+    }
+
+    // Helper to set or update meta tag
+    const setMetaTag = (property: string, content: string, type: 'name' | 'property' = 'name') => {
+      if (!content) return;
+      
+      let meta = document.querySelector(`meta[${type}="${property}"]`);
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.setAttribute(type, property);
+        document.head.appendChild(meta);
+      }
+      meta.setAttribute('content', content);
+    };
+
+    // Set meta description
+    setMetaTag('description', seo?.metaDescription || `${job.title} position at ${job.company}. ${job.core?.summary?.substring(0, 155) || ''}`);
+
+    // Set Open Graph tags
+    setMetaTag('og:title', seo?.ogTitle || `${job.title} | ${job.company}`, 'property');
+    setMetaTag('og:description', seo?.ogDescription || job.core?.summary?.substring(0, 200) || '', 'property');
+    setMetaTag('og:type', 'website', 'property');
+    setMetaTag('og:url', window.location.href, 'property');
+    setMetaTag('og:site_name', 'Sebenza Hub', 'property');
+
+    // Set Twitter Card tags
+    setMetaTag('twitter:card', 'summary_large_image');
+    setMetaTag('twitter:title', seo?.twitterTitle || `${job.title} | ${job.company}`);
+    setMetaTag('twitter:description', seo?.twitterDescription || job.core?.summary?.substring(0, 200) || '');
+
+    // Set canonical URL
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.setAttribute('rel', 'canonical');
+      document.head.appendChild(canonical);
+    }
+    if (seo?.slug) {
+      canonical.setAttribute('href', `https://sebenzahub.co.za/jobs/${seo.slug}`);
+    } else {
+      canonical.setAttribute('href', window.location.href);
+    }
+
+    // Add JSON-LD structured data
+    if (seo?.jsonld) {
+      // Remove existing JSON-LD script if any
+      const existingScript = document.getElementById('job-jsonld');
+      if (existingScript) {
+        existingScript.remove();
+      }
+
+      const script = document.createElement('script');
+      script.id = 'job-jsonld';
+      script.type = 'application/ld+json';
+      script.textContent = seo.jsonld;
+      document.head.appendChild(script);
+    }
+
+    // Cleanup function to reset on unmount
+    return () => {
+      document.title = 'Sebenza Hub';
+      const jsonldScript = document.getElementById('job-jsonld');
+      if (jsonldScript) {
+        jsonldScript.remove();
+      }
+    };
+  }, [job]);
 
   // Mutation to track application
   const trackApplicationMutation = useMutation({

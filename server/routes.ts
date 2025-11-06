@@ -4397,6 +4397,173 @@ Return format:
     }
   });
 
+  // ============================================================================
+  // SEO Generation - AI-powered SEO metadata
+  // ============================================================================
+
+  // Generate SEO metadata for a job posting
+  app.post("/api/jobs/:jobId/seo/generate", authenticateSession, async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      const authReq = req as AuthRequest;
+      
+      if (!jobId) {
+        return res.status(400).json({
+          success: false,
+          message: "Job ID is required",
+        });
+      }
+
+      // Fetch the job
+      const [job] = await db
+        .select()
+        .from(jobs)
+        .where(eq(jobs.id, jobId))
+        .limit(1);
+
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: "Job not found",
+        });
+      }
+
+      // Authorization: verify user is a recruiter and owns this job
+      if (authReq.user.role !== "recruiter") {
+        return res.status(403).json({
+          success: false,
+          message: "Only recruiters can manage SEO for jobs",
+        });
+      }
+
+      // Check job ownership: job must belong to user's organization
+      if (job.organizationId !== authReq.user.organizationId) {
+        return res.status(403).json({
+          success: false,
+          message: "You can only manage SEO for jobs in your organization",
+        });
+      }
+
+      // Check if AI is configured
+      if (!isAIConfigured()) {
+        return res.status(503).json({
+          success: false,
+          message: "AI service is not configured.",
+        });
+      }
+
+      // Generate SEO metadata
+      const { generateJobSEO } = await import("./services/seo-generator");
+      const seoData = await generateJobSEO(job);
+
+      // Update job with new SEO data
+      await db
+        .update(jobs)
+        .set({ 
+          seo: seoData,
+          updatedAt: new Date()
+        })
+        .where(eq(jobs.id, jobId));
+
+      res.json({
+        success: true,
+        seo: seoData,
+      });
+    } catch (error: any) {
+      console.error("[SEO Generate] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to generate SEO metadata",
+      });
+    }
+  });
+
+  // Save manually edited SEO metadata
+  app.post("/api/jobs/:jobId/seo/save", authenticateSession, async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      const { seo } = req.body;
+      const authReq = req as AuthRequest;
+
+      if (!jobId) {
+        return res.status(400).json({
+          success: false,
+          message: "Job ID is required",
+        });
+      }
+
+      if (!seo) {
+        return res.status(400).json({
+          success: false,
+          message: "SEO data is required",
+        });
+      }
+
+      // Fetch the job to verify it exists
+      const [job] = await db
+        .select()
+        .from(jobs)
+        .where(eq(jobs.id, jobId))
+        .limit(1);
+
+      if (!job) {
+        return res.status(404).json({
+          success: false,
+          message: "Job not found",
+        });
+      }
+
+      // Authorization: verify user is a recruiter and owns this job
+      if (authReq.user.role !== "recruiter") {
+        return res.status(403).json({
+          success: false,
+          message: "Only recruiters can manage SEO for jobs",
+        });
+      }
+
+      // Check job ownership: job must belong to user's organization
+      if (job.organizationId !== authReq.user.organizationId) {
+        return res.status(403).json({
+          success: false,
+          message: "You can only manage SEO for jobs in your organization",
+        });
+      }
+
+      // Clean and validate the SEO data
+      const { cleanAndValidateSEO, toKebabCase, ensureUniqueSlug, generateJsonLd } = await import("./services/seo-generator");
+      const cleaned = cleanAndValidateSEO(seo);
+
+      // Ensure slug uniqueness if provided/edited
+      if (cleaned.slug) {
+        cleaned.slug = toKebabCase(cleaned.slug);
+        cleaned.slug = await ensureUniqueSlug(cleaned.slug, jobId);
+      }
+
+      // Regenerate JSON-LD with latest job data
+      cleaned.jsonld = generateJsonLd(job);
+
+      // Update job with cleaned SEO data
+      await db
+        .update(jobs)
+        .set({ 
+          seo: cleaned,
+          updatedAt: new Date()
+        })
+        .where(eq(jobs.id, jobId));
+
+      res.json({
+        success: true,
+        seo: cleaned,
+      });
+    } catch (error: any) {
+      console.error("[SEO Save] Error:", error);
+      res.status(500).json({
+        success: false,
+        message: error.message || "Failed to save SEO metadata",
+      });
+    }
+  });
+
   // Generate AI company description with tone selection
   app.post("/api/jobs/generate-company-description", authenticateSession, async (req, res) => {
     try {

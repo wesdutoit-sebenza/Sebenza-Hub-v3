@@ -501,9 +501,32 @@ export const jobAdminSchema = z.object({
   }).optional(),
 });
 
+// Comprehensive SEO schema for AI-generated metadata
 export const jobSeoSchema = z.object({
+  // Legacy fields
   keywords: z.array(z.string()).max(25).optional(),
   urgent: z.boolean().default(false),
+  
+  // AI-generated SEO fields
+  slug: z.string().optional(), // URL-friendly slug
+  titleTag: z.string().max(70).optional(), // Page title for search engines
+  metaDescription: z.string().max(200).optional(), // Meta description
+  ogTitle: z.string().max(80).optional(), // Open Graph title (social media)
+  ogDescription: z.string().max(220).optional(), // Open Graph description
+  twitterTitle: z.string().max(80).optional(), // Twitter card title
+  twitterDescription: z.string().max(220).optional(), // Twitter card description
+  imageAlt: z.string().max(140).optional(), // Alt text for job images
+  hashtags: z.array(z.string()).optional(), // Social media hashtags
+  internalLinks: z.array(z.object({
+    label: z.string(),
+    href: z.string(),
+  })).optional(), // Internal links for SEO
+  faq: z.array(z.object({
+    q: z.string(),
+    a: z.string(),
+  })).optional(), // FAQ schema for rich snippets
+  jsonld: z.string().optional(), // JSON-LD structured data (schema.org JobPosting)
+  version: z.number().default(1), // Track SEO regenerations
 });
 
 // Comprehensive insert schema
