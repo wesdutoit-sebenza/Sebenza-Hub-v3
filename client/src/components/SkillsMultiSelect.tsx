@@ -190,14 +190,14 @@ export function SkillsMultiSelect({
       {/* Display selected skills with level and priority controls */}
       {value.length > 0 && (
         <div className="space-y-3" data-testid="selected-skills-container">
-          {value.map((skillObj, idx) => (
+          {value.filter(skillObj => skillObj && skillObj.skill).map((skillObj, idx) => (
             <div key={skillObj.skill} className="space-y-2 p-3 border rounded-md">
               {/* Skill name and controls row */}
               <div className="flex gap-2 items-center">
                 <Badge
                   variant="secondary"
                   className="flex-1"
-                  data-testid={`badge-skill-${skillObj.skill.toLowerCase().replace(/\s+/g, '-')}`}
+                  data-testid={`badge-skill-${(skillObj.skill || '').toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   {skillObj.skill}
                 </Badge>
@@ -233,7 +233,7 @@ export function SkillsMultiSelect({
                     size="icon"
                     onClick={() => handleRemoveSkill(skillObj.skill)}
                     aria-label="Remove skill"
-                    data-testid={`button-remove-skill-${skillObj.skill.toLowerCase().replace(/\s+/g, '-')}`}
+                    data-testid={`button-remove-skill-${(skillObj.skill || '').toLowerCase().replace(/\s+/g, '-')}`}
                   >
                     <X className="h-4 w-4" />
                   </Button>

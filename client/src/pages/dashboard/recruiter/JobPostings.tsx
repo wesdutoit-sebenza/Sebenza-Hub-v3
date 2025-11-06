@@ -3283,6 +3283,10 @@ export default function RecruiterJobPostings() {
               ...jobData.companyDetails,
               recruitingAgency: recruiterProfile?.agencyName || jobData.companyDetails?.recruitingAgency || "",
             },
+            // Filter out any invalid skills
+            skills: (jobData.skills || []).filter((s: any) => 
+              s && typeof s === 'object' && s.skill && typeof s.skill === 'string'
+            ),
           };
           form.reset(mergedData);
           setShowForm(true);
