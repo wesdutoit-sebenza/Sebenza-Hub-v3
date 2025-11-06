@@ -45,6 +45,7 @@ import { type Job, type RecruiterProfile, insertJobSchema } from "@shared/schema
 import { JobDescriptionAIDialog } from "@/components/JobDescriptionAIDialog";
 import { CompanyDescriptionAIDialog } from "@/components/CompanyDescriptionAIDialog";
 import { ImportJobDialog } from "@/components/ImportJobDialog";
+import { BulkImportJobDialog } from "@/components/BulkImportJobDialog";
 import {
   SA_PROVINCES,
   EMPLOYMENT_TYPES,
@@ -303,6 +304,7 @@ export default function RecruiterJobPostings() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  const [showBulkImportDialog, setShowBulkImportDialog] = useState(false);
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [citySearchQuery, setCitySearchQuery] = useState("");
   const [cityDropdownOpen, setCityDropdownOpen] = useState(false);
@@ -3071,9 +3073,13 @@ export default function RecruiterJobPostings() {
             <Plus className="mr-2 h-4 w-4" />
             Create Job Manually
           </Button>
-          <Button onClick={() => setShowImportDialog(true)} data-testid="button-import-job">
+          <Button onClick={() => setShowImportDialog(true)} variant="outline" data-testid="button-import-job">
             <Upload className="mr-2 h-4 w-4" />
-            Import Job Posting
+            Import Job
+          </Button>
+          <Button onClick={() => setShowBulkImportDialog(true)} data-testid="button-bulk-import-jobs">
+            <FileTextIcon className="mr-2 h-4 w-4" />
+            Bulk Import
           </Button>
         </div>
       </div>
@@ -3280,6 +3286,15 @@ export default function RecruiterJobPostings() {
           };
           form.reset(mergedData);
           setShowForm(true);
+        }}
+      />
+
+      <BulkImportJobDialog
+        open={showBulkImportDialog}
+        onOpenChange={setShowBulkImportDialog}
+        onJobsImported={() => {
+          // Invalidate jobs query to refresh the list
+          queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
         }}
       />
     </div>
