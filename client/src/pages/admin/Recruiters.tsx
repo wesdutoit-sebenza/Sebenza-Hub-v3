@@ -37,6 +37,7 @@ export default function RecruitersAdmin() {
       search: searchQuery || undefined, 
       verificationStatus: statusFilter !== 'all' ? statusFilter : undefined 
     }],
+    select: (data: any) => data.recruiters || [],
   });
 
   const verifyMutation = useMutation({
