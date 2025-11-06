@@ -375,24 +375,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: membership?.organizationId || recruiterProfile.userId
       };
       
-      // Check quota BEFORE processing (but don't consume yet)
-      const allowed = await checkAllowed(orgHolder, 'job_posts', 1);
-      if (!allowed.ok) {
-        const errorMsg = allowed.reason || '';
-        let userMessage = "You've reached your job posting limit.";
-        
-        if (errorMsg.includes('QUOTA_EXCEEDED')) {
-          userMessage = "You've reached your monthly job posting limit. Upgrade your plan to post more jobs.";
-        } else if (errorMsg.includes('FEATURE_NOT_IN_PLAN')) {
-          userMessage = "Job posting is not available in your current plan. Please upgrade.";
-        } else if (errorMsg.includes('FEATURE_DISABLED')) {
-          userMessage = "Job posting is not enabled in your current plan. Please upgrade.";
+      // Only check quota for non-draft jobs (Draft jobs are free to create)
+      if (jobStatus !== "Draft") {
+        // Check quota BEFORE processing (but don't consume yet)
+        const allowed = await checkAllowed(orgHolder, 'job_posts', 1);
+        if (!allowed.ok) {
+          const errorMsg = allowed.reason || '';
+          let userMessage = "You've reached your job posting limit.";
+          
+          if (errorMsg.includes('QUOTA_EXCEEDED')) {
+            userMessage = "You've reached your monthly job posting limit. Upgrade your plan to post more jobs.";
+          } else if (errorMsg.includes('FEATURE_NOT_IN_PLAN')) {
+            userMessage = "Job posting is not available in your current plan. Please upgrade.";
+          } else if (errorMsg.includes('FEATURE_DISABLED')) {
+            userMessage = "Job posting is not enabled in your current plan. Please upgrade.";
+          }
+          
+          return res.status(403).json({
+            success: false,
+            message: userMessage,
+          });
         }
-        
-        return res.status(403).json({
-          success: false,
-          message: userMessage,
-        });
       }
       
       // For drafts, skip strict validation
@@ -430,12 +433,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`New job created: ${job.title} at ${job.company} (Status: ${jobStatus}) - Ref: ${referenceNumber} by user ${user.id}`);
       
-      // Consume quota AFTER successful creation
-      try {
-        await consume(orgHolder, 'job_posts', 1);
-      } catch (error: any) {
-        console.error('Failed to consume job posting quota after creation:', error);
-        // Job was created successfully, so we log the error but don't fail the request
+      // Only consume quota for non-draft jobs (Draft jobs are free to create)
+      if (jobStatus !== "Draft") {
+        // Consume quota AFTER successful creation
+        try {
+          await consume(orgHolder, 'job_posts', 1);
+        } catch (error: any) {
+          console.error('Failed to consume job posting quota after creation:', error);
+          // Job was created successfully, so we log the error but don't fail the request
+        }
       }
       
       // Queue fraud detection for job posting
