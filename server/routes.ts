@@ -8337,7 +8337,7 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       
       // Get active subscription
       const now = new Date();
-      const [subscription] = await db.select({
+      const [result] = await db.select({
         subscription: subscriptions,
         plan: plans,
       })
@@ -8352,9 +8352,18 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
         .orderBy(desc(subscriptions.createdAt))
         .limit(1);
       
+      if (!result) {
+        return res.json({
+          success: true,
+          subscription: null,
+          plan: null,
+        });
+      }
+      
       res.json({
         success: true,
-        subscription: subscription || null,
+        subscription: result.subscription,
+        plan: result.plan,
       });
     } catch (error: any) {
       console.error("[Billing] Error fetching subscription:", error);

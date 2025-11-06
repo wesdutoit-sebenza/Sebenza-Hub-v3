@@ -30,11 +30,10 @@ interface Subscription {
   };
   plan: {
     id: string;
-    name: string;
     product: string;
     tier: string;
     interval: string;
-    price: number;
+    priceCents: number;
   };
 }
 
@@ -101,8 +100,15 @@ export default function RecruiterBilling() {
     });
   };
 
-  const formatPrice = (price: number) => {
+  const formatPrice = (priceCents: number) => {
+    const price = priceCents / 100;
     return `R${price.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
+  const formatPlanName = (product: string, tier: string) => {
+    const productName = product.charAt(0).toUpperCase() + product.slice(1);
+    const tierName = tier.charAt(0).toUpperCase() + tier.slice(1);
+    return `${productName} ${tierName}`;
   };
 
   const isOrganizationBilling = subscription?.holderType === 'org';
@@ -180,7 +186,7 @@ export default function RecruiterBilling() {
               </div>
               {plan && (
                 <Badge className={getTierColor(plan.tier)} data-testid="badge-plan-tier">
-                  {plan.name}
+                  {formatPlanName(plan.product, plan.tier)}
                 </Badge>
               )}
             </div>
@@ -193,7 +199,7 @@ export default function RecruiterBilling() {
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Plan</p>
                     <p className="text-2xl font-bold" data-testid="text-plan-name">
-                      {plan.name}
+                      {formatPlanName(plan.product, plan.tier)}
                     </p>
                     <p className="text-xs text-muted-foreground capitalize">
                       {plan.product.replace('_', ' ')}
@@ -202,7 +208,7 @@ export default function RecruiterBilling() {
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Price</p>
                     <p className="text-2xl font-bold" data-testid="text-plan-price">
-                      {formatPrice(plan.price)}
+                      {formatPrice(plan.priceCents)}
                       <span className="text-sm font-normal text-muted-foreground">
                         /{plan.interval}
                       </span>
