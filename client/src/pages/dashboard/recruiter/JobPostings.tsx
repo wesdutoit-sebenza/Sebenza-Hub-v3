@@ -3335,11 +3335,13 @@ export default function RecruiterJobPostings() {
                 : (extractedData.roleDetails?.experience 
                     ? [decodeField(extractedData.roleDetails.experience)]
                     : []),
-            },
-            
-            roleDetails: {
-              driversLicenseRequired: extractedData.roleDetails?.driversLicenseRequired || false,
-              languagesRequired: decodeField(extractedData.roleDetails?.languagesRequired) || [],
+              driversLicenseRequired: extractedData.roleDetails?.driversLicenseRequired === true ? "Yes" : "No",
+              languagesRequired: (extractedData.roleDetails?.languagesRequired || [])
+                .filter((lang: any) => lang && typeof lang === 'string')
+                .map((lang: string) => ({
+                  language: decodeField(lang),
+                  proficiency: "Fluent" as const,
+                })),
             },
             
             compensation: {
