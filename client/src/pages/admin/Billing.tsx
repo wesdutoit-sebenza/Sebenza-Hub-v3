@@ -78,10 +78,8 @@ export default function AdminBilling() {
   // Manual billing reset mutation
   const resetBillingMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest('/api/admin/billing/reset-usage', {
-        method: 'POST',
-      });
-      return response;
+      const response = await apiRequest('POST', '/api/admin/billing/reset-usage');
+      return await response.json();
     },
     onSuccess: (data) => {
       toast({

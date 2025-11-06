@@ -5,7 +5,7 @@ import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidat
 import { db } from "./db";
 import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, jobFavorites, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, testAttempts, testResponses, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema, autoSearchPreferences, autoSearchResults, corporateClients, corporateClientContacts, corporateClientEngagements, insertCorporateClientSchema, insertCorporateClientContactSchema, insertCorporateClientEngagementSchema, plans, features, featureEntitlements, subscriptions, usage, paymentEvents, insertFeatureSchema, insertPlanSchema } from "@shared/schema";
 import { sendNewUserSignupEmail, sendRecruiterProfileApprovalEmail } from "./emails";
-import { eq, and, desc, sql, inArray, or } from "drizzle-orm";
+import { eq, and, desc, sql, inArray, or, gte } from "drizzle-orm";
 import { authenticateSession, requireRole, type AuthRequest } from "./auth-middleware";
 import { screeningQueue, isQueueAvailable } from "./queue";
 import { z } from "zod";
