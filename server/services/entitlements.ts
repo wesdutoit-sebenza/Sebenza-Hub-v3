@@ -14,6 +14,7 @@ import {
   features,
   featureEntitlements,
   usage,
+  users,
   type Subscription,
   type Plan,
   type Feature,
@@ -21,6 +22,7 @@ import {
   type Usage,
 } from "../../shared/schema";
 import { eq, and, gte, lte, sql } from "drizzle-orm";
+import { sendPricingPlanSelectedEmail } from "../emails";
 
 // ============================================================================
 // TYPES
@@ -133,6 +135,61 @@ async function getActiveSubscription(holder: Holder): Promise<Subscription | nul
   }).returning();
   
   console.log(`[Entitlements] Auto-provisioned ${product}-free for ${holder.type}:${holder.id}`);
+
+  // Send email notification for pricing plan selection
+  try {
+    // Get user info for email
+    let userEmail = '';
+    let userName = '';
+    
+    if (holder.type === 'user') {
+      const [user] = await db.select()
+        .from(users)
+        .where(eq(users.id, holder.id))
+        .limit(1);
+      
+      if (user) {
+        userEmail = user.email;
+        userName = user.firstName && user.lastName 
+          ? `${user.firstName} ${user.lastName}` 
+          : user.email;
+      }
+    } else {
+      // For organizations, get the owner's email
+      const { memberships } = await import('../../shared/schema');
+      const [membership] = await db.select({
+        user: users,
+      })
+        .from(memberships)
+        .innerJoin(users, eq(memberships.userId, users.id))
+        .where(and(
+          eq(memberships.organizationId, holder.id),
+          eq(memberships.role, 'owner')
+        ))
+        .limit(1);
+      
+      if (membership) {
+        userEmail = membership.user.email;
+        userName = membership.user.firstName && membership.user.lastName 
+          ? `${membership.user.firstName} ${membership.user.lastName}` 
+          : membership.user.email;
+      }
+    }
+
+    if (userEmail) {
+      await sendPricingPlanSelectedEmail({
+        userEmail,
+        userName,
+        planName: `${product.charAt(0).toUpperCase() + product.slice(1)} - Free`,
+        planTier: 'free',
+        planInterval: 'monthly',
+        priceCents: freePlan.priceCents,
+      });
+    }
+  } catch (emailError) {
+    console.error('[Email] Failed to send pricing plan selected notification:', emailError);
+    // Don't fail the subscription if email fails
+  }
   
   return newSub;
 }

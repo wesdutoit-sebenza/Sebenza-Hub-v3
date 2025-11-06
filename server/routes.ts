@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, insertIndividualPreferencesSchema, insertIndividualNotificationSettingsSchema, type User } from "@shared/schema";
 import { db } from "./db";
 import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, jobFavorites, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, testAttempts, testResponses, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema, autoSearchPreferences, autoSearchResults, corporateClients, corporateClientContacts, corporateClientEngagements, insertCorporateClientSchema, insertCorporateClientContactSchema, insertCorporateClientEngagementSchema, plans, features, featureEntitlements, subscriptions, usage, paymentEvents, insertFeatureSchema, insertPlanSchema } from "@shared/schema";
+import { sendNewUserSignupEmail, sendRecruiterProfileApprovalEmail } from "./emails";
 import { eq, and, desc, sql, inArray, or } from "drizzle-orm";
 import { authenticateSession, requireRole, type AuthRequest } from "./auth-middleware";
 import { screeningQueue, isQueueAvailable } from "./queue";
@@ -2468,6 +2469,21 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         .set({ onboardingComplete: 1 })
         .where(eq(users.id, userId));
 
+      // Send email notification for new user signup (only for new profiles)
+      if (!existing) {
+        try {
+          await sendNewUserSignupEmail({
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            role: 'individual',
+          });
+        } catch (emailError) {
+          console.error('[Email] Failed to send new user signup notification:', emailError);
+          // Don't fail the request if email fails
+        }
+      }
+
       res.json({
         success: true,
         message: existing ? "Candidate profile updated successfully" : "Candidate profile created successfully",
@@ -2619,6 +2635,33 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
 
       // Queue fraud detection for recruiter profile
       await queueFraudDetection('recruiter_profile', profile.id, profile, profile.userId);
+
+      // Send email notifications for new recruiter signup
+      // Note: This only executes for NEW profiles due to early return above if existing profile found
+      try {
+        // 1. Notify admin of new user signup
+        await sendNewUserSignupEmail({
+          email: authReq.user!.email,
+          firstName: authReq.user!.firstName,
+          lastName: authReq.user!.lastName,
+          role: 'recruiter',
+        });
+
+        // 2. Notify admin that recruiter profile needs approval
+        await sendRecruiterProfileApprovalEmail({
+          email: authReq.user!.email,
+          agencyName: profile.agencyName,
+          firstName: authReq.user!.firstName,
+          lastName: authReq.user!.lastName,
+          website: profile.website,
+          telephone: profile.telephone,
+          sectors: profile.sectors || [],
+          proofUrl: profile.proofUrl,
+        });
+      } catch (emailError) {
+        console.error('[Email] Failed to send recruiter notification emails:', emailError);
+        // Don't fail the request if email fails
+      }
 
       res.json({
         success: true,
