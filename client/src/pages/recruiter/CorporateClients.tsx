@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Building2, Users, Briefcase, TrendingUp, Mail, Phone, MessageSquare, Star, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -90,11 +90,52 @@ export default function CorporateClients() {
   const [engagementDialogOpen, setEngagementDialogOpen] = useState(false);
   const [editingEngagement, setEditingEngagement] = useState<ClientEngagement | undefined>();
   const [deleteEngagementId, setDeleteEngagementId] = useState<string | null>(null);
+  const [isSettingUpOrg, setIsSettingUpOrg] = useState(false);
+
+  // Setup organization mutation for existing recruiters
+  const setupOrgMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('/api/profile/recruiter/setup-organization', {
+        method: 'POST',
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      setIsSettingUpOrg(false);
+      // Refetch clients after organization is set up
+      queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients"] });
+      toast({
+        title: "Success",
+        description: "Organization setup complete. You can now manage corporate clients.",
+      });
+    },
+    onError: (error: any) => {
+      setIsSettingUpOrg(false);
+      console.error("Setup organization error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to set up organization. Please contact support.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Fetch all clients
-  const { data: clients = [], isLoading } = useQuery<CorporateClient[]>({
+  const { data: clients = [], isLoading, error } = useQuery<CorporateClient[]>({
     queryKey: ["/api/recruiter/clients"],
+    retry: false,
   });
+
+  // Auto-setup organization if missing (in useEffect to avoid render side-effects)
+  useEffect(() => {
+    if (error && !isSettingUpOrg && !setupOrgMutation.isPending) {
+      const errorMessage = (error as any)?.message || String(error);
+      if (errorMessage.includes("No organization membership found") || errorMessage.includes("403")) {
+        setIsSettingUpOrg(true);
+        setupOrgMutation.mutate();
+      }
+    }
+  }, [error, isSettingUpOrg, setupOrgMutation]);
 
   // Fetch selected client details
   const { data: selectedClient } = useQuery<CorporateClient>({

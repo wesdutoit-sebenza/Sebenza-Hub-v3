@@ -2582,6 +2582,36 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
         .values(validatedData)
         .returning();
 
+      // Check if organization already exists for this user (idempotency)
+      const [existingMembership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, authReq.user!.id))
+        .limit(1);
+
+      if (!existingMembership) {
+        // Create organization for the recruiter
+        const [organization] = await db.insert(organizations)
+          .values({
+            name: validatedData.agencyName,
+            type: 'agency',
+            website: validatedData.website || undefined,
+            plan: 'free',
+            jobPostLimit: 3,
+            isVerified: 0,
+          })
+          .returning();
+
+        // Create membership linking recruiter to their organization
+        await db.insert(memberships)
+          .values({
+            userId: authReq.user!.id,
+            organizationId: organization.id,
+            role: 'owner',
+          });
+
+        console.log(`Created organization ${organization.id} for recruiter ${authReq.user!.id}`);
+      }
+
       // Mark onboarding as complete for Recruiter role
       await db.update(users)
         .set({ onboardingComplete: 1 })
@@ -2645,6 +2675,73 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
       res.status(400).json({
         success: false,
         message: "Failed to update recruiter profile",
+      });
+    }
+  });
+
+  // Helper endpoint: Create organization for existing recruiter if missing
+  app.post("/api/profile/recruiter/setup-organization", authenticateSession, async (req, res) => {
+    try {
+      const authReq = req as AuthRequest;
+      
+      // Get recruiter profile
+      const [profile] = await db.select()
+        .from(recruiterProfiles)
+        .where(eq(recruiterProfiles.userId, authReq.user!.id));
+
+      if (!profile) {
+        return res.status(404).json({
+          success: false,
+          message: "Recruiter profile not found",
+        });
+      }
+
+      // Check if membership already exists
+      const [existingMembership] = await db.select()
+        .from(memberships)
+        .where(eq(memberships.userId, authReq.user!.id))
+        .limit(1);
+
+      if (existingMembership) {
+        return res.json({
+          success: true,
+          message: "Organization already exists",
+          organizationId: existingMembership.organizationId,
+        });
+      }
+
+      // Create organization for the recruiter
+      const [organization] = await db.insert(organizations)
+        .values({
+          name: profile.agencyName,
+          type: 'agency',
+          website: profile.website || undefined,
+          plan: 'free',
+          jobPostLimit: 3,
+          isVerified: 0,
+        })
+        .returning();
+
+      // Create membership linking recruiter to their organization
+      await db.insert(memberships)
+        .values({
+          userId: authReq.user!.id,
+          organizationId: organization.id,
+          role: 'owner',
+        });
+
+      console.log(`Created organization ${organization.id} for existing recruiter ${authReq.user!.id}`);
+
+      res.json({
+        success: true,
+        message: "Organization created successfully",
+        organizationId: organization.id,
+      });
+    } catch (error: any) {
+      console.error("Setup organization error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to create organization",
       });
     }
   });
