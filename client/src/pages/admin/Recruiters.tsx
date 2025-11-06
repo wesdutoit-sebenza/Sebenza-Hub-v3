@@ -150,6 +150,50 @@ export default function RecruitersAdmin() {
               </Button>
             </>
           )}
+          {row.profile.verificationStatus === 'approved' && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => verifyMutation.mutate({ id: row.profile.id, verificationStatus: 'pending' })}
+                disabled={verifyMutation.isPending}
+                data-testid={`button-revoke-${row.profile.id}`}
+              >
+                Revoke
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => verifyMutation.mutate({ id: row.profile.id, verificationStatus: 'rejected' })}
+                disabled={verifyMutation.isPending}
+                data-testid={`button-reject-${row.profile.id}`}
+              >
+                Reject
+              </Button>
+            </>
+          )}
+          {row.profile.verificationStatus === 'rejected' && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => verifyMutation.mutate({ id: row.profile.id, verificationStatus: 'approved' })}
+                disabled={verifyMutation.isPending}
+                data-testid={`button-approve-${row.profile.id}`}
+              >
+                Approve
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => verifyMutation.mutate({ id: row.profile.id, verificationStatus: 'pending' })}
+                disabled={verifyMutation.isPending}
+                data-testid={`button-reset-${row.profile.id}`}
+              >
+                Reset
+              </Button>
+            </>
+          )}
         </div>
       ),
     },
