@@ -3069,7 +3069,7 @@ export default function RecruiterJobPostings() {
           <p className="text-muted-foreground">Manage and create job listings</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setShowForm(true)} variant="outline" data-testid="button-create-job-manual">
+          <Button onClick={() => setShowForm(true)} data-testid="button-create-job-manual">
             <Plus className="mr-2 h-4 w-4" />
             Create Job Manually
           </Button>
