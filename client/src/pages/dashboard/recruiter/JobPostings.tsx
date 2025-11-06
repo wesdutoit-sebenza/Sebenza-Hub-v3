@@ -3329,11 +3329,15 @@ export default function RecruiterJobPostings() {
                     priority: "Must-Have" as const,
                   };
                 }),
+              qualifications: decodeField(extractedData.roleDetails?.qualifications) || [],
+              experience: Array.isArray(extractedData.roleDetails?.experience) 
+                ? decodeField(extractedData.roleDetails.experience)
+                : (extractedData.roleDetails?.experience 
+                    ? [decodeField(extractedData.roleDetails.experience)]
+                    : []),
             },
             
             roleDetails: {
-              qualifications: decodeField(extractedData.roleDetails?.qualifications) || [],
-              experience: decodeField(extractedData.roleDetails?.experience) || "",
               driversLicenseRequired: extractedData.roleDetails?.driversLicenseRequired || false,
               languagesRequired: decodeField(extractedData.roleDetails?.languagesRequired) || [],
             },

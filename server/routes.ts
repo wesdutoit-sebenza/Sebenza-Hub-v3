@@ -4133,8 +4133,8 @@ Return format:
     "pensionFund": boolean (true if Yes)
   },
   "roleDetails": {
-    "qualifications": ["array of Qualifications"],
-    "experience": "string or null (experience description)",
+    "qualifications": ["array of ALL Qualifications - each bullet point as separate item"],
+    "experience": ["array of ALL Experience Requirements - each bullet point as separate item"],
     "driversLicenseRequired": boolean (true if Yes),
     "languagesRequired": ["array of languages, e.g., English"]
   },
