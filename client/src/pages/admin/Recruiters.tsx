@@ -32,11 +32,16 @@ export default function RecruitersAdmin() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
+  const buildQueryUrl = () => {
+    const params = new URLSearchParams();
+    if (searchQuery) params.append('search', searchQuery);
+    if (statusFilter !== 'all') params.append('verificationStatus', statusFilter);
+    const queryString = params.toString();
+    return `/api/admin/recruiters${queryString ? `?${queryString}` : ''}`;
+  };
+
   const { data: recruiters = [], isLoading, refetch } = useQuery<Recruiter[]>({
-    queryKey: ['/api/admin/recruiters', { 
-      search: searchQuery || undefined, 
-      verificationStatus: statusFilter !== 'all' ? statusFilter : undefined 
-    }],
+    queryKey: [buildQueryUrl()],
     select: (data: any) => data.recruiters || [],
   });
 
