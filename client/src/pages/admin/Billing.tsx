@@ -46,6 +46,13 @@ interface SubscriptionData {
     interval: string;
     price: number;
   };
+  holder: {
+    id: string;
+    name?: string; // For organizations
+    email?: string; // For users
+    firstName?: string; // For users
+    lastName?: string; // For users
+  };
 }
 
 interface PaymentEvent {
@@ -105,11 +112,18 @@ export default function AdminBilling() {
   // Filter subscriptions based on search
   const filteredSubscriptions = subscriptions.filter((item) => {
     const searchLower = searchTerm.toLowerCase();
+    const holderName = item.subscription.holderType === 'org' 
+      ? item.holder.name || ''
+      : item.holder.firstName && item.holder.lastName
+        ? `${item.holder.firstName} ${item.holder.lastName}`
+        : item.holder.email || '';
+    
     return (
       item.subscription.id.toLowerCase().includes(searchLower) ||
       item.subscription.holderId.toLowerCase().includes(searchLower) ||
       item.plan.name.toLowerCase().includes(searchLower) ||
-      item.plan.product.toLowerCase().includes(searchLower)
+      item.plan.product.toLowerCase().includes(searchLower) ||
+      holderName.toLowerCase().includes(searchLower)
     );
   });
 
@@ -402,9 +416,20 @@ export default function AdminBilling() {
                               {item.subscription.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="font-mono text-xs">
-                            {item.subscription.holderType}:{' '}
-                            {item.subscription.holderId.substring(0, 8)}...
+                          <TableCell>
+                            <div className="flex flex-col gap-1">
+                              <div className="font-medium">
+                                {item.subscription.holderType === 'org' 
+                                  ? item.holder.name || 'Unknown Organization'
+                                  : item.holder.firstName && item.holder.lastName
+                                    ? `${item.holder.firstName} ${item.holder.lastName}`
+                                    : item.holder.email || 'Unknown User'
+                                }
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {item.subscription.holderType === 'org' ? 'Organization' : 'Individual'}
+                              </div>
+                            </div>
                           </TableCell>
                           <TableCell>
                             {formatPrice(item.plan.price)}/{item.plan.interval}
