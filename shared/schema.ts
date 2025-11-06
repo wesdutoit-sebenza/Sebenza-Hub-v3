@@ -208,6 +208,7 @@ export const corporateClients = pgTable("corporate_clients", {
 
 export const insertCorporateClientSchema = createInsertSchema(corporateClients).omit({
   id: true,
+  agencyOrganizationId: true, // Set by backend based on user's organization
   createdAt: true,
   updatedAt: true,
 });

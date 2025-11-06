@@ -874,9 +874,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error: any) {
       console.error("Error creating client:", error);
+      
+      // Log detailed Zod validation errors
+      if (error.name === 'ZodError') {
+        console.error("Validation errors:", JSON.stringify(error.errors, null, 2));
+        return res.status(400).json({
+          success: false,
+          message: "Validation error: " + error.errors.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', '),
+        });
+      }
+      
       res.status(400).json({
         success: false,
-        message: error.errors ? "Invalid client data." : "Error creating client.",
+        message: "Error creating client.",
       });
     }
   });
