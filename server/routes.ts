@@ -8500,15 +8500,28 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
       const allSubscriptions = await db.select({
         subscription: subscriptions,
         plan: plans,
+        organization: organizations,
+        user: users,
       })
         .from(subscriptions)
         .innerJoin(plans, eq(subscriptions.planId, plans.id))
+        .leftJoin(organizations, eq(subscriptions.holderId, organizations.id))
+        .leftJoin(users, eq(subscriptions.holderId, users.id))
         .orderBy(desc(subscriptions.createdAt))
         .limit(100);
       
+      // Format the response to include holder information
+      const formattedSubscriptions = allSubscriptions.map(item => ({
+        subscription: item.subscription,
+        plan: item.plan,
+        holder: item.subscription.holderType === 'org' 
+          ? item.organization 
+          : item.user,
+      }));
+      
       res.json({
         success: true,
-        subscriptions: allSubscriptions,
+        subscriptions: formattedSubscriptions,
       });
     } catch (error: any) {
       console.error("[Billing] Error fetching subscriptions:", error);
