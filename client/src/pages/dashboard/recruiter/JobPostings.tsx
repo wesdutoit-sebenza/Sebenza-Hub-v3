@@ -3275,51 +3275,68 @@ export default function RecruiterJobPostings() {
         open={showImportDialog}
         onOpenChange={setShowImportDialog}
         onJobImported={(extractedData) => {
+          // Helper function to decode HTML entities
+          const decodeHtmlEntities = (text: string): string => {
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = text;
+            return textarea.value;
+          };
+          
+          // Helper to decode strings or arrays of strings
+          const decodeField = (field: any): any => {
+            if (typeof field === 'string') return decodeHtmlEntities(field);
+            if (Array.isArray(field)) return field.map(item => 
+              typeof item === 'string' ? decodeHtmlEntities(item) : item
+            );
+            return field;
+          };
+          
           // Transform AI-extracted data to match exact form structure and dropdown values
           const transformedData: any = {
-            title: extractedData.title || "",
-            employmentType: extractedData.employmentType || "Permanent",
-            industry: extractedData.industry || "",
+            clientId: extractedData.clientId || null,
+            title: decodeField(extractedData.title) || "",
+            employmentType: decodeField(extractedData.employmentType) || "Permanent",
+            industry: decodeField(extractedData.industry) || "",
             
             companyDetails: {
-              name: extractedData.company || extractedData.companyDetails?.name || "",
-              industry: extractedData.companyDetails?.industry || extractedData.industry || "",
+              name: decodeField(extractedData.company || extractedData.companyDetails?.name) || "",
+              industry: decodeField(extractedData.companyDetails?.industry || extractedData.industry) || "",
               size: extractedData.companyDetails?.size || null,
-              website: extractedData.companyDetails?.website || "",
-              description: extractedData.companyDetails?.description || "",
-              recruitingAgency: recruiterProfile?.agencyName || extractedData.companyDetails?.recruitingAgency || "",
+              website: decodeField(extractedData.companyDetails?.website) || "",
+              description: decodeField(extractedData.companyDetails?.description) || "",
+              recruitingAgency: recruiterProfile?.agencyName || decodeField(extractedData.companyDetails?.recruitingAgency) || "",
             },
             
             core: {
               location: {
-                city: extractedData.location || "",
-                province: extractedData.province || "",
-                postalCode: extractedData.postalCode || "",
+                city: decodeField(extractedData.location) || "",
+                province: decodeField(extractedData.province) || "",
+                postalCode: decodeField(extractedData.postalCode) || "",
               },
-              seniority: extractedData.core?.seniority || "",
-              department: extractedData.core?.department || "",
-              workArrangement: extractedData.core?.workArrangement || "On-site",
-              summary: extractedData.description || extractedData.core?.summary || "",
-              responsibilities: extractedData.core?.responsibilities || [],
+              seniority: decodeField(extractedData.core?.seniority) || "",
+              department: decodeField(extractedData.core?.department) || "",
+              workArrangement: decodeField(extractedData.core?.workArrangement) || "On-site",
+              summary: decodeField(extractedData.description || extractedData.core?.summary) || "",
+              responsibilities: decodeField(extractedData.core?.responsibilities) || [],
             },
             
             skills: (extractedData.core?.requiredSkills || [])
               .filter((s: any) => s && typeof s === 'string')
               .map((skillName: string) => ({
-                skill: skillName,
+                skill: decodeHtmlEntities(skillName),
                 level: "Intermediate" as const,
                 priority: "Must-Have" as const,
               })),
             
             roleDetails: {
-              qualifications: extractedData.roleDetails?.qualifications || [],
-              experience: extractedData.roleDetails?.experience || "",
+              qualifications: decodeField(extractedData.roleDetails?.qualifications) || [],
+              experience: decodeField(extractedData.roleDetails?.experience) || "",
               driversLicenseRequired: extractedData.roleDetails?.driversLicenseRequired || false,
-              languagesRequired: extractedData.roleDetails?.languagesRequired || [],
+              languagesRequired: decodeField(extractedData.roleDetails?.languagesRequired) || [],
             },
             
             compensation: {
-              payType: extractedData.compensation?.payType || "Monthly",
+              payType: decodeField(extractedData.compensation?.payType) || "Monthly",
               currency: "ZAR",
               min: extractedData.compensation?.min || null,
               max: extractedData.compensation?.max || null,
@@ -3333,14 +3350,14 @@ export default function RecruiterJobPostings() {
             application: {
               method: extractedData.application?.method?.toLowerCase().includes('whatsapp') ? 'in-app' : 
                       extractedData.application?.method?.toLowerCase().includes('external') ? 'external' : 'in-app',
-              externalUrl: extractedData.application?.externalUrl || "",
-              contactEmail: extractedData.application?.contactEmail || "",
-              whatsappNumber: extractedData.application?.whatsappNumber || "",
-              closingDate: extractedData.application?.closingDate || "",
+              externalUrl: decodeField(extractedData.application?.externalUrl) || "",
+              contactEmail: decodeField(extractedData.application?.contactEmail) || "",
+              whatsappNumber: decodeField(extractedData.application?.whatsappNumber) || "",
+              closingDate: decodeField(extractedData.application?.closingDate) || "",
             },
             
             compliance: {
-              rightToWork: extractedData.screening?.rightToWorkRequired || "Citizen/PR",
+              rightToWork: decodeField(extractedData.screening?.rightToWorkRequired) || "Citizen/PR",
               backgroundChecks: {
                 criminal: extractedData.screening?.backgroundChecks?.criminal || false,
                 credit: extractedData.screening?.backgroundChecks?.credit || false,
@@ -3355,13 +3372,13 @@ export default function RecruiterJobPostings() {
             },
             
             admin: {
-              visibility: extractedData.admin?.visibility || "Public",
+              visibility: decodeField(extractedData.admin?.visibility) || "Public",
               status: "Draft",
               popiaCompliance: extractedData.admin?.popiaCompliance || false,
             },
             
             benefits: {
-              benefits: extractedData.benefits?.benefits || [],
+              benefits: decodeField(extractedData.benefits?.benefits) || [],
             },
           };
           
