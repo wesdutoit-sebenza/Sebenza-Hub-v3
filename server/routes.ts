@@ -8609,6 +8609,225 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
     }
   });
 
+  // Admin: Get detailed subscription info with usage
+  app.get("/api/admin/subscriptions/:id/details", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+      
+      const subscriptionId = req.params.id;
+      
+      // Get subscription with plan details
+      const [subData] = await db.select({
+        subscription: subscriptions,
+        plan: plans,
+      })
+        .from(subscriptions)
+        .innerJoin(plans, eq(subscriptions.planId, plans.id))
+        .where(eq(subscriptions.id, subscriptionId));
+      
+      if (!subData) {
+        return res.status(404).json({
+          success: false,
+          message: "Subscription not found",
+        });
+      }
+      
+      // Get holder information (user or organization)
+      let holderInfo: any = null;
+      if (subData.subscription.holderType === 'user') {
+        const [userInfo] = await db.select({
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          role: users.role,
+        })
+          .from(users)
+          .where(eq(users.id, subData.subscription.holderId));
+        holderInfo = userInfo;
+      } else if (subData.subscription.holderType === 'org') {
+        const [orgInfo] = await db.select()
+          .from(organizations)
+          .where(eq(organizations.id, subData.subscription.holderId));
+        holderInfo = orgInfo;
+      }
+      
+      // Get current usage
+      const { getEntitlements } = await import('./services/entitlements');
+      const entitlements = await getEntitlements({
+        type: subData.subscription.holderType,
+        id: subData.subscription.holderId,
+      });
+      
+      // Get all features to show complete usage
+      const allFeatures = await db.select().from(features);
+      
+      res.json({
+        success: true,
+        subscription: subData.subscription,
+        plan: subData.plan,
+        holder: holderInfo,
+        entitlements,
+        features: allFeatures,
+      });
+    } catch (error: any) {
+      console.error("[Billing] Error fetching subscription details:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch subscription details",
+      });
+    }
+  });
+
+  // Admin: Change subscription plan (upgrade/downgrade)
+  app.post("/api/admin/subscriptions/:id/change-plan", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+      
+      const subscriptionId = req.params.id;
+      const { planId } = req.body;
+      
+      if (!planId) {
+        return res.status(400).json({
+          success: false,
+          message: "Plan ID is required",
+        });
+      }
+      
+      // Verify the new plan exists
+      const [newPlan] = await db.select()
+        .from(plans)
+        .where(eq(plans.id, planId));
+      
+      if (!newPlan) {
+        return res.status(404).json({
+          success: false,
+          message: "Plan not found",
+        });
+      }
+      
+      // Get current subscription
+      const [currentSub] = await db.select()
+        .from(subscriptions)
+        .where(eq(subscriptions.id, subscriptionId));
+      
+      if (!currentSub) {
+        return res.status(404).json({
+          success: false,
+          message: "Subscription not found",
+        });
+      }
+      
+      // Update subscription to new plan
+      const [updated] = await db.update(subscriptions)
+        .set({
+          planId: newPlan.id,
+          updatedAt: new Date(),
+        })
+        .where(eq(subscriptions.id, subscriptionId))
+        .returning();
+      
+      // Note: Current usage is maintained but will be enforced against new plan limits
+      // Usage automatically resets at the end of the billing period
+      
+      console.log(`[Admin] Changed subscription ${subscriptionId} to plan ${newPlan.name}`);
+      
+      res.json({
+        success: true,
+        message: `Subscription changed to ${newPlan.name}`,
+        subscription: updated,
+      });
+    } catch (error: any) {
+      console.error("[Billing] Error changing plan:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to change plan",
+      });
+    }
+  });
+
+  // Admin: Cancel subscription
+  app.post("/api/admin/subscriptions/:id/cancel", authenticateSession, async (req, res) => {
+    try {
+      const user = req.user as any;
+      if (user.role !== 'admin' && user.role !== 'administrator') {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized",
+        });
+      }
+      
+      const subscriptionId = req.params.id;
+      const { immediate = false } = req.body;
+      
+      const [currentSub] = await db.select()
+        .from(subscriptions)
+        .where(eq(subscriptions.id, subscriptionId));
+      
+      if (!currentSub) {
+        return res.status(404).json({
+          success: false,
+          message: "Subscription not found",
+        });
+      }
+      
+      if (immediate) {
+        // Cancel immediately
+        const [canceled] = await db.update(subscriptions)
+          .set({
+            status: 'canceled',
+            canceledAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(subscriptions.id, subscriptionId))
+          .returning();
+        
+        console.log(`[Admin] Immediately canceled subscription ${subscriptionId}`);
+        
+        res.json({
+          success: true,
+          message: "Subscription canceled immediately",
+          subscription: canceled,
+        });
+      } else {
+        // Schedule cancellation at period end
+        const [scheduled] = await db.update(subscriptions)
+          .set({
+            scheduledCancellationDate: currentSub.currentPeriodEnd,
+            updatedAt: new Date(),
+          })
+          .where(eq(subscriptions.id, subscriptionId))
+          .returning();
+        
+        console.log(`[Admin] Scheduled cancellation for subscription ${subscriptionId} at period end`);
+        
+        res.json({
+          success: true,
+          message: "Subscription scheduled for cancellation at period end",
+          subscription: scheduled,
+        });
+      }
+    } catch (error: any) {
+      console.error("[Billing] Error canceling subscription:", error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to cancel subscription",
+      });
+    }
+  });
+
   // ========================================================================
   // FEATURE MANAGEMENT - Admin CRUD for features
   // ========================================================================

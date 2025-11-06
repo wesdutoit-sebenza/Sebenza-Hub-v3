@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { SubscriptionDetailDialog } from "@/components/admin/SubscriptionDetailDialog";
 
 interface SubscriptionData {
   subscription: {
@@ -58,6 +59,8 @@ interface PaymentEvent {
 
 export default function AdminBilling() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedSubscriptionId, setSelectedSubscriptionId] = useState<string | null>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const { data: subscriptionsData, isLoading: loadingSubscriptions } = useQuery<{
@@ -375,7 +378,15 @@ export default function AdminBilling() {
                     </TableHeader>
                     <TableBody>
                       {filteredSubscriptions.map((item) => (
-                        <TableRow key={item.subscription.id} data-testid={`row-subscription-${item.subscription.id}`}>
+                        <TableRow 
+                          key={item.subscription.id} 
+                          data-testid={`row-subscription-${item.subscription.id}`}
+                          className="cursor-pointer hover-elevate"
+                          onClick={() => {
+                            setSelectedSubscriptionId(item.subscription.id);
+                            setDetailDialogOpen(true);
+                          }}
+                        >
                           <TableCell className="font-medium">
                             <div className="flex items-center gap-2">
                               {item.plan.name}
@@ -471,6 +482,13 @@ export default function AdminBilling() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Subscription Detail Dialog */}
+      <SubscriptionDetailDialog
+        subscriptionId={selectedSubscriptionId}
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+      />
     </div>
   );
 }
