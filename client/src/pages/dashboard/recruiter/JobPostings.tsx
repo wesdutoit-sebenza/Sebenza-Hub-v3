@@ -3305,6 +3305,7 @@ export default function RecruiterJobPostings() {
               website: decodeField(extractedData.companyDetails?.website) || "",
               description: decodeField(extractedData.companyDetails?.description) || "",
               recruitingAgency: recruiterProfile?.agencyName || decodeField(extractedData.companyDetails?.recruitingAgency) || "",
+              contactEmail: decodeField(extractedData.application?.contactEmail) || "",
             },
             
             core: {
@@ -3360,9 +3361,9 @@ export default function RecruiterJobPostings() {
               method: extractedData.application?.method?.toLowerCase().includes('whatsapp') ? 'in-app' : 
                       extractedData.application?.method?.toLowerCase().includes('external') ? 'external' : 'in-app',
               externalUrl: decodeField(extractedData.application?.externalUrl) || "",
-              contactEmail: decodeField(extractedData.application?.contactEmail) || "",
               whatsappNumber: decodeField(extractedData.application?.whatsappNumber) || "",
               closingDate: decodeField(extractedData.application?.closingDate) || "",
+              competencyTestRequired: extractedData.screening?.competencyTestRequired === true ? "Yes" : "No",
             },
             
             compliance: {
@@ -3373,11 +3374,6 @@ export default function RecruiterJobPostings() {
                 qualification: extractedData.screening?.backgroundChecks?.qualification || false,
                 references: extractedData.screening?.backgroundChecks?.references || false,
               },
-            },
-            
-            screening: {
-              competencyTestRequired: extractedData.screening?.competencyTestRequired || false,
-              testId: null,
             },
             
             admin: {
