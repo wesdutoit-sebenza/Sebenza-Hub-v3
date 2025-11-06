@@ -92,11 +92,11 @@ export function SubscriptionDetailDialog({
   // Change plan mutation
   const changePlanMutation = useMutation({
     mutationFn: async (planId: string) => {
-      return apiRequest(`/api/admin/subscriptions/${subscriptionId}/change-plan`, {
-        method: "POST",
-        body: JSON.stringify({ planId }),
-        headers: { "Content-Type": "application/json" },
-      });
+      return apiRequest(
+        "POST",
+        `/api/admin/subscriptions/${subscriptionId}/change-plan`,
+        { planId }
+      );
     },
     onSuccess: () => {
       toast({
