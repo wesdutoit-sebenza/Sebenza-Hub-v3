@@ -12,6 +12,9 @@ interface BulkImportJobDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onJobsImported: () => void;
+  recruiterProfile?: {
+    agencyName?: string;
+  };
 }
 
 interface FileWithStatus {
@@ -21,7 +24,7 @@ interface FileWithStatus {
   error?: string;
 }
 
-export function BulkImportJobDialog({ open, onOpenChange, onJobsImported }: BulkImportJobDialogProps) {
+export function BulkImportJobDialog({ open, onOpenChange, onJobsImported, recruiterProfile }: BulkImportJobDialogProps) {
   const { toast } = useToast();
   const [files, setFiles] = useState<FileWithStatus[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -97,14 +100,146 @@ export function BulkImportJobDialog({ open, onOpenChange, onJobsImported }: Bulk
         throw new Error(extractData.message || "Failed to extract job details");
       }
 
-      // Step 3: Create job as draft
-      const createRes = await apiRequest("POST", "/api/jobs", {
-        ...extractData.jobData,
-        admin: {
-          ...extractData.jobData.admin,
-          status: "Draft", // Always create as draft for review
+      // Step 3: Transform the extracted data to match exact form structure
+      const extractedData = extractData.jobData;
+      
+      // Helper function to decode HTML entities
+      const decodeHtmlEntities = (text: string): string => {
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = text;
+        return textarea.value;
+      };
+      
+      // Helper to decode strings or arrays of strings
+      const decodeField = (field: any): any => {
+        if (typeof field === 'string') return decodeHtmlEntities(field);
+        if (Array.isArray(field)) return field.map(item => 
+          typeof item === 'string' ? decodeHtmlEntities(item) : item
+        );
+        return field;
+      };
+      
+      // Helper to convert dates from dd-MM-yyyy to yyyy-MM-dd format
+      const convertDateFormat = (dateStr: string): string => {
+        if (!dateStr) return "";
+        
+        // Check if it's already in yyyy-MM-dd format
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+        
+        // Convert from dd-MM-yyyy to yyyy-MM-dd
+        const match = dateStr.match(/^(\d{2})-(\d{2})-(\d{4})$/);
+        if (match) {
+          const [, day, month, year] = match;
+          return `${year}-${month}-${day}`;
+        }
+        
+        return dateStr;
+      };
+      
+      // Transform AI-extracted data to match exact form structure and dropdown values
+      const transformedData: any = {
+        clientId: extractedData.clientId || null,
+        title: decodeField(extractedData.title) || "",
+        employmentType: decodeField(extractedData.employmentType) || "Permanent",
+        industry: decodeField(extractedData.industry) || "",
+        
+        companyDetails: {
+          name: decodeField(extractedData.company || extractedData.companyDetails?.name) || "",
+          industry: decodeField(extractedData.companyDetails?.industry || extractedData.industry) || "",
+          size: extractedData.companyDetails?.size || null,
+          website: decodeField(extractedData.companyDetails?.website) || "",
+          description: decodeField(extractedData.companyDetails?.description) || "",
+          recruitingAgency: recruiterProfile?.agencyName || decodeField(extractedData.companyDetails?.recruitingAgency) || "",
+          contactEmail: decodeField(extractedData.application?.contactEmail) || "",
         },
-      });
+        
+        core: {
+          location: {
+            city: decodeField(extractedData.location) || "",
+            province: decodeField(extractedData.province) || "",
+            postalCode: decodeField(extractedData.postalCode) || "",
+          },
+          seniority: decodeField(extractedData.core?.seniority) || "",
+          department: decodeField(extractedData.core?.department) || "",
+          workArrangement: decodeField(extractedData.core?.workArrangement) || "On-site",
+          summary: decodeField(extractedData.description || extractedData.core?.summary) || "",
+          responsibilities: decodeField(extractedData.core?.responsibilities) || [],
+          requiredSkills: (extractedData.core?.requiredSkills || [])
+            .filter((s: any) => s && typeof s === 'string')
+            .map((skillName: string) => {
+              const decoded = decodeHtmlEntities(skillName);
+              return {
+                skill: decoded,
+                level: "Intermediate" as const,
+                priority: "Must-Have" as const,
+              };
+            }),
+          qualifications: decodeField(extractedData.roleDetails?.qualifications) || [],
+          experience: Array.isArray(extractedData.roleDetails?.experience) 
+            ? decodeField(extractedData.roleDetails.experience)
+            : (extractedData.roleDetails?.experience 
+                ? [decodeField(extractedData.roleDetails.experience)]
+                : []),
+          driversLicenseRequired: extractedData.roleDetails?.driversLicenseRequired === true ? "Yes" : "No",
+          languagesRequired: (extractedData.roleDetails?.languagesRequired || [])
+            .filter((lang: any) => lang && typeof lang === 'string')
+            .map((lang: string) => ({
+              language: decodeField(lang),
+              proficiency: "Fluent" as const,
+            })),
+        },
+        
+        compensation: {
+          payType: decodeField(extractedData.compensation?.payType) || "Monthly",
+          currency: "ZAR",
+          min: extractedData.compensation?.min || null,
+          max: extractedData.compensation?.max || null,
+          displayRange: true,
+          commissionAvailable: extractedData.compensation?.commissionAvailable || false,
+          performanceBonus: extractedData.compensation?.performanceBonus || false,
+          medicalAid: extractedData.compensation?.medicalAid || false,
+          pensionFund: extractedData.compensation?.pensionFund || false,
+        },
+        
+        application: {
+          method: extractedData.application?.method?.toLowerCase().includes('whatsapp') ? 'in-app' : 
+                  extractedData.application?.method?.toLowerCase().includes('external') ? 'external' : 'in-app',
+          externalUrl: decodeField(extractedData.application?.externalUrl) || "",
+          whatsappNumber: decodeField(extractedData.application?.whatsappNumber) || "",
+          closingDate: convertDateFormat(decodeField(extractedData.application?.closingDate) || ""),
+          competencyTestRequired: extractedData.screening?.competencyTestRequired === true ? "Yes" : "No",
+        },
+        
+        vetting: {
+          criminal: extractedData.screening?.backgroundChecks?.criminal || false,
+          credit: extractedData.screening?.backgroundChecks?.credit || false,
+          qualification: extractedData.screening?.backgroundChecks?.qualification || false,
+          references: extractedData.screening?.backgroundChecks?.references || false,
+        },
+        
+        compliance: {
+          rightToWork: decodeField(extractedData.screening?.rightToWorkRequired) || "Citizen/PR",
+          popiaConsent: extractedData.admin?.popiaCompliance || false,
+          checksConsent: (extractedData.screening?.backgroundChecks?.criminal || 
+                          extractedData.screening?.backgroundChecks?.credit || 
+                          extractedData.screening?.backgroundChecks?.qualification || 
+                          extractedData.screening?.backgroundChecks?.references) || false,
+        },
+        
+        admin: {
+          visibility: decodeField(extractedData.admin?.visibility) || "Public",
+          status: "Draft",
+          owner: decodeField(extractedData.admin?.owner) || "",
+          closingDate: convertDateFormat(decodeField(extractedData.application?.closingDate) || ""),
+        },
+        
+        benefits: {
+          benefits: decodeField(extractedData.benefits?.benefits) || [],
+        },
+      };
+
+      // Step 4: Create job as draft with transformed data
+      const createRes = await apiRequest("POST", "/api/jobs", transformedData);
       const createData = await createRes.json();
 
       if (!createData.success) {

@@ -3422,6 +3422,7 @@ export default function RecruiterJobPostings() {
       <BulkImportJobDialog
         open={showBulkImportDialog}
         onOpenChange={setShowBulkImportDialog}
+        recruiterProfile={recruiterProfile}
         onJobsImported={() => {
           // Invalidate jobs query to refresh the list
           queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });
