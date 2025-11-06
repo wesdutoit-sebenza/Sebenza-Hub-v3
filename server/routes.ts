@@ -4079,49 +4079,90 @@ Based on the job title "${jobTitle}", suggest 5-8 most relevant skills from the 
 
 Your task: Analyze the provided job posting text and extract all relevant information into a structured JSON format that matches the Sebenza Hub job posting schema.
 
-Guidelines:
-- Extract as much information as possible from the text
+CRITICAL INSTRUCTIONS:
+- Extract ALL fields from the document, including metadata fields
 - Use South African context (currency = ZAR, country = South Africa)
-- For salary ranges, extract both minimum and maximum values
-- For location, extract city and province if mentioned
+- For boolean fields marked "Yes", set to true; "No" set to false; if unmarked/empty, set to false
+- For salary fields, extract numeric values only (remove currency symbols)
+- For dates in format DD-MM-YYYY, keep as string
 - For employment type, use one of: "Permanent", "Contract", "Temporary", "Internship", "Freelance"
 - For seniority, use one of: "Entry Level", "Junior", "Mid-Level", "Senior", "Lead", "Manager", "Director", "Executive"
-- Extract responsibilities, qualifications, and benefits as arrays of strings
-- If information is not present, use null or empty arrays
+- For work arrangement, use: "Remote", "Hybrid", or "On-site"
+- For application method, extract the full method (e.g., "Easy Apply via WhatsApp", "External Website", "Email")
+- For Right to Work, extract exact value: "Citizen/PR", "Work Permit", "Any" or null
+- Extract all responsibilities, qualifications, skills, and experience as arrays
 - Return ONLY valid JSON, no markdown or explanations
 
 Return format:
 {
+  "clientId": "string or null (Corporate Client name if mentioned)",
   "title": "string",
-  "company": "string",
-  "location": "string (city, province)",
+  "company": "string (Company Name)",
+  "location": "string (City/Town)",
+  "province": "string or null (Gauteng, Western Cape, etc.)",
+  "postalCode": "string or null",
   "employmentType": "string",
-  "industry": "string or null",
-  "salaryMin": number or null,
-  "salaryMax": number or null,
-  "description": "string",
+  "industry": "string or null (Company/Job Industry)",
+  "description": "string (Job Summary)",
+  "companyDetails": {
+    "name": "string",
+    "industry": "string or null",
+    "size": number or null,
+    "website": "string or null (full URL)",
+    "description": "string or null (Company Description)",
+    "recruitingAgency": "string or null (Recruiting Agency name)"
+  },
   "core": {
     "seniority": "string or null",
     "department": "string or null",
-    "workArrangement": "string (Remote / Hybrid / On-site)",
-    "summary": "string",
-    "responsibilities": ["string"],
-    "requiredSkills": ["string"],
-    "preferredSkills": ["string"]
+    "workArrangement": "string (Remote/Hybrid/On-site)",
+    "summary": "string (Job Summary)",
+    "responsibilities": ["array of Key Responsibilities"],
+    "requiredSkills": ["array of Required Skills - skill names only"],
+    "preferredSkills": ["array of any preferred/nice-to-have skills"]
   },
   "compensation": {
-    "payType": "string (Annual / Monthly / Weekly / Hourly)",
+    "payType": "string (Annual/Monthly/Weekly/Hourly)",
     "currency": "ZAR",
-    "min": number or null,
-    "max": number or null,
-    "displayRange": true
+    "min": number or null (Basic Salary - Minimum),
+    "max": number or null (Basic Salary - Maximum),
+    "displayRange": true,
+    "commissionAvailable": boolean (true if Yes),
+    "performanceBonus": boolean (true if Yes),
+    "medicalAid": boolean (true if Yes),
+    "pensionFund": boolean (true if Yes)
   },
   "roleDetails": {
-    "qualifications": ["string"],
-    "experience": "string or null"
+    "qualifications": ["array of Qualifications"],
+    "experience": "string or null (experience description)",
+    "driversLicenseRequired": boolean (true if Yes),
+    "languagesRequired": ["array of languages, e.g., English"]
+  },
+  "application": {
+    "method": "string (e.g., Easy Apply via WhatsApp, External Website, Email)",
+    "externalUrl": "string or null",
+    "contactEmail": "string or null",
+    "whatsappNumber": "string or null (Contact/WhatsApp Number)",
+    "closingDate": "string or null (format: DD-MM-YYYY or YYYY-MM-DD)"
+  },
+  "screening": {
+    "competencyTestRequired": boolean (Pre-Screening Competency Test Required),
+    "rightToWorkRequired": "string or null (Citizen/PR, Work Permit, Any)",
+    "backgroundChecks": {
+      "criminal": boolean,
+      "credit": boolean,
+      "qualification": boolean,
+      "references": boolean
+    }
+  },
+  "admin": {
+    "visibility": "string or null (Public/Private/Unlisted)",
+    "status": "string (Draft/Live/Paused/Closed)",
+    "owner": "string or null (Job Owner name)",
+    "popiaCompliance": boolean (POPIA Compliance Confirmation - true if Yes)
   },
   "benefits": {
-    "benefits": ["string"]
+    "benefits": ["array of all benefits mentioned"]
   }
 }`;
 
@@ -4134,8 +4175,8 @@ Return format:
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.3,
-        max_tokens: 2000,
+        temperature: 0.2,
+        max_tokens: 4000,
         response_format: { type: "json_object" },
       });
 
