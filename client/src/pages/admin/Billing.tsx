@@ -112,11 +112,13 @@ export default function AdminBilling() {
   // Filter subscriptions based on search
   const filteredSubscriptions = subscriptions.filter((item) => {
     const searchLower = searchTerm.toLowerCase();
-    const holderName = item.subscription.holderType === 'org' 
-      ? item.holder.name || ''
-      : item.holder.firstName && item.holder.lastName
-        ? `${item.holder.firstName} ${item.holder.lastName}`
-        : item.holder.email || '';
+    const holderName = item.holder
+      ? item.subscription.holderType === 'org' 
+        ? item.holder.name || ''
+        : item.holder.firstName && item.holder.lastName
+          ? `${item.holder.firstName} ${item.holder.lastName}`
+          : item.holder.email || ''
+      : '';
     
     return (
       item.subscription.id.toLowerCase().includes(searchLower) ||
@@ -419,11 +421,13 @@ export default function AdminBilling() {
                           <TableCell>
                             <div className="flex flex-col gap-1">
                               <div className="font-medium">
-                                {item.subscription.holderType === 'org' 
-                                  ? item.holder.name || 'Unknown Organization'
-                                  : item.holder.firstName && item.holder.lastName
-                                    ? `${item.holder.firstName} ${item.holder.lastName}`
-                                    : item.holder.email || 'Unknown User'
+                                {item.holder
+                                  ? item.subscription.holderType === 'org' 
+                                    ? item.holder.name || 'Unknown Organization'
+                                    : item.holder.firstName && item.holder.lastName
+                                      ? `${item.holder.firstName} ${item.holder.lastName}`
+                                      : item.holder.email || 'Unknown User'
+                                  : item.subscription.holderId.substring(0, 8) + '...'
                                 }
                               </div>
                               <div className="text-xs text-muted-foreground">
