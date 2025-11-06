@@ -3015,7 +3015,7 @@ export default function RecruiterJobPostings() {
             </FormSection>
 
             {/* SEO Assistant - Collapsible Section */}
-            {selectedJob && (
+            {editingJobId && jobs.find(j => j.id === editingJobId) && (
               <Collapsible className="space-y-4">
                 <CollapsibleTrigger asChild>
                   <Button
@@ -3035,8 +3035,8 @@ export default function RecruiterJobPostings() {
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-4">
                   <SeoAssistantPanel
-                    jobId={selectedJob.id}
-                    existingSEO={selectedJob.seo as any}
+                    jobId={editingJobId}
+                    existingSEO={jobs.find(j => j.id === editingJobId)?.seo as any}
                     onSave={(seo) => {
                       // Update the selected job with new SEO data
                       queryClient.invalidateQueries({ queryKey: ["/api/jobs"] });

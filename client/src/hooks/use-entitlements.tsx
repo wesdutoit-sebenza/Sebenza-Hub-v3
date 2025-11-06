@@ -45,7 +45,7 @@ export function useEntitlements() {
     reason?: string;
     remaining?: number;
   } => {
-    if (!entitlements) {
+    if (!entitlements || !entitlements.entitlements) {
       return { allowed: false, reason: "NO_ENTITLEMENTS" };
     }
 
