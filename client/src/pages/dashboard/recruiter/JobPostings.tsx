@@ -3318,15 +3318,18 @@ export default function RecruiterJobPostings() {
               workArrangement: decodeField(extractedData.core?.workArrangement) || "On-site",
               summary: decodeField(extractedData.description || extractedData.core?.summary) || "",
               responsibilities: decodeField(extractedData.core?.responsibilities) || [],
+              requiredSkills: (extractedData.core?.requiredSkills || [])
+                .filter((s: any) => s && typeof s === 'string')
+                .map((skillName: string) => {
+                  const decoded = decodeHtmlEntities(skillName);
+                  console.log('[Import] Skill transformation:', { original: skillName, decoded });
+                  return {
+                    skill: decoded,
+                    level: "Intermediate" as const,
+                    priority: "Must-Have" as const,
+                  };
+                }),
             },
-            
-            skills: (extractedData.core?.requiredSkills || [])
-              .filter((s: any) => s && typeof s === 'string')
-              .map((skillName: string) => ({
-                skill: decodeHtmlEntities(skillName),
-                level: "Intermediate" as const,
-                priority: "Must-Have" as const,
-              })),
             
             roleDetails: {
               qualifications: decodeField(extractedData.roleDetails?.qualifications) || [],
@@ -3381,6 +3384,9 @@ export default function RecruiterJobPostings() {
               benefits: decodeField(extractedData.benefits?.benefits) || [],
             },
           };
+          
+          console.log('[Import] Final transformed data:', transformedData);
+          console.log('[Import] Skills array:', transformedData.core?.requiredSkills);
           
           form.reset(transformedData);
           setShowForm(true);
