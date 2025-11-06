@@ -1553,15 +1553,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ))
         .limit(1);
       
-      console.log('[Job Delete Auth]', {
-        userId: user.id,
-        jobId: id,
-        postedByUserId: existingJob.postedByUserId,
-        organizationId: existingJob.organizationId,
-        hasMembership: !!membership,
-        membershipOrg: membership?.organizationId
-      });
-      
       // Verify user owns this job (posted it, owns the organization, or is a member of the organization)
       const hasPermission = 
         existingJob.postedByUserId === user.id || 
