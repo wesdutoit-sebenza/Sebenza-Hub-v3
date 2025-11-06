@@ -140,8 +140,9 @@ export function EngagementDialog({
       return await apiRequest("POST", `/api/recruiter/clients/${clientId}/engagements`, payload);
     },
     onSuccess: () => {
+      // Invalidate the main client query which includes engagements
       queryClient.invalidateQueries({
-        queryKey: ["/api/recruiter/clients", clientId, "engagements"],
+        queryKey: ["/api/recruiter/clients", clientId],
       });
       toast({
         title: "Success",
@@ -184,8 +185,9 @@ export function EngagementDialog({
       );
     },
     onSuccess: () => {
+      // Invalidate the main client query which includes engagements
       queryClient.invalidateQueries({
-        queryKey: ["/api/recruiter/clients", clientId, "engagements"],
+        queryKey: ["/api/recruiter/clients", clientId],
       });
       toast({
         title: "Success",

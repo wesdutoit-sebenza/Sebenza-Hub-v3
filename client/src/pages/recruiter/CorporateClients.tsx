@@ -124,6 +124,7 @@ export default function CorporateClients() {
   const { data: clients = [], isLoading, error } = useQuery<CorporateClient[]>({
     queryKey: ["/api/recruiter/clients"],
     retry: false,
+    select: (data: any) => data.clients || [],
   });
 
   // Auto-setup organization if missing (in useEffect to avoid render side-effects)
@@ -137,34 +138,31 @@ export default function CorporateClients() {
     }
   }, [error, isSettingUpOrg, setupOrgMutation]);
 
-  // Fetch selected client details
+  // Fetch selected client details (includes contacts, engagements, jobs)
   const { data: selectedClient } = useQuery<CorporateClient>({
     queryKey: ["/api/recruiter/clients", selectedClientId],
     enabled: !!selectedClientId,
+    select: (data: any) => data.client,
   });
 
-  // Fetch client contacts
-  const { data: contacts = [] } = useQuery<ClientContact[]>({
-    queryKey: ["/api/recruiter/clients", selectedClientId, "contacts"],
-    enabled: !!selectedClientId,
-  });
+  // Extract contacts from selectedClient (no separate endpoint)
+  const contacts = selectedClient?.contacts || [];
 
-  // Fetch client engagements
-  const { data: engagements = [] } = useQuery<ClientEngagement[]>({
-    queryKey: ["/api/recruiter/clients", selectedClientId, "engagements"],
-    enabled: !!selectedClientId,
-  });
+  // Extract engagements from selectedClient (no separate endpoint)
+  const engagements = selectedClient?.engagements || [];
 
-  // Fetch client jobs
+  // Fetch client jobs separately
   const { data: jobs = [] } = useQuery<any[]>({
     queryKey: ["/api/recruiter/clients", selectedClientId, "jobs"],
     enabled: !!selectedClientId,
+    select: (data: any) => data.jobs || [],
   });
 
-  // Fetch client stats
+  // Fetch client stats separately
   const { data: stats } = useQuery<any>({
     queryKey: ["/api/recruiter/clients", selectedClientId, "stats"],
     enabled: !!selectedClientId,
+    select: (data: any) => data.stats,
   });
 
   // Delete contact mutation
@@ -176,7 +174,8 @@ export default function CorporateClients() {
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients", selectedClientId, "contacts"] });
+      // Invalidate the main client query which includes contacts
+      queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients", selectedClientId] });
       toast({
         title: "Success",
         description: "Contact removed successfully!",
@@ -201,7 +200,8 @@ export default function CorporateClients() {
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients", selectedClientId, "engagements"] });
+      // Invalidate the main client query which includes engagements
+      queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients", selectedClientId] });
       toast({
         title: "Success",
         description: "Agreement removed successfully!",

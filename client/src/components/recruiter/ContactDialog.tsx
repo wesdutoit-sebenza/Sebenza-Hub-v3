@@ -121,7 +121,8 @@ export function ContactDialog({
       return await apiRequest("POST", `/api/recruiter/clients/${clientId}/contacts`, payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients", clientId, "contacts"] });
+      // Invalidate the main client query which includes contacts
+      queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients", clientId] });
       toast({
         title: "Success",
         description: "Contact added successfully!",
@@ -170,7 +171,8 @@ export function ContactDialog({
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients", clientId, "contacts"] });
+      // Invalidate the main client query which includes contacts
+      queryClient.invalidateQueries({ queryKey: ["/api/recruiter/clients", clientId] });
       toast({
         title: "Success",
         description: "Contact updated successfully!",
