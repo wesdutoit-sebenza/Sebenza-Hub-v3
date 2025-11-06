@@ -57,12 +57,14 @@ export function SkillsMultiSelect({
     return SKILLS_BY_CATEGORY.map(category => ({
       ...category,
       skills: category.skills.filter(skill =>
-        skill.toLowerCase().includes(query)
+        skill && typeof skill === 'string' && skill.toLowerCase().includes(query)
       ),
     })).filter(category => category.skills.length > 0);
   }, [searchQuery]);
 
-  const selectedSkillNames = useMemo(() => value.map(s => s.skill), [value]);
+  const selectedSkillNames = useMemo(() => 
+    value.filter(s => s && s.skill).map(s => s.skill), 
+  [value]);
 
   const handleToggleSkill = (skillName: string) => {
     const currentIndex = selectedSkillNames.indexOf(skillName);
@@ -80,12 +82,12 @@ export function SkillsMultiSelect({
       onChange([...value, newSkill]);
     } else {
       // Removing a skill
-      onChange(value.filter(s => s.skill !== skillName));
+      onChange(value.filter(s => s && s.skill && s.skill !== skillName));
     }
   };
 
   const handleRemoveSkill = (skillName: string) => {
-    onChange(value.filter(s => s.skill !== skillName));
+    onChange(value.filter(s => s && s.skill && s.skill !== skillName));
   };
 
   const handleMoveSkill = (fromIndex: number, toIndex: number) => {
