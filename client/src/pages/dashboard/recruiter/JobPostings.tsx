@@ -3073,7 +3073,7 @@ export default function RecruiterJobPostings() {
             <Plus className="mr-2 h-4 w-4" />
             Create Job Manually
           </Button>
-          <Button onClick={() => setShowImportDialog(true)} variant="outline" data-testid="button-import-job">
+          <Button onClick={() => setShowImportDialog(true)} data-testid="button-import-job">
             <Upload className="mr-2 h-4 w-4" />
             Import Job
           </Button>
