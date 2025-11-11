@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UpgradeProvider } from "./contexts/UpgradeContext";
+import { useRouteGuard } from "@/hooks/use-route-guard";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Home from "@/pages/Home";
@@ -222,19 +223,28 @@ function Router() {
   );
 }
 
+function AppContent() {
+  // Route guard runs once at top level to redirect users as needed
+  useRouteGuard();
+
+  return (
+    <div className="min-h-screen flex flex-col bg-charcoal">
+      <Header />
+      <div className="flex-1">
+        <Router />
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
           <UpgradeProvider>
-            <div className="min-h-screen flex flex-col bg-charcoal">
-              <Header />
-              <div className="flex-1">
-                <Router />
-              </div>
-              <Footer />
-            </div>
+            <AppContent />
             <Toaster />
           </UpgradeProvider>
         </TooltipProvider>
