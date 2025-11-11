@@ -102,9 +102,9 @@ export default function Onboarding() {
               <div className="mx-auto mb-6 h-20 w-20 rounded-full bg-amber/20 flex items-center justify-center shadow-lg ring-2 ring-amber/30">
                 <UserCircle className="h-12 w-12 text-amber" />
               </div>
-              <CardTitle className="text-2xl font-bold mb-3 text-slate">I'm Job Seeker</CardTitle>
+              <CardTitle className="text-2xl font-bold mb-3 text-slate">I'm a Job Seeker</CardTitle>
               <CardDescription className="text-base text-slate leading-relaxed">
-                I'm looking for employment opportunities
+                Ready to find my next career move.
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-8 px-6">
@@ -120,31 +120,6 @@ export default function Onboarding() {
 
           <Card 
             className="hover-elevate active-elevate-2 cursor-pointer transition-all duration-300 hover:scale-105 flex flex-col" 
-            onClick={() => handleSelectRole('business')} 
-            data-testid="card-role-business"
-          >
-            <CardHeader className="text-center pt-8 pb-6 px-6 flex-1">
-              <div className="mx-auto mb-6 h-20 w-20 rounded-full bg-amber/20 flex items-center justify-center shadow-lg ring-2 ring-amber/30">
-                <Building2 className="h-12 w-12 text-amber" />
-              </div>
-              <CardTitle className="text-2xl font-bold mb-3 text-slate">I Hire for My Company</CardTitle>
-              <CardDescription className="text-base text-slate leading-relaxed">
-                I need to find talent for my business
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pb-8 px-6">
-              <Button
-                className="w-full min-h-12 bg-amber-gradient text-charcoal font-semibold text-base"
-                disabled={selectRoleMutation.isPending}
-                data-testid="button-select-business"
-              >
-                {selectRoleMutation.isPending && selectedRole === 'business' ? 'Setting up...' : 'Get Started'}
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="hover-elevate active-elevate-2 cursor-pointer transition-all duration-300 hover:scale-105 flex flex-col" 
             onClick={() => handleSelectRole('recruiter')} 
             data-testid="card-role-recruiter"
           >
@@ -152,9 +127,9 @@ export default function Onboarding() {
               <div className="mx-auto mb-6 h-20 w-20 rounded-full bg-amber/20 flex items-center justify-center shadow-lg ring-2 ring-amber/30">
                 <Briefcase className="h-12 w-12 text-amber" />
               </div>
-              <CardTitle className="text-2xl font-bold mb-3 text-slate">I'm a Recruiter</CardTitle>
+              <CardTitle className="text-2xl font-bold mb-3 text-slate">We are a recruiting agency</CardTitle>
               <CardDescription className="text-base text-slate leading-relaxed">
-                I run a recruiting agency or firm
+                Looking to connect great talent with top roles.
               </CardDescription>
             </CardHeader>
             <CardContent className="pb-8 px-6">
@@ -164,6 +139,31 @@ export default function Onboarding() {
                 data-testid="button-select-recruiter"
               >
                 {selectRoleMutation.isPending && selectedRole === 'recruiter' ? 'Setting up...' : 'Get Started'}
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="hover-elevate active-elevate-2 cursor-pointer transition-all duration-300 hover:scale-105 flex flex-col" 
+            onClick={() => handleSelectRole('business')} 
+            data-testid="card-role-business"
+          >
+            <CardHeader className="text-center pt-8 pb-6 px-6 flex-1">
+              <div className="mx-auto mb-6 h-20 w-20 rounded-full bg-amber/20 flex items-center justify-center shadow-lg ring-2 ring-amber/30">
+                <Building2 className="h-12 w-12 text-amber" />
+              </div>
+              <CardTitle className="text-2xl font-bold mb-3 text-slate">We hire for our company</CardTitle>
+              <CardDescription className="text-base text-slate leading-relaxed">
+                We are hiring and ready to grow our team.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pb-8 px-6">
+              <Button
+                className="w-full min-h-12 bg-amber-gradient text-charcoal font-semibold text-base"
+                disabled={selectRoleMutation.isPending}
+                data-testid="button-select-business"
+              >
+                {selectRoleMutation.isPending && selectedRole === 'business' ? 'Setting up...' : 'Get Started'}
               </Button>
             </CardContent>
           </Card>
