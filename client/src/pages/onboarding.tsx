@@ -84,7 +84,7 @@ export default function Onboarding() {
     <div className="min-h-screen bg-charcoal flex items-center justify-center p-4">
       <div className="max-w-6xl w-full">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-3 text-white-brand" data-testid="text-onboarding-title">
+          <h1 className="text-4xl font-bold mb-3 text-slate" data-testid="text-onboarding-title">
             Welcome to Sebenza Hub
           </h1>
           <p className="text-lg text-slate" data-testid="text-onboarding-description">
@@ -102,7 +102,7 @@ export default function Onboarding() {
               <div className="mx-auto mb-6 h-20 w-20 rounded-full bg-amber/20 flex items-center justify-center shadow-lg ring-2 ring-amber/30">
                 <UserCircle className="h-12 w-12 text-amber" />
               </div>
-              <CardTitle className="text-2xl font-bold mb-3 text-white-brand">I'm Job Seeker</CardTitle>
+              <CardTitle className="text-2xl font-bold mb-3 text-slate">I'm Job Seeker</CardTitle>
               <CardDescription className="text-base text-slate leading-relaxed">
                 I'm looking for employment opportunities
               </CardDescription>
@@ -127,7 +127,7 @@ export default function Onboarding() {
               <div className="mx-auto mb-6 h-20 w-20 rounded-full bg-amber/20 flex items-center justify-center shadow-lg ring-2 ring-amber/30">
                 <Building2 className="h-12 w-12 text-amber" />
               </div>
-              <CardTitle className="text-2xl font-bold mb-3 text-white-brand">I Hire for My Company</CardTitle>
+              <CardTitle className="text-2xl font-bold mb-3 text-slate">I Hire for My Company</CardTitle>
               <CardDescription className="text-base text-slate leading-relaxed">
                 I need to find talent for my business
               </CardDescription>
@@ -152,7 +152,7 @@ export default function Onboarding() {
               <div className="mx-auto mb-6 h-20 w-20 rounded-full bg-amber/20 flex items-center justify-center shadow-lg ring-2 ring-amber/30">
                 <Briefcase className="h-12 w-12 text-amber" />
               </div>
-              <CardTitle className="text-2xl font-bold mb-3 text-white-brand">I'm a Recruiter</CardTitle>
+              <CardTitle className="text-2xl font-bold mb-3 text-slate">I'm a Recruiter</CardTitle>
               <CardDescription className="text-base text-slate leading-relaxed">
                 I run a recruiting agency or firm
               </CardDescription>
