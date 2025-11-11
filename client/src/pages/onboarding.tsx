@@ -109,7 +109,7 @@ export default function Onboarding() {
             </CardHeader>
             <CardContent className="pb-8 px-6">
               <Button
-                className="w-full min-h-12 bg-amber-gradient text-charcoal hover:opacity-90 font-semibold text-base"
+                className="w-full min-h-12 bg-amber-gradient text-charcoal font-semibold text-base"
                 disabled={selectRoleMutation.isPending}
                 data-testid="button-select-individual"
               >
@@ -134,7 +134,7 @@ export default function Onboarding() {
             </CardHeader>
             <CardContent className="pb-8 px-6">
               <Button
-                className="w-full min-h-12 bg-amber-gradient text-charcoal hover:opacity-90 font-semibold text-base"
+                className="w-full min-h-12 bg-amber-gradient text-charcoal font-semibold text-base"
                 disabled={selectRoleMutation.isPending}
                 data-testid="button-select-business"
               >
@@ -159,7 +159,7 @@ export default function Onboarding() {
             </CardHeader>
             <CardContent className="pb-8 px-6">
               <Button
-                className="w-full min-h-12 bg-amber-gradient text-charcoal hover:opacity-90 font-semibold text-base"
+                className="w-full min-h-12 bg-amber-gradient text-charcoal font-semibold text-base"
                 disabled={selectRoleMutation.isPending}
                 data-testid="button-select-recruiter"
               >
