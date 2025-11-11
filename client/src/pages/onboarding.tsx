@@ -87,7 +87,7 @@ export default function Onboarding() {
           <h1 className="text-4xl font-bold mb-3 text-white" data-testid="text-onboarding-title">
             Welcome to Sebenza Hub
           </h1>
-          <p className="text-lg text-slate" data-testid="text-onboarding-description">
+          <p className="text-lg text-white" data-testid="text-onboarding-description">
             How will you use the platform?
           </p>
         </div>
