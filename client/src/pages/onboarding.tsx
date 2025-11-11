@@ -94,11 +94,11 @@ export default function Onboarding() {
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <Card 
-            className="hover-elevate active-elevate-2 cursor-pointer transition-all duration-300 hover:scale-105" 
+            className="hover-elevate active-elevate-2 cursor-pointer transition-all duration-300 hover:scale-105 flex flex-col" 
             onClick={() => handleSelectRole('individual')} 
             data-testid="card-role-individual"
           >
-            <CardHeader className="text-center pt-8 pb-6 px-6">
+            <CardHeader className="text-center pt-8 pb-6 px-6 flex-1">
               <div className="mx-auto mb-6 h-20 w-20 rounded-full bg-amber/20 flex items-center justify-center shadow-lg ring-2 ring-amber/30">
                 <UserCircle className="h-12 w-12 text-amber" />
               </div>
@@ -119,11 +119,11 @@ export default function Onboarding() {
           </Card>
 
           <Card 
-            className="hover-elevate active-elevate-2 cursor-pointer transition-all duration-300 hover:scale-105" 
+            className="hover-elevate active-elevate-2 cursor-pointer transition-all duration-300 hover:scale-105 flex flex-col" 
             onClick={() => handleSelectRole('business')} 
             data-testid="card-role-business"
           >
-            <CardHeader className="text-center pt-8 pb-6 px-6">
+            <CardHeader className="text-center pt-8 pb-6 px-6 flex-1">
               <div className="mx-auto mb-6 h-20 w-20 rounded-full bg-amber/20 flex items-center justify-center shadow-lg ring-2 ring-amber/30">
                 <Building2 className="h-12 w-12 text-amber" />
               </div>
@@ -144,11 +144,11 @@ export default function Onboarding() {
           </Card>
 
           <Card 
-            className="hover-elevate active-elevate-2 cursor-pointer transition-all duration-300 hover:scale-105" 
+            className="hover-elevate active-elevate-2 cursor-pointer transition-all duration-300 hover:scale-105 flex flex-col" 
             onClick={() => handleSelectRole('recruiter')} 
             data-testid="card-role-recruiter"
           >
-            <CardHeader className="text-center pt-8 pb-6 px-6">
+            <CardHeader className="text-center pt-8 pb-6 px-6 flex-1">
               <div className="mx-auto mb-6 h-20 w-20 rounded-full bg-amber/20 flex items-center justify-center shadow-lg ring-2 ring-amber/30">
                 <Briefcase className="h-12 w-12 text-amber" />
               </div>
