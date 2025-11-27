@@ -253,14 +253,14 @@
 }
 
 @layer base {
+  /* Global element border color */
+  * {
+    border-color: rgb(229 231 235);
+  }
+
   body {
     font-family: var(--font-sans);
     @apply antialiased bg-background text-foreground;
-  }
-
-  /* Replaces global border styling without breaking Tailwind */
-  * {
-    border-color: rgb(229 231 235); /* Tailwind gray-200 hex value */
   }
 }
 
