@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import type { Candidate, Experience, Education, Certification, Project, Award } from './schema';
+import type { Candidate, Experience, Education, Certification, Project, Award } from '../client/server-schema';
 
 // Runtime check for AI configuration
 export function isAIConfigured(): boolean {

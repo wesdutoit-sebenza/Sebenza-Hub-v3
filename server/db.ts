@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
-import * as schema from './schema';
+import * as schema from '../client/server-schema';
 import { eq, and, gte, desc } from 'drizzle-orm';
 import type { 
   ConnectedAccount, 
@@ -9,7 +9,7 @@ import type {
   InsertInterviewPool,
   Interview,
   InsertInterview
-} from './schema';
+} from '../client/server-schema';
 
 if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL environment variable is not set');

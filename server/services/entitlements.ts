@@ -20,7 +20,7 @@ import {
   type Feature,
   type FeatureEntitlement,
   type Usage,
-} from "../schema";
+} from "../../client/server-schema";
 import { eq, and, gte, lte, sql } from "drizzle-orm";
 import { sendPricingPlanSelectedEmail } from "../emails";
 
@@ -89,7 +89,7 @@ async function getActiveSubscription(holder: Holder): Promise<Subscription | nul
   
   if (holder.type === 'org') {
     // For orgs, check the organization type
-    const { organizations } = await import('../schema');
+    const { organizations } = await import('../../client/server-schema');
     const [org] = await db.select()
       .from(organizations)
       .where(eq(organizations.id, holder.id))
@@ -156,7 +156,7 @@ async function getActiveSubscription(holder: Holder): Promise<Subscription | nul
       }
     } else {
       // For organizations, get the owner's email
-      const { memberships } = await import('../schema');
+      const { memberships } = await import('../../client/server-schema');
       const [membership] = await db.select({
         user: users,
       })

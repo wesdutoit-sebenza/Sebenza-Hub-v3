@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, insertIndividualPreferencesSchema, insertIndividualNotificationSettingsSchema, type User } from './schema';
+import { insertSubscriberSchema, insertJobSchema, insertCVSchema, insertCandidateProfileSchema, insertOrganizationSchema, insertRecruiterProfileSchema, insertScreeningJobSchema, insertScreeningCandidateSchema, insertScreeningEvaluationSchema, insertCandidateSchema, insertExperienceSchema, insertEducationSchema, insertCertificationSchema, insertProjectSchema, insertAwardSchema, insertSkillSchema, insertRoleSchema, insertScreeningSchema, insertIndividualPreferencesSchema, insertIndividualNotificationSettingsSchema, type User } from '../client/server-schema';
 import { db } from "./db";
-import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, jobFavorites, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, testAttempts, testResponses, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema, autoSearchPreferences, autoSearchResults, corporateClients, corporateClientContacts, corporateClientEngagements, insertCorporateClientSchema, insertCorporateClientContactSchema, insertCorporateClientEngagementSchema, plans, features, featureEntitlements, subscriptions, usage, paymentEvents, insertFeatureSchema, insertPlanSchema } from './schema';
+import { users, candidateProfiles, organizations, recruiterProfiles, memberships, jobs, jobApplications, jobFavorites, screeningJobs, screeningCandidates, screeningEvaluations, candidates, experiences, education, certifications, projects, awards, skills, candidateSkills, resumes, roles, screenings, individualPreferences, individualNotificationSettings, fraudDetections, cvs, competencyTests, testSections, testItems, testAttempts, testResponses, insertCompetencyTestSchema, insertTestSectionSchema, insertTestItemSchema, autoSearchPreferences, autoSearchResults, corporateClients, corporateClientContacts, corporateClientEngagements, insertCorporateClientSchema, insertCorporateClientContactSchema, insertCorporateClientEngagementSchema, plans, features, featureEntitlements, subscriptions, usage, paymentEvents, insertFeatureSchema, insertPlanSchema } from '../client/server-schema';
 import { sendNewUserSignupEmail, sendRecruiterProfileApprovalEmail } from "./emails";
 import { eq, and, desc, sql, inArray, or, gte } from "drizzle-orm";
 import { authenticateSession, requireRole, type AuthRequest } from "./auth-middleware";
@@ -1855,8 +1855,8 @@ Job Title: ${jobTitle}`;
   // AI Skill Suggestions based on Job Title
   app.post("/api/jobs/suggest-skills", async (req, res) => {
     try {
-      const { suggestSkillsRequestSchema } = await import("./schema");
-      const { ALL_SKILLS } = await import("@shared/skills");
+      const { suggestSkillsRequestSchema } = await import("../client/server-schema");
+      const { ALL_SKILLS } = await import("../client/shared/skills");
       
       // Validate request
       const { jobTitle } = suggestSkillsRequestSchema.parse(req.body);

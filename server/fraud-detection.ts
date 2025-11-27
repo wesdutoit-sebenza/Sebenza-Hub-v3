@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import type { InsertFraudDetection } from './schema';
+import type { InsertFraudDetection } from '../client/server-schema';
 
 const openai = new OpenAI({
   apiKey: process.env.AI_INTEGRATIONS_OPENAI_API_KEY || '',
