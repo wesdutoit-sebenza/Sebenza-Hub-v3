@@ -41,11 +41,11 @@
 
   --border: 33 19% 70%;
 
-  --card: 15 24% 93%;
+  --card: 40 20% 97%;
 
   --card-foreground: 355 11% 22%;
 
-  --card-border: 33 19% 75%;
+  --card-border: 40 15% 88%;
 
   --sidebar: 40 25% 88%;
 
@@ -63,11 +63,11 @@
 
   --sidebar-ring: 29 29% 43%;
 
-  --popover: 15 24% 90%;
+  --popover: 40 20% 96%;
 
   --popover-foreground: 355 11% 22%;
 
-  --popover-border: 33 19% 70%;
+  --popover-border: 40 15% 85%;
 
   --primary: 29 35% 35%;
 
