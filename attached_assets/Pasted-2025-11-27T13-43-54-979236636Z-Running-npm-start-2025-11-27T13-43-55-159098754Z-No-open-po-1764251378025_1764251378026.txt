@@ -1,0 +1,50 @@
+2025-11-27T13:43:54.979236636Z ==> Running 'npm start'
+2025-11-27T13:43:55.159098754Z ==> No open ports detected, continuing to scan...
+2025-11-27T13:43:55.294827917Z 
+2025-11-27T13:43:55.294845818Z > sebenza-hub-server@1.0.0 start
+2025-11-27T13:43:55.294849628Z > NODE_ENV=production node dist/index.js
+2025-11-27T13:43:55.294851348Z 
+2025-11-27T13:43:55.387513919Z node:internal/modules/cjs/loader:1423
+2025-11-27T13:43:55.387537081Z   throw err;
+2025-11-27T13:43:55.387541251Z   ^
+2025-11-27T13:43:55.387543851Z 
+2025-11-27T13:43:55.387547381Z Error: Cannot find module '/opt/render/project/src/server/dist/index.js'
+2025-11-27T13:43:55.387549951Z     at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+2025-11-27T13:43:55.387552561Z     at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+2025-11-27T13:43:55.387555651Z     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+2025-11-27T13:43:55.387559432Z     at Module._load (node:internal/modules/cjs/loader:1226:37)
+2025-11-27T13:43:55.387562702Z     at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+2025-11-27T13:43:55.387564422Z     at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+2025-11-27T13:43:55.387566922Z     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+2025-11-27T13:43:55.387568702Z     at node:internal/main/run_main_module:33:47 {
+2025-11-27T13:43:55.387571042Z   code: 'MODULE_NOT_FOUND',
+2025-11-27T13:43:55.387573703Z   requireStack: []
+2025-11-27T13:43:55.387575453Z }
+2025-11-27T13:43:55.387577013Z 
+2025-11-27T13:43:55.387578673Z Node.js v25.2.1
+2025-11-27T13:43:55.433323788Z ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+2025-11-27T13:44:18.114418498Z ==> Exited with status 1
+2025-11-27T13:44:18.131192677Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2025-11-27T13:44:24.240075499Z ==> Running 'npm start'
+2025-11-27T13:44:24.518566661Z 
+2025-11-27T13:44:24.518592122Z > sebenza-hub-server@1.0.0 start
+2025-11-27T13:44:24.518598433Z > NODE_ENV=production node dist/index.js
+2025-11-27T13:44:24.518600703Z 
+2025-11-27T13:44:24.549288572Z node:internal/modules/cjs/loader:1423
+2025-11-27T13:44:24.549307964Z   throw err;
+2025-11-27T13:44:24.549311474Z   ^
+2025-11-27T13:44:24.549314014Z 
+2025-11-27T13:44:24.549318604Z Error: Cannot find module '/opt/render/project/src/server/dist/index.js'
+2025-11-27T13:44:24.549321444Z     at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+2025-11-27T13:44:24.549324154Z     at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+2025-11-27T13:44:24.549326885Z     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+2025-11-27T13:44:24.549329845Z     at Module._load (node:internal/modules/cjs/loader:1226:37)
+2025-11-27T13:44:24.549332495Z     at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+2025-11-27T13:44:24.549335145Z     at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+2025-11-27T13:44:24.549339495Z     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+2025-11-27T13:44:24.549342455Z     at node:internal/main/run_main_module:33:47 {
+2025-11-27T13:44:24.549345755Z   code: 'MODULE_NOT_FOUND',
+2025-11-27T13:44:24.549349736Z   requireStack: []
+2025-11-27T13:44:24.549352436Z }
+2025-11-27T13:44:24.549354916Z 
+2025-11-27T13:44:24.549357516Z Node.js v25.2.1
