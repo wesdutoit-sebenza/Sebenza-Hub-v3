@@ -240,7 +240,9 @@ app.use((req, res, next) => {
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
     // Dynamically import vite module only in development
-    const { setupVite } = await import("./vite");
+    // Use computed path to prevent esbuild from bundling vite dependencies
+    const vitePath = "./vite" + "";
+    const { setupVite } = await import(/* @vite-ignore */ vitePath);
     await setupVite(app, server);
   } else {
     // In production, serve static files (Render backend doesn't serve frontend)
