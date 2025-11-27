@@ -43,12 +43,13 @@ Utilizes PostgreSQL (Neon) with Drizzle ORM and the pgvector extension, employin
 - **Billing System Database**: Six-table architecture manages plans, features, feature entitlements, subscriptions, usage tracking, and payment events, enabling feature-gating and entitlement checks.
 
 ### System Design Choices
-- **Monorepo Structure**: Organized into `client/` and `server/` directories.
-  - **Shared Code**: Located at `client/shared/` (moved from root `/shared/` for Vercel deployment)
-  - **Schema Types**: Located at `client/server-schema.ts` (moved from `/server/schema.ts`)
-  - **Symlinks**: Parent-level symlinks at `/home/runner/` enable unmodifiable vite.config.ts paths:
-    - `/home/runner/shared` → `/home/runner/workspace/client/shared`
-    - `/home/runner/server` → `/home/runner/workspace/server`
+- **Monorepo Structure**: Organized into `client/`, `server/`, and `shared/` directories.
+  - **Shared Code**: Located at `/shared/` (root level)
+  - **Schema Types**: Located at `/server/schema.ts`
+  - **Symlinks**: Required for vite.config.ts path resolution (config is read-only):
+    - `/src` → `client/src` (for "@" alias)
+    - `/home/runner/shared` → `/home/runner/workspace/shared` (for "@shared" alias)
+    - `/home/runner/server` → `/home/runner/workspace/server` (for "@shared/schema" alias)
     - `/home/runner/attached_assets` → `/home/runner/workspace/attached_assets`
 - **South African Context**: Designed with POPIA compliance and a WhatsApp-first workflow.
 

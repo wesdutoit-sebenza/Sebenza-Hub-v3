@@ -1,7 +1,7 @@
 import { Router, type Request, type Response } from "express";
 import bcrypt from "bcrypt";
 import { db } from "./db";
-import { users, refreshTokens } from '../client/server-schema';
+import { users, refreshTokens } from './schema';
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import {

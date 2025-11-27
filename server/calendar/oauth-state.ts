@@ -5,7 +5,7 @@
  */
 
 import { db } from '../db';
-import { oauthStateTokens } from '../../client/server-schema';
+import { oauthStateTokens } from '../schema';
 import { eq, lt } from 'drizzle-orm';
 import crypto from 'crypto';
 

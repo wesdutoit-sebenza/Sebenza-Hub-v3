@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { cvs, jobs, competencyTests } from '../client/server-schema';
+import { cvs, jobs, competencyTests } from './schema';
 import { eq } from "drizzle-orm";
 
 /**

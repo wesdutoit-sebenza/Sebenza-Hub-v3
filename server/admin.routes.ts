@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authenticateSession, requireRole } from "./auth-middleware";
 import { db } from "./db";
-import { users, candidateProfiles, recruiterProfiles, organizations, memberships, candidates, resumes, roles, screenings, fraudDetections } from '../client/server-schema';
+import { users, candidateProfiles, recruiterProfiles, organizations, memberships, candidates, resumes, roles, screenings, fraudDetections } from './schema';
 import { eq, desc, and, sql, or, like, ilike } from "drizzle-orm";
 
 const router = Router();

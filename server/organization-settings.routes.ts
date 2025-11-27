@@ -16,7 +16,7 @@ import {
   salaryBandPatchSchema,
   approvedVendorValidationSchema,
   approvedVendorPatchSchema,
-} from '../client/server-schema';
+} from './schema';
 import { pool } from "./db-pool";
 const router = Router();
 

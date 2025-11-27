@@ -12,7 +12,7 @@ import {
   candidateProfiles,
   jobs,
   jobEmbeddings
-} from '../client/server-schema';
+} from './schema';
 import { eq } from "drizzle-orm";
 
 let openai: OpenAI | null = null;

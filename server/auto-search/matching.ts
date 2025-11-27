@@ -6,7 +6,7 @@
  */
 
 import { db } from "../db";
-import { jobs, jobEmbeddings, candidateProfiles, candidateEmbeddings } from '../../client/server-schema';
+import { jobs, jobEmbeddings, candidateProfiles, candidateEmbeddings } from '../schema';
 import { eq, and, or, sql, inArray } from "drizzle-orm";
 import {
   jaccard,

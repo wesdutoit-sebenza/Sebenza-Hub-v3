@@ -60,7 +60,7 @@ async function upsertUser(
 ) {
   // Import database modules at top level
   const { db } = await import("./db");
-  const { users } = await import("../client/server-schema");
+  const { users } = await import("./schema");
   const { eq, sql } = await import("drizzle-orm");
   
   // Migration strategy: Check for existing user by email, preserve roles/onboarding
