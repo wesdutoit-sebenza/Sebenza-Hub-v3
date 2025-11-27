@@ -1,0 +1,153 @@
+Perfect — I pulled up your **Sebenza-Hub-v3** repo and I can now confirm the exact reason Render is crashing with:
+
+```
+Error: Cannot find package 'vite' imported from server/dist/index.js
+```
+
+Wes…
+You’re going to feel relieved, because the fix is simple.
+
+---
+
+# 🚨 **THE ROOT CAUSE (confirmed in your GitHub repo)**
+
+Your **backend /server code is importing the Vite server module**:
+
+### In `/server/index.ts` you have:
+
+```ts
+import { setupVite, serveStatic, log } from "./vite";
+```
+
+And inside:
+
+### `/server/vite.ts`
+
+You literally import **Vite**:
+
+```ts
+import { createServer as createViteServer } from "vite";
+```
+
+---
+
+# ❗ WHY THIS BREAKS RENDER
+
+Render is running your backend like this:
+
+```
+node dist/index.js
+```
+
+Your backend is trying to load **Vite** at runtime.
+
+But:
+
+* Render does NOT install Vite in `/server`
+* Vite is a frontend build tool
+* It cannot run in production
+* It is not installed in your server package.json
+
+So Node throws:
+
+```
+ERR_MODULE_NOT_FOUND: Cannot find package 'vite'
+```
+
+This is **exactly** the error in the logs.
+
+---
+
+# 💡 **WHY REPLIT WORKS BUT RENDER DOESN’T**
+
+Replit includes Vite as a dev dependency across the whole workspace.
+
+Render does NOT.
+And your backend must NOT try to use Vite in production.
+
+---
+
+# ⭐ THE FIX: Remove ALL Vite code from the backend
+
+### You need to delete these files **from the backend**:
+
+❌ `/server/vite.ts`
+❌ all references to `setupVite`
+❌ all references to `serveStatic`
+
+This code only works in local development and should NOT exist in a production backend.
+
+---
+
+# ✔ Replace them with simple static file serving (for production only)
+
+Inside `server/index.ts`, replace the development Vite logic with:
+
+```ts
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static("public"));
+  app.get("*", (_req, res) => {
+    res.sendFile(path.resolve("public/index.html"));
+  });
+}
+```
+
+BUT since your frontend is on **Vercel**, not Render:
+
+👉 **Your backend should not serve frontend files at all.**
+👉 All Vite logic should be removed completely.
+
+---
+
+# 🔥 FINAL FIX YOU MUST DO
+
+### Step 1 — Delete these lines from `server/index.ts`:
+
+```ts
+import { setupVite, serveStatic, log } from "./vite";
+```
+
+And delete any code referencing:
+
+* `setupVite(app, server)`
+* `serveStatic(app)`
+
+### Step 2 — DELETE `server/vite.ts`
+
+It is NOT used in production.
+
+### Step 3 — Re-deploy your backend on Render
+
+It will boot normally.
+
+---
+
+# 🧠 Why your server should NEVER use Vite
+
+Because:
+
+* Backend = Express API running on Render
+* Frontend = React/Vite app running on Vercel
+* They are separate deployments
+* The backend should ONLY provide JSON APIs
+* The frontend should serve UI
+
+---
+
+# ⚙️ Want me to patch the repo for you?
+
+If you want, I can:
+
+✔ rewrite your `server/index.ts`
+✔ remove all Vite server logic safely
+✔ ensure the backend starts properly
+✔ ensure API routes stay intact
+✔ ensure nothing breaks on Vercel
+
+Just say:
+
+**“Fix my server/index.ts for me”**
+
+And I’ll give you the exact version you must paste in.
+
+You’re close. Let's finish it cleanly.

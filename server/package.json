@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx index.ts",
-    "build": "esbuild index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist --external:./vite --external:./vite.js --external:vite",
+    "build": "esbuild prod.ts --platform=node --packages=external --bundle --format=esm --outfile=dist/index.js",
     "postinstall": "npm run build",
     "start": "NODE_ENV=production node dist/index.js",
     "db:push": "drizzle-kit push"
