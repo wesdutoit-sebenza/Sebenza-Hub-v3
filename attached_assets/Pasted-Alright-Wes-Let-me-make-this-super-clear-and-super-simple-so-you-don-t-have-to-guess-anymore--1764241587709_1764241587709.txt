@@ -1,0 +1,240 @@
+Alright Wes.
+Let me make this **super clear and super simple** so you don’t have to guess anymore.
+
+Your Sebenza Hub project is a **3-folder monorepo**:
+
+```
+Sebenza-Hub-v3/
+  client/     ← React + Vite + Tailwind (Frontend)
+  server/     ← Express + Drizzle (Backend API)
+  shared/     ← Shared schema + types (Used by BOTH)
+```
+
+Each hosting platform treats this structure differently.
+
+So here’s the **correct setup for each**:
+
+---
+
+# ✅ **1. VERCEL (Frontend ONLY)**
+
+**Vercel must ONLY build the `client/` folder.**
+
+### ✔ Correct Root Directory in Vercel:
+
+```
+client
+```
+
+### ✔ Correct Output Directory:
+
+```
+dist
+```
+
+### ✔ Build Command:
+
+```
+npm run build
+```
+
+### ✔ Install Command:
+
+```
+npm install
+```
+
+### ✔ You MUST move shared code *into* client
+
+Because Vercel **cannot** see files above the root.
+
+Meaning:
+
+```
+shared/     → move into client/shared/
+server/     → do NOT import anything from server in client
+```
+
+**Vercel cannot access:**
+
+* `../shared`
+* `../server`
+* anything outside `client/`
+
+If your React code imports from outside the client folder, Tailwind + Vite + Rollup break silently → exactly what you saw.
+
+---
+
+# 🟢 **Vercel Summary**
+
+**Root:** `client/`
+**Output:** `dist`
+**Frontend only. No server. No shared imports above root.**
+
+---
+
+# ✅ **2. RENDER (Backend ONLY)**
+
+Render should host your **Express server**, not your client.
+
+### ✔ Correct Root Directory in Render:
+
+```
+server
+```
+
+### ✔ Start Command:
+
+```
+npm start
+```
+
+or whatever your server uses:
+
+```
+node index.js
+node server.js
+npm run start
+```
+
+### ✔ Install command:
+
+Render will auto-run:
+
+```
+npm install
+```
+
+### 🚨 IMPORTANT
+
+Render **can** see:
+
+```
+server/
+shared/
+```
+
+It **cannot** see client runtime code, but it *can* import shared models schema/types used by Drizzle.
+
+This is exactly how it should work.
+
+---
+
+# 🟢 **Render Summary**
+
+**Root:** `server/`
+**Backend API only.**
+Can access `../shared` no problem.
+
+---
+
+# ✅ **3. REPLIT (Local Dev for both Frontend + Backend)**
+
+Replit loads the entire monorepo together. It does not isolate folders like Vercel does.
+
+So on Replit:
+
+* `client` can import from `../server`
+* `server` can import from `../shared`
+* Tailwind scans everything
+* Nothing breaks
+* That’s why your Replit version always looks correct
+
+### ✔ Correct Replit Root
+
+```
+Sebenza-Hub-v3 (the entire workspace)
+```
+
+Replit doesn’t require special configuration.
+
+---
+
+# 🟢 **Replit Summary**
+
+**Root:** project root
+**Works with monorepo**
+Allows cross-folder imports
+Allows Tailwind to scan everything
+This is why it works here but not on Vercel
+
+---
+
+# 📌 **THE REAL PROBLEM**
+
+Your frontend depends on **shared** files that live OUTSIDE the client folder:
+
+```
+client/src → imports ../shared/* and ../server/schema
+```
+
+Vercel blocks that.
+So your Tailwind classes, CSS variables, and JSX styles do not load.
+
+That's why:
+
+* The layout loads
+* The text loads
+* The colors, spacing, dark mode, variables, and theme DO NOT
+* Images stack weird
+* Buttons and sections collapse
+* The whole website looks "unstyled"
+
+This EXACT mismatch is 100% caused by:
+
+### ❌ Vercel NOT seeing shared code
+
+### ❌ Tailwind NOT scanning shared code
+
+### ❌ React NOT being allowed to import outside client
+
+---
+
+# ⭐ THE FIX
+
+You must choose **ONE** of these two options:
+
+---
+
+## **OPTION A — SIMPLE, recommended**
+
+Copy everything the client needs from shared into:
+
+```
+client/shared/
+```
+
+And update imports.
+
+This will make Vercel deploy 100% correctly.
+
+---
+
+## **OPTION B — PROPER MONOREPO SETUP**
+
+Create two separate deployments:
+
+**Frontend (Vercel)**
+
+* root: `client`
+
+**Backend (Render)**
+
+* root: `server`
+
+And configure Vite to copy shared code at build-time.
+
+This is more complex.
+Option A is easiest.
+
+---
+
+# ❤️ Tell me which option you want:
+
+### ➤ **Option A — Move shared into client** (fastest, simplest)
+
+or
+
+### ➤ **Option B — Full monorepo setup** (cleaner, more advanced)
+
+I’ll walk you through it step-by-step.
