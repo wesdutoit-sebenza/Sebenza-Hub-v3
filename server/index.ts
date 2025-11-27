@@ -1,7 +1,17 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
 import cookieParser from "cookie-parser";
+
+// Simple log function for server output
+function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import cors from "cors";
@@ -229,9 +239,13 @@ app.use((req, res, next) => {
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
   if (app.get("env") === "development") {
+    // Dynamically import vite module only in development
+    const { setupVite } = await import("./vite");
     await setupVite(app, server);
   } else {
-    serveStatic(app);
+    // In production, serve static files (Render backend doesn't serve frontend)
+    // Frontend is served by Vercel separately
+    console.log("[Production] Backend API only mode - frontend served by Vercel");
   }
 
   // ALWAYS serve the app on the port specified in the environment variable PORT
