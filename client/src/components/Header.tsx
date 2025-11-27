@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import type { User } from "@shared/schema";
+import type { User } from '../../../server/schema';
 import {
   DropdownMenu,
   DropdownMenuContent,

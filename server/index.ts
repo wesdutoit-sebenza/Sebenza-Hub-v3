@@ -135,7 +135,7 @@ app.use((req, res, next) => {
   // Admin Setup Endpoint - MUST be registered before auth middleware
   // This endpoint ONLY works when no admin users exist
   const { db } = await import('./db');
-  const { users } = await import('@shared/schema');
+  const { users } = await import('./schema');
   const { eq } = await import('drizzle-orm');
   
   app.post("/api/admin/setup", async (req, res) => {

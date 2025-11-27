@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { cvPersonalInfoSchema, type CVPersonalInfo, type User } from "@shared/schema";
+import { cvPersonalInfoSchema } from '@/lib/validationSchemas';
+import type { CVPersonalInfo, User } from '../../../../server/schema';
 import { COUNTRIES, DEFAULT_COUNTRY } from "@shared/countries";
 import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
 import { useQuery } from "@tanstack/react-query";

@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/form";
 import { Plus, Trash2 } from "lucide-react";
 import { z } from "zod";
-import { cvReferenceSchema } from "@shared/schema";
-import type { CVReference } from "@shared/schema";
+import { cvReferenceSchema } from '@/lib/validationSchemas';
+import type { CVReference } from '../../../../server/schema';
 
 const referencesFormSchema = z.object({
   references: z.array(cvReferenceSchema),

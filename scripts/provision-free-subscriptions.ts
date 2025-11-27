@@ -8,7 +8,7 @@
  */
 
 import { db } from "../server/db";
-import { users, organizations, subscriptions, plans, memberships } from "../shared/schema";
+import { users, organizations, subscriptions, plans, memberships } from '../server/schema';
 import { eq, and, sql } from "drizzle-orm";
 
 async function provisionFreeSubscriptions() {

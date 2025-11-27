@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { FileText, Plus, Eye, Trash2, Calendar, Upload, FilePen, Mail, Phone, MapPin, Briefcase, GraduationCap, Award, Edit, User } from "lucide-react";
-import { type CV, type CVPersonalInfo, type CVWorkExperience, type CVEducation } from "@shared/schema";
+import { type CV, type CVPersonalInfo, type CVWorkExperience, type CVEducation } from '../../../../server/schema';
 import CVBuilder from "@/components/CVBuilder";
 import ResumeUpload from "@/components/ResumeUpload";
 import CVPreview from "@/components/CVPreview";

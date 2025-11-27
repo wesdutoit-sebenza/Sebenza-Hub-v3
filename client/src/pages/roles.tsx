@@ -15,7 +15,7 @@ import { Slider } from "@/components/ui/slider";
 import { Loader2, Plus, Briefcase, MapPin, DollarSign, Users, Edit, Trash2, CheckCircle2, XCircle, TrendingUp, Target } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertRoleSchema } from "@shared/schema";
+import { insertRoleSchema } from '@/lib/validationSchemas';
 import { z } from "zod";
 import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
 

@@ -10,7 +10,7 @@
  */
 
 import { db } from "../server/db";
-import { plans, features, featureEntitlements } from "../shared/schema";
+import { plans, features, featureEntitlements } from '../server/schema';
 import { eq, and } from "drizzle-orm";
 
 const Z = (rands: number) => Math.round(rands * 100); // Convert R to cents

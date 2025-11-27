@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { z } from "zod";
-import { cvSkillsSchema } from "@shared/schema";
+import { cvSkillsSchema } from '@/lib/validationSchemas';
 import { SkillsMultiSelect } from "@/components/SkillsMultiSelect";
 import { migrateSkillsToNewFormat } from "@shared/skillsMigration";
 

@@ -13,7 +13,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Building, FileText, Users2, DollarSign, Trash2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import type { User } from "@shared/schema";
+import type { User } from '../../../server/schema';
 
 interface JobTemplate {
   id: string;

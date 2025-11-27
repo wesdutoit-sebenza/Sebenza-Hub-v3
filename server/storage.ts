@@ -1,7 +1,7 @@
-import { type User, type InsertUser, type UpsertUser, type Subscriber, type InsertSubscriber, type Job, type InsertJob, type CV, type InsertCV, type RefreshToken, type InsertRefreshToken, type ConnectedAccount, type InsertConnectedAccount, type InterviewPool, type InsertInterviewPool, type Interview, type InsertInterview } from "@shared/schema";
+import { type User, type InsertUser, type UpsertUser, type Subscriber, type InsertSubscriber, type Job, type InsertJob, type CV, type InsertCV, type RefreshToken, type InsertRefreshToken, type ConnectedAccount, type InsertConnectedAccount, type InterviewPool, type InsertInterviewPool, type Interview, type InsertInterview } from './schema';
 import { randomUUID } from "crypto";
 import { db } from "./db";
-import { connectedAccounts, interviewPools, interviews } from "@shared/schema";
+import { connectedAccounts, interviewPools, interviews } from './schema';
 import { eq, and, desc } from "drizzle-orm";
 
 export interface IStorage {
