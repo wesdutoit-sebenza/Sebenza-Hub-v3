@@ -35,7 +35,7 @@ import TestCoach from "@/pages/TestCoach";
 import TestAccess from "@/pages/TestAccess";
 import TestTake from "@/pages/TestTake";
 import TestResults from "@/pages/TestResults";
-import NotFound from "@/pages/not-found";
+import NotFound from "@/pages/NotFound";
 
 // Admin pages
 import { AdminLayout } from "@/components/admin/AdminLayout";
