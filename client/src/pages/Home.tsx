@@ -77,7 +77,7 @@ export default function Home() {
 
   return (
     <main id="main-content">
-      <section className="relative py-8 px-6 overflow-hidden text-[#1a2328] bg-[#1a2328]">
+      <section className="relative py-8 px-6 overflow-hidden text-navy bg-navy">
         <div className="max-w-5xl mx-auto">
           <video 
             autoPlay 
@@ -125,7 +125,7 @@ export default function Home() {
             return (
               <Card key={idx} className="p-6 hover-elevate" data-testid={`card-value-${idx}`}>
                 <Icon size={32} className="text-amber mb-4" />
-                <h3 className="font-semibold text-lg mb-2 text-[#70787e]" data-testid="text-value-title">{prop.title}</h3>
+                <h3 className="font-semibold text-lg mb-2 text-slate" data-testid="text-value-title">{prop.title}</h3>
                 <p className="text-sm text-slate" data-testid="text-value-description">{prop.description}</p>
               </Card>
             );
@@ -134,7 +134,7 @@ export default function Home() {
       </Section>
       <Section className="bg-graphite" id="how-it-works">
         <h2 className="text-3xl md:text-4xl font-serif font-semibold text-center mb-4 text-white-brand" data-testid="text-how-it-works-title">Hiring, Simplified. Powered by Sebenza Hub.</h2>
-        <p className="text-center mb-12 max-w-2xl mx-auto text-[#ffffff]">From posting to placement, Sebenza Hub streamlines your entire recruitment journey — saving time and connecting you with the right talent, faster.</p>
+        <p className="text-center mb-12 max-w-2xl mx-auto text-white-brand">From posting to placement, Sebenza Hub streamlines your entire recruitment journey — saving time and connecting you with the right talent, faster.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <Card className="p-6 hover-elevate" data-testid="card-process-post">
             <div className="relative mb-4 overflow-hidden rounded-lg">
@@ -152,7 +152,7 @@ export default function Home() {
                 <Briefcase className="text-amber" size={48} />
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Find the right talent—fast.</h3>
+                <h3 className="text-xl font-semibold mb-2 text-slate">Find the right talent—fast.</h3>
                 <p className="text-slate">Publish your job instantly with transparent salaries, WhatsApp integration, and smart compliance checks—because great hiring starts with clarity.</p>
               </div>
             </div>
@@ -174,7 +174,7 @@ export default function Home() {
                 <Brain className="text-amber" size={48} />
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Let our AI do the heavy lifting.</h3>
+                <h3 className="text-xl font-semibold mb-2 text-slate">Let our AI do the heavy lifting.</h3>
                 <p className="text-slate">Sebenza Hub’s AI-powered engine scans every CV, matches top candidates to your role, and explains why they’re a great fit—saving you hours of manual screening.</p>
               </div>
             </div>
@@ -196,7 +196,7 @@ export default function Home() {
                 <Video className="text-amber" size={48} />
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Interview smarter, not harder.</h3>
+                <h3 className="text-xl font-semibold mb-2 text-slate">Interview smarter, not harder.</h3>
                 <p className="text-slate">Chat, schedule, and interview directly via WhatsApp or Teams—all from your dashboard. Real-time collaboration keeps your team aligned and candidates engaged.</p>
               </div>
             </div>
@@ -218,7 +218,7 @@ export default function Home() {
                 <CheckCircle className="text-amber" size={48} />
               </div>
               <div>
-                <h3 className="text-xl font-semibold mb-2 text-[#70787e]">Make the offer in one click.</h3>
+                <h3 className="text-xl font-semibold mb-2 text-slate">Make the offer in one click.</h3>
                 <p className="text-slate">Send digital offers, manage acceptances, and onboard your new hire—all in one seamless flow. Sebenza Hub turns hiring into a human, hassle-free experience.</p>
               </div>
             </div>
@@ -238,7 +238,7 @@ export default function Home() {
             return (
               <Card key={idx} className="p-6 hover-elevate" data-testid={`card-agent-${idx}`}>
                 <Icon size={40} className="text-amber mb-4" data-testid={`icon-agent-${idx}`} />
-                <h3 className="font-semibold text-lg mb-2 text-[#70787e]" data-testid={`text-agent-title-${idx}`}>{agent.title}</h3>
+                <h3 className="font-semibold text-lg mb-2 text-slate" data-testid={`text-agent-title-${idx}`}>{agent.title}</h3>
                 <p className="text-sm text-slate" data-testid={`text-agent-description-${idx}`}>{agent.description}</p>
               </Card>
             );
@@ -262,7 +262,7 @@ export default function Home() {
                   height="450"
                 />
               </div>
-              <h3 className="text-2xl font-serif font-semibold mb-2 text-[#70787e]" data-testid="text-teaser-title">For Recruiters</h3>
+              <h3 className="text-2xl font-serif font-semibold mb-2 text-slate" data-testid="text-teaser-title">For Recruiters</h3>
               <p className="text-slate mb-4">
                 Less noise. Faster shortlists. Export to Pnet/CJ/Adzuna.
               </p>
@@ -285,7 +285,7 @@ export default function Home() {
                   height="450"
                 />
               </div>
-              <h3 className="text-2xl font-serif font-semibold mb-2 text-[#70787e]" data-testid="text-teaser-title">For Businesses</h3>
+              <h3 className="text-2xl font-serif font-semibold mb-2 text-slate" data-testid="text-teaser-title">For Businesses</h3>
               <p className="text-slate mb-4">
                 SME-friendly hiring with POPIA/EE compliance built-in.
               </p>
@@ -308,7 +308,7 @@ export default function Home() {
                   height="450"
                 />
               </div>
-              <h3 className="text-2xl font-serif font-semibold mb-2 text-[#70787e]" data-testid="text-teaser-title">For Individuals</h3>
+              <h3 className="text-2xl font-serif font-semibold mb-2 text-slate" data-testid="text-teaser-title">For Individuals</h3>
               <p className="text-slate mb-4">
                 One profile. Real salary ranges. Skills that matter.
               </p>
@@ -337,7 +337,7 @@ export default function Home() {
                   </span>
                 </div>
                 <div>
-                  <p className="font-semibold text-sm text-[#70787e]" data-testid="text-testimonial-name">{testimonial.name}</p>
+                  <p className="font-semibold text-sm text-slate" data-testid="text-testimonial-name">{testimonial.name}</p>
                   <p className="text-xs text-slate" data-testid="text-testimonial-role">
                     {testimonial.title}, {testimonial.company}
                   </p>
@@ -360,7 +360,7 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-serif font-semibold mb-4 text-white-brand" data-testid="text-cta-title">
             Ready to transform your hiring?
           </h2>
-          <p className="mb-8 text-[#ffffff]">
+          <p className="mb-8 text-white-brand">
             Join the waitlist for early access. No credit card required.
           </p>
           <form onSubmit={handleEmailSubmit} className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
