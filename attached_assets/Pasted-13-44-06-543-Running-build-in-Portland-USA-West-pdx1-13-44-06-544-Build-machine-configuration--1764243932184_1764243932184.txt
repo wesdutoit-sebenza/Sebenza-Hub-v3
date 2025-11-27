@@ -1,0 +1,48 @@
+13:44:06.543 Running build in Portland, USA (West) – pdx1
+13:44:06.544 Build machine configuration: 4 cores, 8 GB
+13:44:06.633 Cloning github.com/wesdutoit-sebenza/Sebenza-Hub-v3 (Branch: main, Commit: fc0d492)
+13:44:08.933 Cloning completed: 2.300s
+13:44:09.071 Restored build cache from previous deployment (8u1Z6pDRcGfZ6pZeqo9JQ6oixxRL)
+13:44:09.662 Running "vercel build"
+13:44:10.190 Vercel CLI 48.11.0
+13:44:10.882 Running "install" command: `npm install`...
+13:44:23.858 
+13:44:23.858 added 2 packages, and audited 277 packages in 13s
+13:44:23.858 
+13:44:23.858 27 packages are looking for funding
+13:44:23.858   run `npm fund` for details
+13:44:23.859 
+13:44:23.860 found 0 vulnerabilities
+13:44:24.087 
+13:44:24.088 > sebenza-hub-client@1.0.0 build
+13:44:24.088 > vite build
+13:44:24.088 
+13:44:24.535 [36mvite v6.4.1 [32mbuilding for production...[36m[39m
+13:44:24.790 transforming...
+13:44:30.747 [32m✓[39m 2649 modules transformed.
+13:44:31.179 rendering chunks...
+13:44:31.773 computing gzip size...
+13:44:31.825 [2mdist/[22m[32mindex.html                                                                                                                              [39m[1m[2m    1.62 kB[22m[1m[22m[2m │ gzip:   0.76 kB[22m
+13:44:31.826 [2mdist/[22m[2massets/[22m[32mu3533279657_Happy_employee_signing_contract_desk_with_laptop__c9cd7681-7b1f-449e-9cd3-ed6854df1887_0_1761202295751-vKflaHHE.png  [39m[1m[2m1,342.44 kB[22m[1m[22m
+13:44:31.826 [2mdist/[22m[2massets/[22m[32mu3533279657_Recruitment_meeting_with_notebook_and_pen_on_desk_4595fa8c-a7b0-45dc-9eeb-cb9f9f393194_3_1761202295752--5ABbzm0.png  [39m[1m[2m1,480.55 kB[22m[1m[22m
+13:44:31.826 [2mdist/[22m[2massets/[22m[32mu3533279657_South_African_team_collaborating_in_open-plan_off_fdf3ace1-427a-4f16-aaa5-d6099fde55b6_1_1761202295752-BBZ5Qkfz.png  [39m[1m[2m1,683.31 kB[22m[1m[22m
+13:44:31.826 [2mdist/[22m[2massets/[22m[32mu3533279657_Young_job_seeker_smiling_at_laptop_with_recruiter_3bd02d8d-0f33-42cf-b52a-f5c56e3b4b8c_0_1761202295752-ruqfvqLL.png  [39m[1m[2m1,753.15 kB[22m[1m[22m
+13:44:31.826 [2mdist/[22m[2massets/[22m[32mu3533279657_Modern_HR_team_reviewing_CVs_authentic_South_Afri_f2c1f635-e045-418a-acf5-01ef03bfc454_1_1761202295752-Bor1YHBv.png  [39m[1m[2m1,786.37 kB[22m[1m[22m
+13:44:31.826 [2mdist/[22m[2massets/[22m[32mu3533279657_Blue-collar_workers_at_morning_briefing_outdoor_i_ad47f0c2-e3cf-47ab-8976-d49ad110e3b8_0_1761202295752-CpqN3ryN.png  [39m[1m[2m1,837.71 kB[22m[1m[22m
+13:44:31.826 [2mdist/[22m[2massets/[22m[32mu3533279657_Diverse_professionals_shaking_hands_after_intervi_1c642bbb-5603-4c43-aa74-a81f8f5fc995_1_1761202295752-Cm73eRuM.png  [39m[1m[2m1,851.04 kB[22m[1m[22m
+13:44:31.827 [2mdist/[22m[2massets/[22m[32mSebenza Hub Logo Clip_1761211070614-D118cCL8.mp4                                                                                 [39m[1m[2m2,985.04 kB[22m[1m[22m
+13:44:31.827 [2mdist/[22m[2massets/[22m[35mindex-CzSRb-kr.css                                                                                                               [39m[1m[2m   36.99 kB[22m[1m[22m[2m │ gzip:   7.09 kB[22m
+13:44:31.827 [2mdist/[22m[2massets/[22m[36mpurify.es-B6FQ9oRL.js                                                                                                            [39m[1m[2m   22.57 kB[22m[1m[22m[2m │ gzip:   8.74 kB[22m
+13:44:31.827 [2mdist/[22m[2massets/[22m[36mindex.es-2qTFMCtY.js                                                                                                             [39m[1m[2m  159.35 kB[22m[1m[22m[2m │ gzip:  53.40 kB[22m
+13:44:31.827 [2mdist/[22m[2massets/[22m[36mhtml2canvas.esm-QH1iLAAe.js                                                                                                      [39m[1m[2m  202.38 kB[22m[1m[22m[2m │ gzip:  48.04 kB[22m
+13:44:31.827 [2mdist/[22m[2massets/[22m[36mindex-4yJWT-1W.js                                                                                                                [39m[1m[33m2,156.17 kB[39m[22m[2m │ gzip: 565.74 kB[22m
+13:44:31.827 [32m✓ built in 7.08s[39m
+13:44:31.827 [33m
+13:44:31.827 (!) Some chunks are larger than 500 kB after minification. Consider:
+13:44:31.827 - Using dynamic import() to code-split the application
+13:44:31.828 - Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+13:44:31.828 - Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+13:44:31.986 Build Completed in /vercel/output [21s]
+13:44:32.121 Deploying outputs...
+13:44:34.962 Deployment completed
+13:44:35.513 Creating build cache...
