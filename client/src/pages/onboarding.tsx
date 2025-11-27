@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Briefcase, Building2, UserCircle } from "lucide-react";
-import type { User } from "@shared/schema";
+import type { User } from '../../../server/schema';
 
 type UserRole = 'individual' | 'business' | 'recruiter';
 

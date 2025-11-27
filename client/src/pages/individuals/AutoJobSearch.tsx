@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import type { CompleteJob } from "@/types/job";
 import { formatLocation, formatSalary } from "@/types/job";
-import type { AutoSearchPreferences } from "@shared/schema";
+import type { AutoSearchPreferences } from '../../../../server/schema';
 
 interface MatchResult {
   job: CompleteJob;

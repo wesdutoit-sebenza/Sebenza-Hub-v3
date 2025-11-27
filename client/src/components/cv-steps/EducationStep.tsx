@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import { Plus, Trash2 } from "lucide-react";
 import { z } from "zod";
-import { cvEducationSchema } from "@shared/schema";
+import { cvEducationSchema } from '../../../../server/schema';
 
 const educationFormSchema = z.object({
   education: z.array(cvEducationSchema).min(1, "At least one education entry is required"),
