@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { User, Briefcase, MapPin, Mail, Phone, Globe, Save, X } from "lucide-react";
-import { type User as UserType } from '../../../server/schema';
+import { type User as UserType } from "@shared/schema";
 import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
 
 interface ProfileData {

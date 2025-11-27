@@ -13,7 +13,7 @@ import CVPreview from "./CVPreview";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { InsertCV, CV, CVPersonalInfo, CVWorkExperience, CVSkills, CVEducation, CVReference } from '../../../server/schema';
+import type { InsertCV, CV, CVPersonalInfo, CVWorkExperience, CVSkills, CVEducation, CVReference } from "@shared/schema";
 
 const steps = [
   { id: 1, name: "Personal Info", component: PersonalInfoStep },

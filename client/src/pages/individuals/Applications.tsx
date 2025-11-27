@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { type Job } from '../../../../server/schema';
+import { type Job } from "@shared/schema";
 
 interface JobApplication {
   id: string;

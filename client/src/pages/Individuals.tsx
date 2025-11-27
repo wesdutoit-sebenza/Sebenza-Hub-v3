@@ -27,7 +27,7 @@ import CVBuilder from "@/components/CVBuilder";
 import ResumeUpload from "@/components/ResumeUpload";
 import InterviewCoach from "@/components/InterviewCoach";
 import { User, Clock, Video, Upload, Award, Shield, Briefcase, MapPin, DollarSign, MessageCircle, Search, Filter, FileText, Check, Loader2 } from "lucide-react";
-import { type Job, type User as UserType } from '../../../server/schema';
+import { type Job, type User as UserType } from "@shared/schema";
 
 interface Plan {
   plan: {

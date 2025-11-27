@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/AuthContext";
-import type { User } from '../../../server/schema';
+import type { User } from "@shared/schema";
 
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = new Set([
