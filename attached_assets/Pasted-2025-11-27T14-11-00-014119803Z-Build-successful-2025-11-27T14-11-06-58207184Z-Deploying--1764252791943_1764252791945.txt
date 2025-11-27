@@ -1,0 +1,50 @@
+2025-11-27T14:11:00.014119803Z ==> Build successful 🎉
+2025-11-27T14:11:06.58207184Z ==> Deploying...
+2025-11-27T14:12:09.154284062Z ==> Running 'npm start'
+2025-11-27T14:12:09.474077527Z 
+2025-11-27T14:12:09.474095378Z > sebenza-hub-server@1.0.0 start
+2025-11-27T14:12:09.474098948Z > NODE_ENV=production node dist/index.js
+2025-11-27T14:12:09.474100598Z 
+2025-11-27T14:12:09.503820766Z node:internal/modules/cjs/loader:1423
+2025-11-27T14:12:09.503838977Z   throw err;
+2025-11-27T14:12:09.503841717Z   ^
+2025-11-27T14:12:09.503843837Z 
+2025-11-27T14:12:09.503846968Z Error: Cannot find module '/opt/render/project/src/server/dist/index.js'
+2025-11-27T14:12:09.503849157Z     at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+2025-11-27T14:12:09.503851328Z     at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+2025-11-27T14:12:09.503853458Z     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+2025-11-27T14:12:09.503856178Z     at Module._load (node:internal/modules/cjs/loader:1226:37)
+2025-11-27T14:12:09.503858278Z     at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+2025-11-27T14:12:09.503860348Z     at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+2025-11-27T14:12:09.503863498Z     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+2025-11-27T14:12:09.503865709Z     at node:internal/main/run_main_module:33:47 {
+2025-11-27T14:12:09.503868409Z   code: 'MODULE_NOT_FOUND',
+2025-11-27T14:12:09.503871539Z   requireStack: []
+2025-11-27T14:12:09.503873719Z }
+2025-11-27T14:12:09.503876389Z 
+2025-11-27T14:12:09.503880179Z Node.js v25.2.1
+2025-11-27T14:12:11.808880725Z ==> Exited with status 1
+2025-11-27T14:12:11.826948043Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2025-11-27T14:12:13.377318223Z ==> Running 'npm start'
+2025-11-27T14:12:13.596658246Z 
+2025-11-27T14:12:13.596687157Z > sebenza-hub-server@1.0.0 start
+2025-11-27T14:12:13.596692658Z > NODE_ENV=production node dist/index.js
+2025-11-27T14:12:13.596695078Z 
+2025-11-27T14:12:13.680494618Z node:internal/modules/cjs/loader:1423
+2025-11-27T14:12:13.680518659Z   throw err;
+2025-11-27T14:12:13.680521749Z   ^
+2025-11-27T14:12:13.680523859Z 
+2025-11-27T14:12:13.680526919Z Error: Cannot find module '/opt/render/project/src/server/dist/index.js'
+2025-11-27T14:12:13.680529339Z     at Module._resolveFilename (node:internal/modules/cjs/loader:1420:15)
+2025-11-27T14:12:13.68053152Z     at defaultResolveImpl (node:internal/modules/cjs/loader:1058:19)
+2025-11-27T14:12:13.680533489Z     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1063:22)
+2025-11-27T14:12:13.68053619Z     at Module._load (node:internal/modules/cjs/loader:1226:37)
+2025-11-27T14:12:13.68053832Z     at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+2025-11-27T14:12:13.68054055Z     at wrapModuleLoad (node:internal/modules/cjs/loader:245:24)
+2025-11-27T14:12:13.68054365Z     at Module.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:154:5)
+2025-11-27T14:12:13.6805457Z     at node:internal/main/run_main_module:33:47 {
+2025-11-27T14:12:13.680548561Z   code: 'MODULE_NOT_FOUND',
+2025-11-27T14:12:13.680551461Z   requireStack: []
+2025-11-27T14:12:13.680553541Z }
+2025-11-27T14:12:13.680555401Z 
+2025-11-27T14:12:13.680557371Z Node.js v25.2.1
