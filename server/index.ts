@@ -238,13 +238,18 @@ app.use((req, res, next) => {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    // Dynamically import vite module only in development
-    const { setupVite } = await import("./vite");
-    await setupVite(app, server);
+  // In production (Render), we only serve API - frontend is on Vercel
+  if (process.env.NODE_ENV !== "production") {
+    // Development mode - dynamically load Vite for HMR
+    // Use Function constructor to create truly dynamic import that esbuild cannot analyze
+    try {
+      const dynamicImport = new Function('modulePath', 'return import(modulePath)');
+      const viteModule = await dynamicImport('./vite.js');
+      await viteModule.setupVite(app, server);
+    } catch (e) {
+      console.log("[Dev] Vite setup skipped:", (e as Error).message);
+    }
   } else {
-    // In production, serve static files (Render backend doesn't serve frontend)
-    // Frontend is served by Vercel separately
     console.log("[Production] Backend API only mode - frontend served by Vercel");
   }
 
