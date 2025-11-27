@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Plus, Upload, FileText, TrendingUp, AlertCircle, CheckCircle2, XCircle, Clock, Target } from "lucide-react";
-import type { ScreeningJob, ScreeningCandidate, ScreeningEvaluation } from '../../../server/schema';
+import type { ScreeningJob, ScreeningCandidate, ScreeningEvaluation } from "@shared/schema";
 
 interface ScreeningStatsData {
   success: boolean;

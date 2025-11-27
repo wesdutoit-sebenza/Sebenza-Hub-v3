@@ -49,7 +49,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { JobApplication } from '../../../server/schema';
+import type { JobApplication } from "@shared/schema";
 import {
   formatLocation,
   formatSalary,

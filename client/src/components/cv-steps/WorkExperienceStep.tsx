@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/form";
 import { Plus, Trash2 } from "lucide-react";
 import { z } from "zod";
-import { cvWorkExperienceSchema } from '@/lib/validationSchemas';
+import { cvWorkExperienceSchema } from "@shared/schema";
 
 const workExperienceFormSchema = z.object({
   workExperience: z.array(cvWorkExperienceSchema).min(1, "At least one work experience is required"),

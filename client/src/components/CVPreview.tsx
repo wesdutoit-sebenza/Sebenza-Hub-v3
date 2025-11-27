@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Download, User, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import type { InsertCV } from '../../../server/schema';
+import type { InsertCV } from "@shared/schema";
 import { isOldSkillsFormat } from "@shared/skillsMigration";
 import { getCategoryForSkill } from "@shared/skills";
 // @ts-ignore

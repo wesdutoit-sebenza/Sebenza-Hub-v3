@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { User, Briefcase, MapPin, Mail, Phone, Save, Edit } from "lucide-react";
-import { type User as UserType } from '../../../../server/schema';
+import { type User as UserType } from "@shared/schema";
 import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
 import { COUNTRIES } from "@shared/countries";
 import { CITIES_BY_PROVINCE, getLocationDataForCity } from "@shared/cities";

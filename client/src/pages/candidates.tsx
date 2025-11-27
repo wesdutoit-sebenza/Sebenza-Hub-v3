@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, UserPlus, Mail, Phone, MapPin, Users, TrendingUp, Award, Globe } from "lucide-react";
-import type { Candidate } from '../../../server/schema';
+import type { Candidate } from "@shared/schema";
 
 interface StatsData {
   success: boolean;

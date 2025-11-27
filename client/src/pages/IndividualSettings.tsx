@@ -12,7 +12,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { User, Settings, Bell, Shield, FileText, Trash2, Save } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import type { CandidateProfile, IndividualPreferences, IndividualNotificationSettings } from '../../../server/schema';
+import type { CandidateProfile, IndividualPreferences, IndividualNotificationSettings } from "@shared/schema";
 import {
   AlertDialog,
   AlertDialogAction,

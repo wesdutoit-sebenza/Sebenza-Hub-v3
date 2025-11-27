@@ -44,13 +44,6 @@ Utilizes PostgreSQL (Neon) with Drizzle ORM and the pgvector extension, employin
 
 ### System Design Choices
 - **Monorepo Structure**: Organized into `client/`, `server/`, and `shared/` directories.
-  - **Shared Code**: Located at `/shared/` (root level)
-  - **Schema Types**: Located at `/server/schema.ts`
-  - **Symlinks**: Required for vite.config.ts path resolution (config is read-only):
-    - `/src` → `client/src` (for "@" alias)
-    - `/home/runner/shared` → `/home/runner/workspace/shared` (for "@shared" alias)
-    - `/home/runner/server` → `/home/runner/workspace/server` (for "@shared/schema" alias)
-    - `/home/runner/attached_assets` → `/home/runner/workspace/attached_assets`
 - **South African Context**: Designed with POPIA compliance and a WhatsApp-first workflow.
 
 ## External Dependencies

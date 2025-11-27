@@ -4,7 +4,7 @@
  */
 
 import { db } from '../db';
-import { subscriptions, usage } from '../schema';
+import { subscriptions, usage } from '@shared/schema';
 import { and, eq, lte, gte, sql } from 'drizzle-orm';
 
 /**

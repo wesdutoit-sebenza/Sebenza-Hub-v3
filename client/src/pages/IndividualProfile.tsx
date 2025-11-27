@@ -17,7 +17,7 @@ import {
   Edit
 } from "lucide-react";
 import { Link } from "wouter";
-import { type User as UserType } from '../../../server/schema';
+import { type User as UserType } from "@shared/schema";
 
 interface ProfileData {
   candidate: {

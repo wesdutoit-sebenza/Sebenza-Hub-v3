@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { db } from "./db";
-import { users, type User } from './schema';
+import { users, type User } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 // Extend Express session type to include userId

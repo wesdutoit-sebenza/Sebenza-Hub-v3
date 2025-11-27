@@ -20,7 +20,7 @@ import { COUNTRY_CODES, DEFAULT_COUNTRY_CODE } from "@shared/countryCodes";
 import { CITIES_BY_PROVINCE, getLocationDataForCity } from "@shared/cities";
 import { GoogleAddressSearch } from "@/components/GoogleAddressSearch";
 import { useEffect, useState } from "react";
-import type { User } from '../../../server/schema';
+import type { User } from "@shared/schema";
 
 const skillWithDetailsSchema = z.object({
   skill: z.string(),
