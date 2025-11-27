@@ -1,0 +1,50 @@
+2025-11-27T13:20:06.292453513Z > sebenza-hub-server@1.0.0 start
+2025-11-27T13:20:06.292457503Z > NODE_ENV=production node dist/index.js
+2025-11-27T13:20:06.292459243Z 
+2025-11-27T13:20:08.093301026Z node:internal/modules/package_json_reader:316
+2025-11-27T13:20:08.093322888Z   throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+2025-11-27T13:20:08.093326438Z         ^
+2025-11-27T13:20:08.093328678Z 
+2025-11-27T13:20:08.093333008Z Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /opt/render/project/src/server/dist/index.js
+2025-11-27T13:20:08.093339318Z     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:316:9)
+2025-11-27T13:20:08.093342829Z     at packageResolve (node:internal/modules/esm/resolve:768:81)
+2025-11-27T13:20:08.093344989Z     at moduleResolve (node:internal/modules/esm/resolve:858:18)
+2025-11-27T13:20:08.093347139Z     at defaultResolve (node:internal/modules/esm/resolve:990:11)
+2025-11-27T13:20:08.093349249Z     at #cachedDefaultResolve (node:internal/modules/esm/loader:712:20)
+2025-11-27T13:20:08.093351369Z     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:729:38)
+2025-11-27T13:20:08.093353509Z     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:758:52)
+2025-11-27T13:20:08.093357009Z     at #resolve (node:internal/modules/esm/loader:694:17)
+2025-11-27T13:20:08.09336049Z     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:614:35)
+2025-11-27T13:20:08.09336392Z     at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33) {
+2025-11-27T13:20:08.09336911Z   code: 'ERR_MODULE_NOT_FOUND'
+2025-11-27T13:20:08.09337271Z }
+2025-11-27T13:20:08.093376031Z 
+2025-11-27T13:20:08.093379411Z Node.js v25.2.1
+2025-11-27T13:20:16.10020441Z ==> No open ports detected, continuing to scan...
+2025-11-27T13:20:16.321321679Z ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+2025-11-27T13:20:16.717255929Z ==> Exited with status 1
+2025-11-27T13:20:16.735151167Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2025-11-27T13:20:17.93477343Z ==> Running 'npm run start'
+2025-11-27T13:20:18.211541813Z 
+2025-11-27T13:20:18.211562834Z > sebenza-hub-server@1.0.0 start
+2025-11-27T13:20:18.211567574Z > NODE_ENV=production node dist/index.js
+2025-11-27T13:20:18.211569704Z 
+2025-11-27T13:20:19.831704515Z node:internal/modules/package_json_reader:316
+2025-11-27T13:20:19.831735897Z   throw new ERR_MODULE_NOT_FOUND(packageName, fileURLToPath(base), null);
+2025-11-27T13:20:19.831739057Z         ^
+2025-11-27T13:20:19.831741207Z 
+2025-11-27T13:20:19.831744478Z Error [ERR_MODULE_NOT_FOUND]: Cannot find package 'vite' imported from /opt/render/project/src/server/dist/index.js
+2025-11-27T13:20:19.831748948Z     at Object.getPackageJSONURL (node:internal/modules/package_json_reader:316:9)
+2025-11-27T13:20:19.831751788Z     at packageResolve (node:internal/modules/esm/resolve:768:81)
+2025-11-27T13:20:19.831753878Z     at moduleResolve (node:internal/modules/esm/resolve:858:18)
+2025-11-27T13:20:19.831755968Z     at defaultResolve (node:internal/modules/esm/resolve:990:11)
+2025-11-27T13:20:19.831758008Z     at #cachedDefaultResolve (node:internal/modules/esm/loader:712:20)
+2025-11-27T13:20:19.831760119Z     at #resolveAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:729:38)
+2025-11-27T13:20:19.831762188Z     at ModuleLoader.resolveSync (node:internal/modules/esm/loader:758:52)
+2025-11-27T13:20:19.831764309Z     at #resolve (node:internal/modules/esm/loader:694:17)
+2025-11-27T13:20:19.831766369Z     at ModuleLoader.getOrCreateModuleJob (node:internal/modules/esm/loader:614:35)
+2025-11-27T13:20:19.831768799Z     at ModuleJob.syncLink (node:internal/modules/esm/module_job:143:33) {
+2025-11-27T13:20:19.831771509Z   code: 'ERR_MODULE_NOT_FOUND'
+2025-11-27T13:20:19.831773629Z }
+2025-11-27T13:20:19.831775569Z 
+2025-11-27T13:20:19.831777659Z Node.js v25.2.1
