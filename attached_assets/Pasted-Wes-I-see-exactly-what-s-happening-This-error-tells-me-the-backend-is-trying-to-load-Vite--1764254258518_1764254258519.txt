@@ -1,0 +1,202 @@
+Wes — I see **exactly** what’s happening.
+This error tells me the backend **is trying to load Vite**, which it should never do.
+
+# ❗ The backend is importing something that references Vite
+
+Render is running:
+
+```
+node dist/index.js
+```
+
+And Node explodes with:
+
+```
+Cannot find package 'vite' imported from /server/dist/index.js
+```
+
+This means:
+
+👉 **Your server code imports something from the client**, OR
+👉 **Your shared files import something that only exists in the client**, OR
+👉 **Your build includes a path alias that points into the client**.
+
+This only happens when **backend code pulls in frontend code**.
+
+---
+
+# ✅ Where the problem comes from
+
+Your current `vite.config.ts` has:
+
+```ts
+resolve: {
+  alias: {
+    "@shared/schema": path.resolve(import.meta.dirname, "../server/schema"),
+    "@shared": path.resolve(import.meta.dirname, "../shared"),
+  },
+},
+```
+
+And your `server/dist/index.js` shows that something is importing:
+
+```
+import something from 'vite'
+```
+
+This happens because:
+
+### ❌ The backend is using client-side shared files
+
+Example:
+
+```ts
+import { someType } from "@shared/schema";
+```
+
+But `@shared/schema` actually points to:
+
+```
+../server/schema
+```
+
+Which is wrong when used **from the server**.
+
+---
+
+# 💥 The root cause:
+
+### **Your backend is built inside /server.
+
+But your Vite config aliases point to folders OUTSIDE of client.
+During Vercel builds, this is fine.
+During Render builds, it breaks because Node sees compiled paths referencing Vite.**
+
+---
+
+# 🔥 Fix — clean separation
+
+You MUST do this:
+
+---
+
+## ✅ **CLEAN ALIAS FIX**
+
+### In **client/vite.config.ts**:
+
+```ts
+resolve: {
+  alias: {
+    "@": path.resolve(import.meta.dirname, "src"),
+    "@shared": path.resolve(import.meta.dirname, "../shared"),       // ok for client
+  },
+},
+```
+
+👉 **Remove `@shared/schema`**
+👉 **Remove any alias pointing into /server**
+
+---
+
+### In **server/tsconfig.json**:
+
+Add your own **server-side aliases**:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["../shared/*"],
+      "@server/*": ["./*"]
+    }
+  }
+}
+```
+
+---
+
+## ❗ Check your imports in the server
+
+Search for:
+
+```
+vite
+@vite
+@client
+@assets
+@shared/schema
+```
+
+None of these are allowed inside the server.
+
+Only allowed:
+
+```
+import { ... } from "@shared/...";      // OK
+import { ... } from "./..."             // OK
+```
+
+If anything in `server/` imports:
+
+```
+import something from "vite"
+```
+
+Remove it. The backend is not allowed to touch Vite.
+
+---
+
+# 💯 Most likely culprit
+
+You have this file:
+
+```
+shared/schema.ts
+```
+
+Then you added:
+
+```ts
+// Re-export everything from server/schema.ts
+export * from '../server/schema';
+```
+
+❌ **This is wrong and is the exact cause of the error.**
+Because now your client → shared → server → vite paths get bundled.
+
+---
+
+# ⭐ Do this instead (simple and correct):
+
+### Replace your shared schema file with:
+
+```ts
+// shared/schema.ts
+export * from './types';
+```
+
+### And remove this line entirely:
+
+```
+export * from '../server/schema';
+```
+
+---
+
+# 🔧 After fixing, redeploy Render
+
+Your backend will start normally.
+
+---
+
+# If you want, I can check the repo for you
+
+Send me:
+
+1. GitHub link to **v3 repo server folder**
+2. Link to **shared folder**
+
+I’ll tell you the exact file causing the Vite import.
+
+You're close. Let's finish it.
