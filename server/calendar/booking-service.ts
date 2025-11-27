@@ -14,7 +14,7 @@ import { createTeamsMeeting, updateMicrosoftEvent, deleteMicrosoftEvent } from '
 import { createZoomMeeting, updateZoomMeeting, deleteZoomMeeting } from './zoom-oauth';
 import { getAvailableSlots, validateSlot, type WorkingHours, type TimeSlot } from './availability';
 import type { IStorage } from '../storage';
-import type { InsertInterview, Interview } from '@shared/schema';
+import type { InsertInterview, Interview } from '../schema';
 
 type CalendarProvider = 'google' | 'microsoft' | 'zoom';
 

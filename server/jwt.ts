@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import { User } from "@shared/schema";
+import { User } from './schema';
 
 // Token configuration
 const ACCESS_TOKEN_EXPIRY = "15m"; // 15 minutes

@@ -11,6 +11,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
+      "@shared/schema": path.resolve(import.meta.dirname, "../server/schema"),
       "@shared": path.resolve(import.meta.dirname, "../shared"),
       "@assets": path.resolve(import.meta.dirname, "../attached_assets"),
     },

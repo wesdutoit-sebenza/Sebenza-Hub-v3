@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { db } from "../db";
-import { jobs } from "../../shared/schema";
+import { jobs } from '../schema';
 import { eq, sql } from "drizzle-orm";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });

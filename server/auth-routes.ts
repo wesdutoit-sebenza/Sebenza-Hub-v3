@@ -1,6 +1,6 @@
 import { Express, Request, Response } from "express";
 import { db } from "./db";
-import { users, magicLinkTokens, type User } from "@shared/schema";
+import { users, magicLinkTokens, type User } from './schema';
 import { eq, and, isNull, sql } from "drizzle-orm";
 import { authenticateSession, type AuthRequest } from "./auth-middleware";
 import { sendMagicLinkEmail, getUncachableResendClient } from "./resend";
