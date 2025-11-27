@@ -1,0 +1,177 @@
+Perfect — this is the part that’s been silently breaking **both your Vercel frontend and your Render backend**, so fixing `shared/schema.ts` is *very* important.
+
+I’ll give you the **exact correct version** and explain it simply so you know why it works.
+
+---
+
+# 🚨 **THE PROBLEM IN YOUR CURRENT shared/schema.ts**
+
+You currently have something like:
+
+```ts
+// Re-export everything from server/schema.ts
+export * from '../server/schema';
+```
+
+This causes:
+
+* ❌ Vercel to bundle server-only code into the frontend
+* ❌ Render backend to attempt to follow Vite paths
+* ❌ Build loops, module resolution errors
+* ❌ “Cannot find package 'vite' imported from server/dist/index.js”
+* ❌ Drift between frontend and backend builds
+
+**The client must NOT import server schema files.
+The server must NOT rely on client shared files.**
+
+---
+
+# ⭐ **WHAT YOU WANT**
+
+The correct architecture for Sebenza Hub:
+
+### ✔ **shared/** contains ONLY:
+
+* Types
+* Zod schemas (universal)
+* Enums
+* DTOs
+* Validation models
+
+### ❌ NOT ALLOWED in shared/**
+
+* Drizzle SQL models
+* PostgreSQL table definitions
+* Server-only code
+* Vite config
+* Anything from /server
+
+---
+
+# 🟩 **THE FIX (the correct and safe version)**
+
+You already have a Drizzle schema inside:
+
+```
+/server/schema.ts
+```
+
+And this must **only be used by the backend**.
+
+So your new `shared/schema.ts` should look like this:
+
+---
+
+# ⭐ **➡️ FINAL correct `shared/schema.ts` (paste this)**
+
+```ts
+/**
+ * Shared types for client + server.
+ * IMPORTANT: This file must NEVER import from /server.
+ *
+ * Only put:
+ * - Zod schemas
+ * - TypeScript types
+ * - Enums
+ * - Interfaces
+ *
+ * Drizzle ORM table definitions stay in /server/schema.ts
+ */
+
+export * from "./types";   // if you have shared types
+export * from "./zod";     // if you have shared zod schemas
+```
+
+If you don’t have `types.ts` or `zod.ts`, just leave it empty with a comment:
+
+```ts
+/**
+ * Shared types between client and server.
+ * Safe for Vercel + Render.
+ */
+```
+
+---
+
+# 💡 IMPORTANT RULE
+
+Your frontend should NEVER import Drizzle models:
+
+❌ WRONG – will break Vercel:
+
+```ts
+import { users } from "@shared/schema";
+```
+
+✔ CORRECT – safe:
+
+```ts
+import type { User } from "@shared/types";
+```
+
+---
+
+# 🟦 If your client needs DB fields (example: displaying a User)
+
+Make a *type-only mirror* of your Drizzle model in shared:
+
+```
+server/schema.ts → defines drizzle table for DB
+shared/types.ts → defines TypeScript interface for FE
+```
+
+Example:
+
+### In `/server/schema.ts`
+
+```ts
+export const users = pgTable("users", {
+  id: uuid("id").primary(),
+  email: text("email"),
+  role: text("role"),
+});
+```
+
+### In `/shared/types.ts`
+
+```ts
+export interface User {
+  id: string;
+  email: string;
+  role: string;
+}
+```
+
+---
+
+# 🔥 Why this fix matters
+
+### After updating `shared/schema.ts`:
+
+✔ Vercel will stop importing backend/server code
+✔ Render will stop trying to load Vite modules
+✔ Your builds will succeed
+✔ No more circular dependencies
+✔ Frontend and backend are safely separated
+✔ Shared code is clean and universal
+✔ Drizzle stays backend-only
+✔ Zod + Types remain shared
+
+This is the correct architecture for your **Vercel (frontend) / Render (backend) / Replit (dev)** setup.
+
+---
+
+# ❤️ If you want, I can also:
+
+✔ Build your complete `shared/types.ts`
+✔ Build Zod schemas for all your models
+✔ Add API contracts (Request/Response types)
+✔ Set up tRPC or typed API routes
+✔ Review the /server/schema.ts for correctness
+✔ Fix imports in the frontend that reference old shared models
+
+Just say:
+
+**“Fix types and Zod too”**
+
+and I’ll complete the shared layer for you.
