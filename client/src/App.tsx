@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { UpgradeProvider } from "./contexts/UpgradeContext";
 import { useRouteGuard } from "@/hooks/use-route-guard";
+import { usePageView } from "@/hooks/use-page-view";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Home from "@/pages/Home";
@@ -228,6 +229,8 @@ function Router() {
 function AppContent() {
   // Route guard runs once at top level to redirect users as needed
   useRouteGuard();
+  // Track page views on route changes for Google Analytics
+  usePageView();
 
   return (
     <div className="min-h-screen flex flex-col bg-charcoal">

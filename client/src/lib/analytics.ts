@@ -13,6 +13,17 @@ export function trackEvent(eventName: string, params?: EventParams): void {
   }
 }
 
+export function trackPageView(path?: string): void {
+  if (typeof window !== 'undefined' && window.gtag) {
+    const pagePath = path || window.location.pathname;
+    window.gtag('event', 'page_view', {
+      page_path: pagePath,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
+  }
+}
+
 export const analytics = {
   signup: {
     started: (params?: EventParams) => trackEvent('signup_started', params),
@@ -73,6 +84,7 @@ export const analytics = {
   },
   
   navigation: {
+    pageView: (path?: string) => trackPageView(path),
     dashboardLoaded: (params?: EventParams) => trackEvent('dashboard_loaded', params),
     navClicked: (params?: EventParams) => trackEvent('nav_clicked', params),
   },
@@ -89,6 +101,7 @@ export const analytics = {
 };
 
 export const GA_EVENTS = [
+  "page_view",
   "signup_started",
   "signup_completed",
   "login_success",
