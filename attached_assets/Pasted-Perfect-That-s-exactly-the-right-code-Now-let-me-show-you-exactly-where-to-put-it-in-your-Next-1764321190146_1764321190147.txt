@@ -1,0 +1,100 @@
+Perfect. That’s exactly the right code.
+Now let me show you **exactly where to put it** in your Next.js (App Router) project so GA works properly on Vercel.
+
+I’ll keep it simple and clean so you don’t break anything.
+
+---
+
+# ✅ **Where to paste the GA snippet in Next.js (App Router)**
+
+You paste it **inside your `app/layout.tsx` file**, inside the `<head>` tag.
+
+Here’s the exact code you should use — updated so it works with **Next.js + Vercel + your GA ID**.
+
+---
+
+# ✅ **Your final working `layout.tsx` implementation**
+
+Open:
+`app/layout.tsx`
+
+Paste this inside the `<head>` section:
+
+```tsx
+{process.env.NEXT_PUBLIC_GA_ID && (
+  <>
+    <script
+      async
+      src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`}
+    ></script>
+
+    <script
+      dangerouslySetInnerHTML={{
+        __html: `
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+        `,
+      }}
+    />
+  </>
+)}
+```
+
+That’s all you need.
+
+---
+
+# ❗ IMPORTANT: Add your GA ID to Vercel
+
+Go to:
+
+**Vercel → Project → Settings → Environment Variables**
+
+Add:
+
+```
+NEXT_PUBLIC_GA_ID = G-EM2T4WYPE6
+```
+
+Then redeploy.
+
+This lets you keep secrets out of your repo and switch between dev + production easily.
+
+---
+
+# 🧪 How to test that it’s working
+
+### Step 1 — Go to GA
+
+Left side → **Reports** → **Realtime**
+
+### Step 2 — Open your live website
+
+Visit:
+
+`https://www.sebenzahub.co.za`
+
+### Step 3 — Look at Realtime
+
+You should see:
+
+* 1 active user
+* location = South Africa
+* page you're on
+
+If you see this → **GA is working perfectly.**
+
+---
+
+# ⭐ Want me to wire your custom events next?
+
+I can create:
+
+* `trackEvent()` helper
+* components for `job_viewed`, `apply_started`, `apply_completed`
+* signup & recruiter tracking
+* server-side event examples
+
+Just say **“Yes, please wire the custom events”** and I’ll drop in ready-to-paste code.
