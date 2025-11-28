@@ -12,6 +12,7 @@ const PUBLIC_ROUTES = new Set([
   "/individuals",
   "/contact",
   "/pricing",
+  "/ga-register",
 ]);
 
 // Routes that are part of the onboarding flow

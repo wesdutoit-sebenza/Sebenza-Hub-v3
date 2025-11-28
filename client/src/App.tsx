@@ -36,6 +36,7 @@ import TestAccess from "@/pages/TestAccess";
 import TestTake from "@/pages/TestTake";
 import TestResults from "@/pages/TestResults";
 import NotFound from "@/pages/NotFound";
+import GARegister from "@/pages/ga-register";
 
 // Admin pages
 import { AdminLayout } from "@/components/admin/AdminLayout";
@@ -168,6 +169,7 @@ function Router() {
       <Route path="/individuals" component={Individuals} />
       <Route path="/contact" component={ContactUs} />
       <Route path="/pricing" component={Pricing} />
+      <Route path="/ga-register" component={GARegister} />
       <Route path="/jobs/:id" component={JobDetail} />
       <Route path="/individuals/job-searches" component={IndividualDashboardManualJobSearch} />
       <Route path="/screening" component={Screening} />
