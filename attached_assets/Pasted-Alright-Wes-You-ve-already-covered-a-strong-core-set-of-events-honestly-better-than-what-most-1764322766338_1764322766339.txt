@@ -1,0 +1,342 @@
+Alright Wes.
+You’ve already covered a **strong core set** of events — honestly better than what most SaaS platforms ever set up. But knowing your platform (Sebenza Hub) and how you operate (growth-focused, data-driven, product-iterative), there are a few more events that will give you **deeper insights**, tighter funnels, and more control over how users are behaving.
+
+I’ll keep it simple.
+Short sentences.
+Clear purpose.
+Nothing bloated.
+
+Here’s what I believe you **should add**.
+
+---
+
+# ⭐ 1. SEARCH & JOB DISCOVERY (very important for job platforms)
+
+### **search_no_results**
+
+When someone searches and finds *nothing*.
+
+Why?
+
+* Shows broken keywords.
+* Helps you create better job titles.
+* Shows where candidates struggle.
+
+---
+
+### **job_clicked_in_search**
+
+When someone clicks a job **from the search results**.
+
+Why?
+
+* Measures job title attractiveness.
+* Helps you reorder search results.
+
+Params:
+
+* job_id
+* position_in_list
+* search_query
+
+---
+
+### **job_filter_removed**
+
+You already have `filters_applied`.
+But you also want to know when users **remove filters**.
+
+Why?
+
+* Shows frustration.
+* Shows which filters confuse people.
+
+---
+
+# ⭐ 2. CANDIDATE PROFILE COMPLETENESS
+
+### **profile_abandoned**
+
+If user starts profile but leaves before saving.
+
+Why?
+
+* Helps you fix onboarding.
+* Shows where the drop-off is.
+
+Params:
+
+* step
+* time_spent
+
+---
+
+### **cv_replaced**
+
+Candidate removes an old CV and uploads a new one.
+
+Why?
+
+* Shows candidate activity and quality improvement.
+
+---
+
+# ⭐ 3. RECRUITER BEHAVIOUR (massive for monetisation)
+
+### **job_post_previewed**
+
+Recruiter opens preview before posting.
+
+Why?
+
+* Shows intent.
+* Shows if they struggle with the form.
+
+---
+
+### **job_post_abandoned**
+
+Recruiter starts posting a job but never posts.
+
+Why?
+
+* This is money leaking.
+* You can fix form fields.
+* Or add “Resume Draft” later.
+
+Params:
+
+* fields_completed_count
+
+---
+
+### **candidate_shortlisted**
+
+Recruiter clicks “shortlist.”
+
+Why?
+
+* Shows candidate quality.
+* Helps ranking algorithms.
+
+---
+
+### **candidate_rejected**
+
+Recruiter rejects a candidate.
+
+Why?
+
+* Helps improve matching.
+* Helps detect bad applicants.
+
+---
+
+# ⭐ 4. BILLING / SALES FUNNEL IMPROVEMENTS
+
+You already track:
+
+* subscription_started
+* subscription_completed
+* subscription_failed
+
+Add this:
+
+### **pricing_page_viewed**
+
+When user visits pricing page.
+
+Why?
+
+* You want to know how many users **enter** the billing funnel.
+* Helps tie traffic to revenue.
+
+---
+
+### **billing_info_entered**
+
+When a user enters card details / Netcash info.
+
+Why?
+
+* Shows friction points.
+* Shows where revenue is leaking.
+
+---
+
+# ⭐ 5. NAVIGATION & UX
+
+### **search_filter_tab_opened**
+
+When users open Salary / Region / Job Type / Industry filter panels.
+
+Why?
+
+* Helps you prioritise the most used filters.
+
+---
+
+### **pagination_clicked**
+
+If you use pagination for job listings.
+
+Why?
+
+* Helps you see how deep people browse.
+
+---
+
+# ⭐ 6. SYSTEM-LEVEL EVENTS (important when scaling)
+
+### **ai_match_generated**
+
+When your matching system produces a match list.
+
+Params:
+
+* job_id
+* candidates_returned
+
+Why?
+
+* You want to know if AI results are converting.
+
+---
+
+### **ai_cv_parse_failed**
+
+Your current events only track success.
+You want fails too.
+
+Why?
+
+* Allows Sentry + GA correlation.
+
+---
+
+### **webhook_failed**
+
+For Netcash, email providers, CV parsing, or AI.
+
+Why?
+
+* Lets GA show technical issues in product analytics.
+
+---
+
+# ⭐ 7. USER RETENTION EVENTS
+
+### **returning_user_logged_in**
+
+User logs in after X days inactive.
+
+Why?
+
+* Helps retention reporting.
+
+Params:
+
+* days_inactive
+
+---
+
+### **dashboard_time_spent**
+
+If you can measure duration.
+
+Why?
+
+* Shows how engaged recruiters are.
+* Helps prioritise dashboard layout changes.
+
+---
+
+# ⭐ 8. BUSINESS VERIFICATION FLOW
+
+If businesses upload docs:
+
+### **document_uploaded**
+
+Business uploads registration docs.
+
+### **document_approved**
+
+Admin approves them.
+
+Why?
+
+* For tracking verification funnels.
+* Stops onboarding bottlenecks.
+
+---
+
+# ⭐ Summary: Recommended New Events
+
+Here’s the clean list:
+
+### 🔍 Discovery & Search
+
+* search_no_results
+* job_clicked_in_search
+* job_filter_removed
+
+### 👤 Candidates
+
+* profile_abandoned
+* cv_replaced
+
+### 🧑‍💼 Recruiters
+
+* job_post_previewed
+* job_post_abandoned
+* candidate_shortlisted
+* candidate_rejected
+
+### 💳 Billing
+
+* pricing_page_viewed
+* billing_info_entered
+
+### 🧭 UX / Navigation
+
+* search_filter_tab_opened
+* pagination_clicked
+
+### 🤖 System / AI
+
+* ai_match_generated
+* ai_cv_parse_failed
+* webhook_failed
+
+### 📈 Retention
+
+* returning_user_logged_in
+* dashboard_time_spent
+
+### 🏢 Business Onboarding
+
+* document_uploaded
+* document_approved
+
+---
+
+# ⭐ If you want…
+
+I can generate:
+
+### ✓ ready-to-paste Next.js tracking code
+
+### ✓ exact event parameters
+
+### ✓ where each event should fire in your UI
+
+### ✓ a GA dashboard template showing:
+
+* job funnel
+* recruiter funnel
+* search funnel
+* billing funnel
+* candidate engagement
+* AI performance
+
+Just say: **“Yes, give me the tracking code + dashboard template.”**
