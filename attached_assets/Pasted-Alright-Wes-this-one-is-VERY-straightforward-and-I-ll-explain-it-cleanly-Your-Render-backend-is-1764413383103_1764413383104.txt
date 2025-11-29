@@ -1,0 +1,137 @@
+Alright Wes — this one is VERY straightforward, and I’ll explain it cleanly.
+
+Your Render backend is crashing because:
+
+❌ Your server is trying to run TWICE on port 5000
+
+Which causes:
+
+EADDRINUSE: address already in use 0.0.0.0:5000
+
+So something in your code is starting the server twice.
+
+This happens ONLY when:
+	•	You import the server file from another file
+	•	AND that server file also calls app.listen()
+	•	So the app gets started again when it shouldn’t
+	•	Or you built a monorepo with multiple start scripts that both run the server
+
+Let me show you exactly how to fix it.
+
+⸻
+
+✅ 1. Make sure ONLY ONE file runs the server
+
+Only ONE file in your backend should contain:
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+Usually this is:
+
+server/src/index.ts
+
+If you have this code duplicated ANYWHERE else — e.g.:
+	•	server/src/app.ts
+	•	server/src/server.ts
+	•	server/src/routes/*.ts
+	•	dist/index.js booting automatically AND another file booting again
+
+You get the “address already in use” crash.
+
+⸻
+
+✅ 2. Check if you accidentally imported the compiled server file
+
+If you see ANYTHING like:
+
+import './index';
+
+or
+
+require('./index');
+
+inside another file — delete it.
+This will cause double start.
+
+⸻
+
+✅ 3. Check for TWO listen calls inside index.ts
+
+Many people end up with something like:
+
+const server = app.listen(PORT);
+export default server;
+
+AND later:
+
+app.listen(PORT);
+
+This will also cause the crash.
+
+You should have ONLY ONE listen call.
+
+⸻
+
+✅ 4. Make sure your build folder isn’t running twice
+
+Sometimes dist/index.js starts the server automatically AND another file calls it again.
+
+Example bad setup:
+
+dist/
+   index.js   <-- contains app.listen(...)
+   server.js  <-- also contains app.listen(...)
+
+Render runs BOTH → crash.
+
+Fix: remove the second one.
+
+⸻
+
+🟧 5. Render may be running the wrong “Start Command”
+
+Check your Render settings:
+
+Render → Service → Settings → Start Command
+
+It should be:
+
+node dist/index.js
+
+NOT:
+
+npm start
+node dist/server.js
+ts-node src/index.ts
+
+All of these could cause a second duplicate server start.
+
+⸻
+
+🟢 The Fix Takes 1–2 Minutes
+
+Do this:
+
+Step 1 — Paste your backend entry file here
+
+Usually one of these:
+	•	server/src/index.ts
+	•	server/src/server.ts
+	•	Whatever file contains your app.listen(...)
+
+Step 2 — I will identify the duplicate listen() call and fix it for you.
+
+⸻
+
+🎯 Summary
+
+This error never means Render is running another process.
+It always means your code is starting the server twice.
+
+Fixing the duplicate server start = backend boots normally = magic links start working.
+
+⸻
+
+Wes, send me your server entry file and I’ll fix it in one message.
