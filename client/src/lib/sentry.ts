@@ -1,4 +1,4 @@
-import * as Sentry from "@sentry/react";
+import * as Sentry from "@sentry/browser";
 
 export function initSentry() {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
@@ -12,8 +12,6 @@ export function initSentry() {
     dsn,
     environment: import.meta.env.MODE,
     tracesSampleRate: 0.1,
-    replaysSessionSampleRate: 0,
-    replaysOnErrorSampleRate: 0,
   });
 
   console.log("[Sentry] Error tracking initialized");
@@ -21,6 +19,14 @@ export function initSentry() {
 
 export function captureError(error: Error, context?: Record<string, unknown>) {
   Sentry.captureException(error, { extra: context });
+}
+
+export function setUser(user: { id: string; email?: string; username?: string }) {
+  Sentry.setUser(user);
+}
+
+export function clearUser() {
+  Sentry.setUser(null);
 }
 
 export { Sentry };
