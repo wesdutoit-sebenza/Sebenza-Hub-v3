@@ -84,6 +84,11 @@ setTimeout(async () => {
   }
 }, 2000);
 
+// Cookie domain configuration for shared domain (sebenzahub.co.za + api.sebenzahub.co.za)
+// COOKIE_DOMAIN should be ".sebenzahub.co.za" for production with subdomains
+const cookieDomain = process.env.COOKIE_DOMAIN || undefined;
+const isProduction = process.env.NODE_ENV === "production" || !!process.env.REPLIT_DEPLOYMENT;
+
 app.use(
   session({
     store: new PgSession({
@@ -97,9 +102,12 @@ app.use(
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production" || !!process.env.REPLIT_DEPLOYMENT,
-      sameSite: "lax",
-      domain: undefined,
+      secure: isProduction,
+      // Use "lax" for same root domain (sebenzahub.co.za + api.sebenzahub.co.za)
+      // Use "none" only for completely different domains (requires secure: true)
+      sameSite: cookieDomain ? "lax" : (process.env.ALLOWED_ORIGINS ? "none" : "lax"),
+      // Set domain for cross-subdomain cookies (e.g., ".sebenzahub.co.za")
+      domain: cookieDomain,
     },
     proxy: true,
   })

@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Mail, Loader2, CheckCircle } from "lucide-react";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+
 export default function Login() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -61,7 +63,7 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/magic-link', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/magic-link`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
