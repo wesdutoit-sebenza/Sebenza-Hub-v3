@@ -11,6 +11,9 @@ import connectPgSimple from "connect-pg-simple";
 import cors from "cors";
 import compression from "compression";
 import { pool as pgPool } from "./db-pool";
+import { initSentry, setupSentryMiddleware } from "./sentry";
+
+initSentry();
 
 // Simple log function for server output
 export function log(message: string, source = "express") {
@@ -229,6 +232,8 @@ export async function initializeServer() {
   setupAuthRoutes(app);
   
   const server = await registerRoutes(app);
+
+  setupSentryMiddleware(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

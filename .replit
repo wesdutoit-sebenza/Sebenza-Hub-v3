@@ -104,3 +104,9 @@ integrations = ["resend:1.0.0", "javascript_openai_ai_integrations:1.0.0", "java
 
 [objectStorage]
 defaultBucketID = "replit-objstore-ebb56625-9861-4a62-a98e-39ed915d4cf0"
+
+[userenv]
+
+[userenv.shared]
+SENTRY_DSN = "https://55a0827718b6a4b3946dbb86a07cabb3@o4510445979762688.ingest.us.sentry.io/4510446046216192"
+VITE_SENTRY_DSN = "https://55a0827718b6a4b3946dbb86a07cabb3@o4510445979762688.ingest.us.sentry.io/4510446046216192"
