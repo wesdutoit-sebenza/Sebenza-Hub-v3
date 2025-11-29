@@ -1,33 +1,22 @@
+/**
+ * Sentry helper functions
+ * The actual initialization happens in instrument.ts
+ */
+
 import * as Sentry from "@sentry/node";
-import { nodeProfilingIntegration } from "@sentry/profiling-node";
 import type { Express } from "express";
 
 export function initSentry() {
-  const dsn = process.env.SENTRY_DSN;
-
-  if (!dsn) {
-    console.log("[Sentry] No DSN configured, error tracking disabled");
-    return;
+  if (process.env.SENTRY_DSN) {
+    console.log("[Sentry] Error tracking enabled");
   }
-
-  Sentry.init({
-    dsn,
-    environment: process.env.NODE_ENV || "development",
-    integrations: [nodeProfilingIntegration()],
-    tracesSampleRate: 1.0,
-    profilesSampleRate: 1.0,
-  });
-
-  console.log("[Sentry] Error tracking initialized");
 }
 
 export function setupSentryRequestHandlers(_app: Express) {
-  if (!process.env.SENTRY_DSN) return;
 }
 
 export function setupSentryErrorHandler(app: Express) {
   if (!process.env.SENTRY_DSN) return;
-  
   Sentry.setupExpressErrorHandler(app);
 }
 
