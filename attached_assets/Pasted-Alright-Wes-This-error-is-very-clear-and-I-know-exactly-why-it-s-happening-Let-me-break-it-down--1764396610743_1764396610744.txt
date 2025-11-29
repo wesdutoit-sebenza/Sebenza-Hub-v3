@@ -1,0 +1,196 @@
+Alright Wes.
+This error is very clear, and I know exactly why it’s happening.
+
+Let me break it down simply so you can fix it in a few minutes.
+
+---
+
+# ❌ **WHAT THE ERROR MEANS**
+
+Render is trying to run your backend:
+
+```
+node dist/index.js
+```
+
+Inside that compiled file, it finds this import:
+
+```ts
+import * as Sentry from "@sentry/node";
+```
+
+But when node tries to load it, it crashes:
+
+```
+Error: Cannot find package '@sentry/node'
+```
+
+This means one of the following is true:
+
+### **1. @sentry/node is NOT installed in your server package.json**
+
+### **2. It is installed in the WRONG folder (client instead of server)**
+
+### **3. You installed @sentry/nextjs instead of @sentry/node**
+
+### **4. Your server is using ESM and cannot resolve @sentry/node because the import syntax is wrong**
+
+### **5. Render is installing dependencies only in /client, not /server**
+
+Let’s fix it step-by-step.
+
+---
+
+# ✅ **STEP 1 — CHECK YOUR MONOREPO STRUCTURE**
+
+Your repo likely looks like this:
+
+```
+Sebenza-Hub-v3/
+   client/
+   server/
+```
+
+Render is deploying **server/**.
+
+But @sentry/node is probably installed in **client/** OR root, not in server.
+
+### ✔️ Fix:
+
+Open your **server folder** package.json.
+
+Is `@sentry/node` listed under **dependencies**?
+
+If NOT → you must install it in the server folder.
+
+---
+
+# ✅ **STEP 2 — INSTALL @sentry/node IN THE RIGHT PLACE**
+
+From the **server folder**, run:
+
+```bash
+cd server
+npm install @sentry/node @sentry/profiling-node
+```
+
+This ensures the modules exist **inside /server/node_modules**, which is what Render expects.
+
+Do NOT install this in the root.
+Do NOT install this in client.
+
+The correct place is:
+
+```
+/server/package.json
+```
+
+---
+
+# ✅ **STEP 3 — CHECK YOUR IMPORT STATEMENT**
+
+If your backend uses **ESM** (import/export), your Sentry file must look like this:
+
+```ts
+import * as Sentry from "@sentry/node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
+```
+
+If your backend is **CommonJS** (require), then use:
+
+```js
+const Sentry = require("@sentry/node");
+```
+
+If you mix these incorrectly, Node throws ERR_MODULE_NOT_FOUND.
+
+---
+
+# ✅ **STEP 4 — ENSURE RENDER BUILDS THE SERVER CORRECTLY**
+
+Open Render → your backend service → Build Command:
+
+Should be:
+
+```
+npm install
+npm run build
+```
+
+Start Command:
+
+```
+npm start
+```
+
+Your `server/package.json` should contain:
+
+```json
+"scripts": {
+  "start": "NODE_ENV=production node dist/index.js",
+  "build": "tsc"
+}
+```
+
+If you’re missing `tsc`, Render cannot build your server.
+
+---
+
+# ✅ **STEP 5 — CLEAR RENDER CACHE (IMPORTANT)**
+
+Render often keeps old caches.
+
+After fixing the above:
+
+1. Go to Render
+2. Click **Manual Deploy**
+3. Choose **Clear Build Cache & Deploy**
+
+This forces Render to reinstall dependencies from scratch.
+
+---
+
+# 🧩 SUMMARY OF FIX
+
+### 🔹 **Install sentry in the correct app**
+
+```
+cd server
+npm install @sentry/node @sentry/profiling-node
+```
+
+### 🔹 **Make sure it’s in server/package.json**
+
+Look for:
+
+```json
+"dependencies": {
+  "@sentry/node": "^8.x.x"
+}
+```
+
+### 🔹 **Fix import type**
+
+ESM:
+
+```ts
+import * as Sentry from "@sentry/node";
+```
+
+CJS:
+
+```js
+const Sentry = require("@sentry/node");
+```
+
+### 🔹 **Redeploy with clean cache**
+
+---
+
+# 🙋‍♂️ If you want, send me:
+
+1. **server/package.json**
+2. **server/src/index.ts** (or the file where Sentry is imported)
+3. **Render build + start commands**
+
+I’ll give you the exact correction for your code.
