@@ -11,7 +11,7 @@ import connectPgSimple from "connect-pg-simple";
 import cors from "cors";
 import compression from "compression";
 import { pool as pgPool } from "./db-pool";
-import { initSentry, setupSentryMiddleware } from "./sentry";
+import { initSentry, setupSentryRequestHandlers, setupSentryErrorHandler } from "./sentry";
 
 initSentry();
 
@@ -27,6 +27,8 @@ export function log(message: string, source = "express") {
 }
 
 export const app = express();
+
+setupSentryRequestHandlers(app);
 
 // Enable Brotli/Gzip compression for all responses
 app.use(compression({
@@ -233,13 +235,12 @@ export async function initializeServer() {
   
   const server = await registerRoutes(app);
 
-  setupSentryMiddleware(app);
+  setupSentryErrorHandler(app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     res.status(status).json({ message });
-    throw err;
   });
 
   return server;

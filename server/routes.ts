@@ -9449,6 +9449,10 @@ Write a compelling 5-10 line company description in a ${selectedTone} tone.`;
     }
   });
 
+  app.get("/api/sentry-test", (_req, res) => {
+    throw new Error("Sebenza Hub Sentry test error (backend)");
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;
