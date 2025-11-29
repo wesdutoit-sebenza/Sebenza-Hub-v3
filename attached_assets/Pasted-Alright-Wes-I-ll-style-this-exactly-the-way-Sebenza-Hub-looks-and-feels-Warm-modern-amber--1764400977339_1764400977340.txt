@@ -1,0 +1,145 @@
+Alright Wes — I’ll style this exactly the way **Sebenza Hub looks and feels**:
+
+**Warm modern amber.
+Deep charcoal.
+Montserrat-style typography.
+Soft edges.
+Premium, clean layout.**
+
+This will look professional and on-brand in *every* email client.
+
+Here’s the upgraded Sebenza Hub HTML email.
+
+---
+
+# ⭐ **Sebenza Hub — Branded Magic Link Email (Full HTML)**
+
+```html
+<div style="background-color:#f0f2f3; padding:40px 0; font-family: 'Montserrat', Arial, sans-serif;">
+  <div style="max-width:520px; margin:0 auto; background:#ffffff; border-radius:14px; padding:40px; border:1px solid #e5e7eb;">
+
+    <!-- LOGO -->
+    <div style="text-align:center; margin-bottom:24px;">
+      <img src="https://sebenzahub.co.za/logo.png"
+           alt="Sebenza Hub"
+           style="width:140px; height:auto;" />
+    </div>
+
+    <!-- HEADER -->
+    <h2 style="text-align:center; margin:0; font-size:24px; color:#2e2f31; font-weight:700;">
+      Sign in to Sebenza Hub
+    </h2>
+
+    <!-- MESSAGE -->
+    <p style="font-size:15px; color:#4a4d50; margin-top:24px; line-height:1.7;">
+      Hi there,
+      <br><br>
+      Tap the button below to sign in. Your magic link expires in
+      <strong>15 minutes</strong> for security.
+    </p>
+
+    <!-- BUTTON -->
+    <div style="text-align:center; margin:36px 0;">
+      <a href="{{MAGIC_LINK}}"
+         style="
+           background-color:#f4a300;
+           color:#ffffff;
+           padding:14px 28px;
+           border-radius:10px;
+           text-decoration:none;
+           font-size:16px;
+           font-weight:600;
+           display:inline-block;
+           box-shadow:0 4px 10px rgba(244,163,0,0.25);
+         ">
+        Sign In
+      </a>
+    </div>
+
+    <!-- FALLBACK LINK -->
+    <p style="font-size:14px; color:#5c6369; line-height:1.6;">
+      If the button doesn't work, use the link below:
+      <br><br>
+      <span style="color:#5c6369; word-break:break-all;">
+        {{MAGIC_LINK}}
+      </span>
+    </p>
+
+    <hr style="border:0; border-top:1px solid #e1dacc; margin:32px 0;">
+
+    <!-- FOOTER -->
+    <p style="font-size:12px; text-align:center; color:#5c6369; line-height:1.6;">
+      You’re receiving this email because you attempted to sign in to Sebenza Hub.
+      <br>
+      If you didn’t request this link, you can safely ignore it.
+    </p>
+
+    <div style="text-align:center; margin-top:18px;">
+      <p style="font-size:12px; color:#70787e;">
+        © 2025 Sebenza Hub · All rights reserved
+      </p>
+    </div>
+
+  </div>
+</div>
+```
+
+---
+
+# 🎨 **Brand colours used in the template**
+
+These match your current Sebenza Hub palette:
+
+| Purpose        | Colour                |
+| -------------- | --------------------- |
+| Primary Button | `#f4a300` (Amber)     |
+| Text           | `#2e2f31` (Charcoal)  |
+| Secondary Text | `#4a4d50` / `#5c6369` |
+| Background     | `#f0f2f3`             |
+| Divider        | `#e1dacc`             |
+
+---
+
+# 🟦 Add Montserrat font (optional)
+
+If you want it fully Montserrat, Resend allows Google Fonts inline:
+
+Add inside the `<head>` section:
+
+```html
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+```
+
+But email clients often block external CSS, so I kept it safe by falling back to `"Montserrat", Arial, sans-serif`.
+
+---
+
+# 🛠 How to use it in Resend
+
+```ts
+const html = EMAIL_TEMPLATE.replace(/{{MAGIC_LINK}}/g, magicLink);
+
+await resend.emails.send({
+  from: "Sebenza Hub <login@sebenzahub.co.za>",
+  to: email,
+  subject: "Your Sebenza Hub Sign-In Link",
+  html,
+});
+```
+
+---
+
+# Want the “dark mode friendly” version too?
+
+I can create a dual-mode email that looks perfect in light and dark mode automatically.
+
+Or… I can build:
+
+* A **passwordless sign-in email**
+* A **Welcome to Sebenza Hub** template
+* A **Reset your email** template
+* A **New job posted** email
+* Recruiter notifications
+* Candidate application notifications
+
+Just tell me what you want next.
