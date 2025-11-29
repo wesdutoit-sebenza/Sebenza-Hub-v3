@@ -145,16 +145,22 @@ export async function sendMagicLinkEmail(email: string, token: string) {
     <hr style="border:0; border-top:1px solid #e1dacc; margin:32px 0;">
 
     <p style="font-size:12px; text-align:center; color:#5c6369; line-height:1.6;">
-      You're receiving this email because you attempted to sign in to Sebenza Hub.
+      You received this email because you attempted to sign in to Sebenza Hub.
       <br>
-      If you didn't request this link, you can safely ignore it.
+      If you didn't request this, just ignore it.
     </p>
 
-    <div style="text-align:center; margin-top:18px;">
-      <p style="font-size:12px; color:#70787e;">
-        &copy; 2025 Sebenza Hub &middot; All rights reserved
-      </p>
+    <div style="text-align:center; margin-top:30px;">
+      <img 
+        src="https://sebenzahub.co.za/email-assets/sebenza-banner.png"
+        alt="Sebenza Hub"
+        style="width:100%; max-width:520px; border-radius:10px; display:block; margin:0 auto;"
+      />
     </div>
+
+    <p style="font-size:12px; color:#70787e; text-align:center; margin-top:16px;">
+      &copy; 2025 Sebenza Hub &middot; All rights reserved
+    </p>
 
   </div>
 </div>
@@ -229,11 +235,17 @@ export async function sendWelcomeEmail(email: string, name?: string) {
       If you have any questions, reply to this email or contact our support team.
     </p>
 
-    <div style="text-align:center; margin-top:18px;">
-      <p style="font-size:12px; color:#70787e;">
-        &copy; 2025 Sebenza Hub &middot; All rights reserved
-      </p>
+    <div style="text-align:center; margin-top:30px;">
+      <img 
+        src="https://sebenzahub.co.za/email-assets/sebenza-banner.png"
+        alt="Sebenza Hub"
+        style="width:100%; max-width:520px; border-radius:10px; display:block; margin:0 auto;"
+      />
     </div>
+
+    <p style="font-size:12px; color:#70787e; text-align:center; margin-top:16px;">
+      &copy; 2025 Sebenza Hub &middot; All rights reserved
+    </p>
 
   </div>
 </div>
