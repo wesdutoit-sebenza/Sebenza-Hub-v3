@@ -1,0 +1,132 @@
+Wes, this error is **100% coming from ONE FILE** in your repo:
+
+```
+/client/src/lib/sentry.ts
+```
+
+And inside that file, you **still have this line**:
+
+```ts
+import * as Sentry from "@sentry/react";
+```
+
+This is why Vite/Vercel refuses to build.
+
+Let me walk you through exactly what to do so this stops breaking.
+
+---
+
+# ✅ **Why this keeps failing**
+
+Your frontend is **Vite + React**, NOT Next.js.
+That means:
+
+❌ `@sentry/react` → **is not installed**
+❌ Vite cannot resolve it → **build fails**
+❌ Sentry wizard didn’t generate configs → **because Vite isn’t supported automatically**
+
+So Vercel sees the file, tries to build it, and dies instantly.
+
+---
+
+# 🎯 **The fix is extremely simple**
+
+## **➡️ Option A (Recommended): DELETE the file**
+
+Since Vite React apps **do not need** a custom Sentry init file unless you’re doing something advanced.
+
+Delete the file:
+
+```
+client/src/lib/sentry.ts
+```
+
+Push → Deploy → Build will pass.
+
+---
+
+## **➡️ Option B: Fix the import**
+
+If you actually want to keep custom Sentry code, then change the import.
+
+Replace:
+
+```ts
+import * as Sentry from "@sentry/react";
+```
+
+with:
+
+```ts
+import * as Sentry from "@sentry/browser";
+```
+
+And install it:
+
+```bash
+npm install @sentry/browser
+```
+
+That works fine with Vite.
+
+---
+
+# 🔥 **99% fix for your repo**
+
+Your best move right now:
+
+### ✔ Delete this file
+
+`/client/src/lib/sentry.ts`
+
+### ✔ Remove any code that imports it
+
+Look for things like:
+
+```ts
+import "../../lib/sentry";
+```
+
+And remove them.
+
+Your repo already has Sentry set up on the backend.
+The frontend (Vite React) should use the browser SDK **inside main.tsx**, not a custom file.
+
+---
+
+# 🧠 **Correct Vite React Sentry setup (if you want to keep Sentry in frontend)**
+
+In `main.tsx`, add this:
+
+```ts
+import * as Sentry from "@sentry/browser";
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN,
+});
+```
+
+Not `@sentry/react`.
+Not a custom lib file.
+
+Then create:
+
+```
+VITE_SENTRY_DSN=YOUR_DSN_HERE
+```
+
+In Vercel.
+
+---
+
+# 💯 What I recommend right now
+
+Delete the bad file → redeploy.
+
+You're back online in 2 minutes.
+
+---
+
+# If you want:
+
+Send me **your client folder tree** and I’ll show you exactly where Sentry should live for Vite + React.
