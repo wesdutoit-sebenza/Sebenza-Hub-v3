@@ -38,18 +38,31 @@ app.use(compression({
 }));
 
 // CORS configuration for cross-origin requests (Vercel frontend → Render backend)
+// Production domains are hardcoded as fallback, plus any from ALLOWED_ORIGINS env var
+const productionOrigins = [
+  "https://sebenzahub.co.za",
+  "https://www.sebenzahub.co.za",
+  "https://staging.sebenzahub.co.za",
+  "https://sebenza-hub-v3.vercel.app",
+];
+const envOrigins = process.env.ALLOWED_ORIGINS?.split(",").map(o => o.trim()).filter(Boolean) || [];
+const allAllowedOrigins = [...new Set([...productionOrigins, ...envOrigins])];
+
 app.use(cors({
   origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman)
     if (!origin) return callback(null, true);
     
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || [];
-    if (process.env.NODE_ENV === "production" && allowedOrigins.length > 0) {
-      if (allowedOrigins.includes(origin)) {
+    // In production, check against allowed origins list
+    if (process.env.NODE_ENV === "production" || process.env.REPLIT_DEPLOYMENT) {
+      if (allAllowedOrigins.includes(origin)) {
         return callback(null, true);
       }
+      console.log(`[CORS] Blocked origin: ${origin}`);
       return callback(new Error("Not allowed by CORS"), false);
     }
     
+    // In development, allow all origins
     callback(null, true);
   },
   credentials: true,
@@ -57,6 +70,9 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
   exposedHeaders: ['Set-Cookie'],
 }));
+
+// Log allowed origins on startup
+console.log(`[CORS] Allowed origins: ${allAllowedOrigins.join(", ")}`);
 
 declare module 'http' {
   interface IncomingMessage {

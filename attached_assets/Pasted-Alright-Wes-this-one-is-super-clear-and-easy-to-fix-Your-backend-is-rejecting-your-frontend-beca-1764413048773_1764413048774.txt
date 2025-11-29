@@ -1,0 +1,115 @@
+Alright Wes — this one is super clear and easy to fix.
+
+Your backend is rejecting your frontend because the origin domain is not whitelisted in your CORS setup.
+
+The error:
+
+Error: Not allowed by CORS
+
+means your backend is only allowing certain domains, and sebenzahub.co.za (your production domain) is not on the list — or it’s slightly mis-typed.
+
+This is why magic links only fail on Vercel + production.
+
+Let’s fix it fast.
+
+⸻
+
+✅ 1. Add ALL allowed domains in your CORS config
+
+In your backend server/src/index.ts (or wherever CORS is defined), find this:
+
+app.use(cors({
+  origin: [ ... ],
+  credentials: true
+}));
+
+Replace the origin array with this EXACT list:
+
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://sebenzahub.co.za",
+    "https://www.sebenzahub.co.za",
+    "https://staging.sebenzahub.co.za",
+    "https://sebenza-hub-v3.vercel.app",     // optional, useful for previews
+    "https://*.sebenzahub.co.za"             // optional wildcard
+  ],
+  credentials: true,
+}));
+
+Make sure the strings are EXACT — no trailing slashes.
+
+⸻
+
+🟨 Why this is happening
+
+Your Render backend is receiving a request like:
+
+Origin: https://sebenzahub.co.za
+
+But your CORS config does not include that exact string, so it rejects it.
+
+Magic link fails → you see the red error toast.
+
+⸻
+
+🔥 2. Optional — Use a dynamic origin checker (safer)
+
+Instead of a static array, use this function:
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://sebenzahub.co.za",
+  "https://www.sebenzahub.co.za",
+  "https://staging.sebenzahub.co.za",
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // mobile / curl
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+}));
+
+
+⸻
+
+🟦 3. Deploy again
+
+After editing the backend:
+
+In Render:
+	1.	Save
+	2.	Click Manual Deploy → Clear build cache & deploy
+
+Render MUST reinstall after CORS changes.
+
+⸻
+
+🟢 4. Test again
+
+Go to production:
+
+https://sebenzahub.co.za/login
+
+Enter email → click Send magic link.
+
+It will now succeed.
+
+⸻
+
+❤️‍🔥 Wes, you just fixed magic link in production
+
+This error was 100% CORS blocking your frontend domain.
+
+⸻
+
+If you want, I can inspect your backend CORS section
+
+Just paste:
+
+📄 server/src/index.ts (or app.ts)
+
+I’ll apply the exact patch in the right place for you.
