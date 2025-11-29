@@ -1,0 +1,259 @@
+Cool, let’s wire Sentry in properly. I’ll walk you through:
+
+* Next.js (Vercel)
+* Node backend (Render)
+
+You can do them in this order.
+
+---
+
+## 1️⃣ Create your Sentry account & projects
+
+1. Go to Sentry and sign up / log in. ([Stackademic][1])
+2. Create **one project for Next.js** (pick “Next.js / JavaScript” as platform). ([docs.sentry.io][2])
+3. Create **one project for Node.js** (platform: Node). ([Stackademic][1])
+4. In each project, grab the **DSN** from:
+
+   * *Project → Settings → Client Keys (DSN)*. ([Stackademic][1])
+
+Keep those DSNs handy.
+
+---
+
+## 2️⃣ Next.js (Sebenza Hub frontend on Vercel)
+
+You’ll do this in your project root (the same repo you deploy from GitHub).
+
+### Step 2.1 – Install the SDK via the wizard
+
+In Replit shell (or local dev):
+
+```bash
+npm install @sentry/nextjs
+npx @sentry/wizard@latest -i nextjs
+```
+
+The wizard will: ([docs.sentry.io][2])
+
+* Ask you to log in to Sentry.
+* Ask which org + project to link.
+* Create config files like:
+
+  * `sentry.client.config.(js|ts)`
+  * `sentry.server.config.(js|ts)`
+* Update your `next.config.mjs` (or `.js/.ts`) to wrap export with `withSentryConfig`. ([Chris.lu][3])
+
+Say **yes** when it asks about source maps / releases – this helps with readable stack traces.
+
+---
+
+### Step 2.2 – Check `next.config.mjs`
+
+You should now see something like:
+
+```ts
+// next.config.mjs
+import { withSentryConfig } from "@sentry/nextjs";
+
+const nextConfig = {
+  // your existing config...
+};
+
+export default withSentryConfig(nextConfig, {
+  org: "your-org-slug",
+  project: "your-nextjs-project-slug",
+  silent: true,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  hideSourceMaps: true,
+  disableLogger: true,
+  automaticVercelMonitors: true,
+});
+```
+
+Don’t change much here yet. Just make sure `withSentryConfig` is wrapping your config. ([Chris.lu][3])
+
+---
+
+### Step 2.3 – Check `sentry.client.config` & `sentry.server.config`
+
+Open `sentry.client.config.ts` (or `.js`) and `sentry.server.config.ts`. They’ll look roughly like: ([CSDN Blog][4])
+
+```ts
+// sentry.client.config.ts
+import * as Sentry from "@sentry/nextjs";
+
+Sentry.init({
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  tracesSampleRate: 1.0,
+  debug: false,
+});
+```
+
+```ts
+// sentry.server.config.ts
+import * as Sentry from "@sentry/nextjs";
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: 1.0,
+});
+```
+
+You can leave `tracesSampleRate: 1.0` for now in dev. In production you’ll probably drop that later (e.g. `0.2`).
+
+---
+
+### Step 2.4 – Set env vars in Vercel
+
+In Vercel → Project → **Settings → Environment Variables**:
+
+Add (at minimum):
+
+* `SENTRY_DSN` → DSN from the Next.js project
+* `NEXT_PUBLIC_SENTRY_DSN` → same DSN (for browser)
+* `SENTRY_AUTH_TOKEN` → from Sentry “Auth Tokens” (for source map upload) ([Chris.lu][3])
+* `SENTRY_ORG` → your org slug
+* `SENTRY_PROJECT` → your Next.js project slug
+
+Redeploy the app after saving.
+
+> Optional: you can also install the **“Sentry for Vercel”** integration from the Vercel marketplace, which wires some of these env vars automatically. ([Chris.lu][3])
+
+---
+
+### Step 2.5 – Verify Sentry is catching Next.js errors
+
+Pick any client component (e.g. a small test page) and temporarily add:
+
+```tsx
+"use client";
+
+import * as Sentry from "@sentry/nextjs";
+
+export default function SentryTest() {
+  return (
+    <button
+      onClick={() => {
+        throw new Error("Sebenza Hub Sentry test error (frontend)");
+      }}
+    >
+      Trigger Sentry Error
+    </button>
+  );
+}
+```
+
+Deploy. Open that page in **production**, click the button, then:
+
+* Go to Sentry → your Next.js project → **Issues**.
+* You should see “Sebenza Hub Sentry test error (frontend)”.
+
+Once it shows up, you can remove that test button.
+
+---
+
+## 3️⃣ Node backend (Render)
+
+Assuming your backend is Node/Express (or very similar).
+
+### Step 3.1 – Install the Node SDK
+
+In your backend repo:
+
+```bash
+npm install @sentry/node @sentry/profiling-node
+```
+
+(Older guides use `@sentry/tracing`; newer ones use `@sentry/profiling-node` for performance.) ([docs.sentry.io][5])
+
+---
+
+### Step 3.2 – Initialize Sentry at the top of your server
+
+In your main server file (`server.ts`, `index.ts`, `app.ts`, etc.), **before** routes and middleware:
+
+```ts
+import * as Sentry from "@sentry/node";
+import { nodeProfilingIntegration } from "@sentry/profiling-node";
+import express from "express";
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  integrations: [nodeProfilingIntegration()],
+  tracesSampleRate: 1.0,
+  profilesSampleRate: 1.0,
+});
+
+const app = express();
+
+// Request handler must be the first middleware
+app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.tracingHandler());
+```
+
+Then **after** your routes, but **before** your own error handler:
+
+```ts
+// your routes...
+// app.use("/api/...", router);
+
+// Sentry error handler must be before any other error middleware
+app.use(Sentry.Handlers.errorHandler());
+```
+
+This is straight from the Express guide. ([docs.sentry.io][5])
+
+---
+
+### Step 3.3 – Set env vars in Render
+
+In your Render dashboard → your backend service → **Environment**:
+
+* `SENTRY_DSN` → DSN from your **Node.js** Sentry project
+
+Redeploy.
+
+---
+
+### Step 3.4 – Force a backend error to test
+
+In one of your routes, intentionally throw:
+
+```ts
+app.get("/sentry-test", (_req, _res) => {
+  throw new Error("Sebenza Hub Sentry test error (backend)");
+});
+```
+
+Hit that endpoint in the browser or via curl/Postman.
+
+Then check Sentry → Node project → **Issues**.
+You should see “Sebenza Hub Sentry test error (backend)”.
+
+Remove the test route once confirmed.
+
+---
+
+## 4️⃣ How this will feel once it’s running
+
+* Frontend errors: Next.js pages, client components, and API routes throwing will appear in the **Next.js project** with full stack traces and user/device info. ([docs.sentry.io][2])
+* Backend errors: Node/Express crashes, thrown errors in routes, DB failures → show up in the **Node project**. ([docs.sentry.io][5])
+
+You’ll be able to:
+
+* Click an issue → see the exact file + line that broke.
+* See how often it happens and which users it affects.
+* Mark issues as resolved / ignored.
+
+---
+
+If you want, next step I can do for you is:
+
+* A **tiny Sentry helper** you can import in your backend to log custom events + context (e.g. `Sentry.setUser({ id: userId })`, `Sentry.captureException(error)`), and
+* A **basic alerting rule** suggestion (e.g. “notify me on Slack if a new error happens more than 5 times in 5 minutes”).
+
+[1]: https://blog.stackademic.com/improving-node-js-error-handling-with-sentry-e78b62cdcbe0?utm_source=chatgpt.com "Improving Node.js Error Handling with Sentry"
+[2]: https://docs.sentry.io/platforms/javascript/guides/nextjs/?utm_source=chatgpt.com "Sentry for Next.js"
+[3]: https://chris.lu/web_development/tutorials/next-js-static-first-mdx-starterkit/error-handling-and-logging?utm_source=chatgpt.com "Error handling and logging - Next.js 15 Tutorial - Chris.lu"
+[4]: https://blog.csdn.net/2501_92798394/article/details/151689624?utm_source=chatgpt.com "在混沌宇宙中捕捉错误的光——Next.js 全栈Sentry / ..."
+[5]: https://docs.sentry.io/platforms/javascript/guides/express/?utm_source=chatgpt.com "Sentry for Express"
