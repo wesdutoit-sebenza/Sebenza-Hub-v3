@@ -1,0 +1,200 @@
+Alright Wes — let me walk you through this calmly and quickly.
+
+Your **frontend UI** is working.
+Your **magic link form** is working.
+But the **backend call is failing**.
+
+And since this only happens **on production**, not in Replit dev, the problem is one of these:
+
+# ✅ 1. **Your frontend is calling the WRONG backend URL**
+
+This is the #1 reason for this error.
+
+Your production frontend must call:
+
+```
+https://sebenza-hub-v3.onrender.com/auth/magic/send
+```
+
+But odds are your code still points to:
+
+```
+http://localhost:5000
+```
+
+or
+
+```
+https://<replit-url>.repl.co
+```
+
+or
+
+your old dev URL.
+
+Check your frontend code:
+
+### Look for:
+
+```ts
+fetch("http://localhost:5000/auth/magic/send")
+```
+
+or:
+
+```ts
+import.meta.env.VITE_API_URL
+```
+
+Then go to your **Vercel environment variables**.
+
+You must set:
+
+```
+VITE_API_URL=https://sebenza-hub-v3.onrender.com
+```
+
+And then call:
+
+```ts
+fetch(`${import.meta.env.VITE_API_URL}/auth/magic/send`, ...)
+```
+
+---
+
+# ❗ 2. Your Render backend is failing to boot
+
+You showed earlier:
+
+```
+Cannot find package '@sentry/node'
+Exited with status 1
+```
+
+That means your backend **is not even running**.
+
+If the backend is down → sending magic link will ALWAYS fail.
+
+### Let’s confirm:
+
+Go to:
+
+```
+https://sebenza-hub-v3.onrender.com/health
+```
+
+(or whatever health route you have)
+
+If Render is offline → fix backend first.
+
+---
+
+# ⚠️ 3. Your backend CORS is blocking production requests
+
+Check your backend CORS settings.
+
+You must allow:
+
+```
+https://sebenzahub.co.za
+https://www.sebenzahub.co.za
+https://staging.sebenzahub.co.za
+```
+
+Example fix in Express:
+
+```ts
+app.use(cors({
+  origin: [
+    "https://sebenzahub.co.za",
+    "https://www.sebenzahub.co.za",
+    "https://staging.sebenzahub.co.za",
+  ],
+  credentials: true,
+}));
+```
+
+If CORS blocks it → the magic link fails silently → your UI shows “failed to send”.
+
+---
+
+# 🚨 4. Your Resend API key is missing in Render production
+
+If the backend is running but Resend fails, the API call returns:
+
+```
+401 Unauthorized
+```
+
+Check Render env vars:
+
+Should contain:
+
+```
+RESEND_API_KEY=...
+MAGIC_LINK_URL=https://sebenzahub.co.za/auth/magic
+```
+
+If `RESEND_API_KEY` is blank → email will not send.
+
+You MUST click:
+
+**“Save → Clear build cache → Deploy”**
+after adding env vars.
+
+---
+
+# 🟥 5. Your MAGIC_LINK_URL is wrong
+
+You previously had an issue with duplicate keys.
+
+Your backend must have:
+
+```
+MAGIC_LINK_URL=https://sebenzahub.co.za/auth/magic
+```
+
+If that env var is wrong → the backend throws → your frontend sees “error”.
+
+---
+
+# 🟩 Let’s Diagnose It NOW
+
+I want you to do this:
+
+### 🔍 Step 1 — Open your browser console on production
+
+Press:
+
+**Cmd+Option+I → Console → Network → Send magic link again**
+
+Tell me what the failing network request says.
+
+You will see one of these:
+
+* **404 Not Found** → wrong URL
+* **CORS error** → backend blocking requests
+* **500** → backend crashed (likely Sentry or env var)
+* **401** → Resend API key missing
+* **Failed to fetch** → backend is DOWN
+
+Just screenshot the failing request.
+I'll solve it instantly.
+
+---
+
+# 🟦 Step 2 — Tell me your API URL in production
+
+What is the value of:
+
+```
+VITE_API_URL
+```
+
+in Vercel?
+
+Paste it here.
+
+---
+
+Wes, once I see the failing network request + API URL, I’ll fix this in one message.

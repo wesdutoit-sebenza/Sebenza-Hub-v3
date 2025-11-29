@@ -5,19 +5,18 @@
 /* LIGHT MODE */
 :root {
   /* === Sebenza Hub Brand Colors === */
-  /* Primary */
-  --charcoal-1: #2e2f31;         /* background/shadow */
-  --charcoal-2: #3a3b3d;
-  --amber-1: #f4a300;            /* HUB text / accents */
-  --amber-2: #ffb43b;
-  --white: #ffffff;              /* "Sebenza" text */
-  --navy: #1a2328;               /* dark navy for video/hero sections */
+  /* Primary Brand */
+  --charcoal-1: #2e2f31;         /* RGB(46, 47, 49) - background/shadow */
+  --charcoal-2: #3a3b3d;         /* RGB(58, 59, 61) */
+  --amber-1: #f4a300;            /* RGB(244, 163, 0) - HUB text / accents */
+  --amber-2: #ffb43b;            /* RGB(255, 180, 59) */
+  --white: #ffffff;              /* RGB(255, 255, 255) - "Sebenza" text */
   
   /* Accent & Secondary */
-  --slate-1: #5c6369;            /* small spheres / mids */
-  --slate-2: #70787e;
-  --graphite: #4a4d50;           /* transitions/shading */
-  --black-deep: #1f1f20;         /* depth */
+  --slate-1: #5c6369;            /* RGB(92, 99, 105) - small spheres / mids */
+  --slate-2: #70787e;            /* RGB(112, 120, 126) */
+  --graphite: #4a4d50;           /* RGB(74, 77, 80) - transitions/shading */
+  --black-deep: #1f1f20;         /* RGB(31, 31, 32) - depth */
   
   /* Brand aliases */
   --bg-main: var(--charcoal-1);
@@ -35,67 +34,68 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 40 30% 84%;
+  /* Light mode uses warm cream background with charcoal text */
+  --background: 40 20% 96%;
 
-  --foreground: 355 11% 22%;
+  --foreground: 220 3% 19%;
 
-  --border: 33 19% 70%;
+  --border: 210 4% 75%;
 
-  --card: 40 20% 97%;
+  --card: 0 0% 100%;
 
-  --card-foreground: 355 11% 22%;
+  --card-foreground: 220 3% 19%;
 
-  --card-border: 40 15% 88%;
+  --card-border: 210 4% 88%;
 
-  --sidebar: 40 25% 88%;
+  --sidebar: 40 15% 94%;
 
-  --sidebar-foreground: 355 11% 22%;
+  --sidebar-foreground: 220 3% 19%;
 
-  --sidebar-border: 33 19% 70%;
+  --sidebar-border: 210 4% 80%;
 
-  --sidebar-primary: 29 35% 35%;
+  --sidebar-primary: 40 100% 48%;
 
-  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-primary-foreground: 220 3% 19%;
 
-  --sidebar-accent: 33 19% 70%;
+  --sidebar-accent: 210 4% 85%;
 
-  --sidebar-accent-foreground: 355 11% 22%;
+  --sidebar-accent-foreground: 220 3% 19%;
 
-  --sidebar-ring: 29 29% 43%;
+  --sidebar-ring: 40 100% 48%;
 
-  --popover: 40 20% 96%;
+  --popover: 0 0% 100%;
 
-  --popover-foreground: 355 11% 22%;
+  --popover-foreground: 220 3% 19%;
 
-  --popover-border: 40 15% 85%;
+  --popover-border: 210 4% 85%;
 
-  --primary: 29 35% 35%;
+  --primary: 40 100% 48%;
 
-  --primary-foreground: 0 0% 100%;
+  --primary-foreground: 220 3% 19%;
 
-  --secondary: 33 19% 60%;
+  --secondary: 206 6% 47%;
 
-  --secondary-foreground: 355 11% 22%;
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 33 19% 70%;
+  --muted: 210 4% 85%;
 
-  --muted-foreground: 355 11% 22%;
+  --muted-foreground: 206 6% 47%;
 
-  --accent: 40 25% 88%;
+  --accent: 40 20% 92%;
 
-  --accent-foreground: 355 11% 22%;
+  --accent-foreground: 220 3% 19%;
 
   --destructive: 0 84% 60%;
 
-  --destructive-foreground: 0 10% 98%;
+  --destructive-foreground: 0 0% 100%;
 
-  --input: 33 19% 65%;
-  --ring: 29 29% 43%;
-  --chart-1: 29 29% 43%;
-  --chart-2: 33 19% 60%;
-  --chart-3: 9 10% 41%;
-  --chart-4: 40 30% 84%;
-  --chart-5: 355 11% 22%;
+  --input: 210 4% 78%;
+  --ring: 40 100% 48%;
+  --chart-1: 40 100% 48%;
+  --chart-2: 37 100% 62%;
+  --chart-3: 206 6% 47%;
+  --chart-4: 210 4% 30%;
+  --chart-5: 220 3% 19%;
 
   --font-sans: Montserrat, system-ui, -apple-system, sans-serif;
   --font-serif: Montserrat, Georgia, serif;
@@ -153,67 +153,68 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  --background: 355 11% 12%;
+  /* Dark mode uses Charcoal 1 (#2e2f31) / Black Deep (#1f1f20) backgrounds */
+  --background: 220 3% 19%;
 
-  --foreground: 40 30% 84%;
+  --foreground: 0 0% 100%;
 
-  --border: 9 10% 30%;
+  --border: 220 3% 28%;
 
-  --card: 355 11% 16%;
+  --card: 220 3% 23%;
 
-  --card-foreground: 40 30% 84%;
+  --card-foreground: 0 0% 100%;
 
-  --card-border: 9 10% 25%;
+  --card-border: 220 3% 30%;
 
-  --sidebar: 355 11% 16%;
+  --sidebar: 220 3% 19%;
 
-  --sidebar-foreground: 40 30% 84%;
+  --sidebar-foreground: 0 0% 100%;
 
-  --sidebar-border: 9 10% 28%;
+  --sidebar-border: 220 3% 28%;
 
-  --sidebar-primary: 29 35% 52%;
+  --sidebar-primary: 40 100% 48%;
 
-  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-primary-foreground: 220 3% 19%;
 
-  --sidebar-accent: 9 10% 28%;
+  --sidebar-accent: 220 3% 28%;
 
-  --sidebar-accent-foreground: 40 30% 84%;
+  --sidebar-accent-foreground: 0 0% 100%;
 
-  --sidebar-ring: 29 29% 50%;
+  --sidebar-ring: 40 100% 48%;
 
-  --popover: 355 11% 18%;
+  --popover: 220 3% 23%;
 
-  --popover-foreground: 40 30% 84%;
+  --popover-foreground: 0 0% 100%;
 
-  --popover-border: 9 10% 30%;
+  --popover-border: 220 3% 30%;
 
-  --primary: 29 35% 52%;
+  --primary: 40 100% 48%;
 
-  --primary-foreground: 0 0% 100%;
+  --primary-foreground: 220 3% 19%;
 
-  --secondary: 9 10% 30%;
+  --secondary: 206 6% 47%;
 
-  --secondary-foreground: 40 30% 84%;
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 9 10% 28%;
+  --muted: 220 3% 28%;
 
-  --muted-foreground: 33 19% 72%;
+  --muted-foreground: 206 6% 60%;
 
-  --accent: 9 10% 25%;
+  --accent: 220 3% 28%;
 
-  --accent-foreground: 40 30% 84%;
+  --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84% 60%;
 
-  --destructive-foreground: 0 10% 98%;
+  --destructive-foreground: 0 0% 100%;
 
-  --input: 9 10% 35%;
-  --ring: 29 29% 50%;
-  --chart-1: 29 29% 50%;
-  --chart-2: 33 19% 60%;
-  --chart-3: 9 10% 41%;
-  --chart-4: 40 30% 70%;
-  --chart-5: 40 30% 84%;
+  --input: 220 3% 32%;
+  --ring: 40 100% 48%;
+  --chart-1: 40 100% 48%;
+  --chart-2: 37 100% 62%;
+  --chart-3: 206 6% 47%;
+  --chart-4: 206 6% 60%;
+  --chart-5: 0 0% 100%;
 
   --shadow-2xs: 0px 1px 2px 0px hsl(216 76% 6% / 0.20);
   --shadow-xs: 0px 1px 3px 0px hsl(216 76% 6% / 0.30);

@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { User } from "@shared/schema";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -21,7 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch('/api/auth/user', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/user`, {
         credentials: 'include', // Important for cookies
       });
 
@@ -45,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      await fetch('/api/auth/logout', {
+      await fetch(`${API_BASE_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
       });
