@@ -1,0 +1,239 @@
+Alright Wes. I’ll show you **exactly** how to get Magic Links working with **Resend** — clean, simple, and production-safe.
+You can use this with **Vite**, **React**, **Next.js**, **your Render backend**, whatever.
+This is the exact setup I use in SaaS apps.
+
+I’ll break it into small steps so you don’t miss anything.
+
+---
+
+# ✅ 1. Create a Magic Link flow (backend)
+
+Your backend generates a magic link token + emails it using Resend.
+
+### **Step 1: Install Resend**
+
+```bash
+npm install resend
+```
+
+### **Step 2: Add Resend env vars**
+
+In **Render → Environment Variables**, add:
+
+```
+RESEND_API_KEY=your_resend_key
+MAGIC_LINK_SECRET=something_long_and_random
+MAGIC_LINK_URL=https://sebenzahub.co.za/auth/magic
+```
+
+For staging:
+
+```
+MAGIC_LINK_URL=https://staging.sebenzahub.co.za/auth/magic
+```
+
+---
+
+# ✅ 2. Backend: Create the `/auth/magic/send` route
+
+This sends the actual magic link email.
+
+```ts
+import crypto from "crypto";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+app.post("/auth/magic/send", async (req, res) => {
+  const { email } = req.body;
+
+  // 1. Create a token
+  const token = crypto.randomBytes(32).toString("hex");
+
+  // 2. Save the token tied to the user (DB)
+  await prisma.magicLinkToken.create({
+    data: {
+      email,
+      token,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 15), // 15 minutes
+    },
+  });
+
+  // 3. Build the link
+  const magicLink = `${process.env.MAGIC_LINK_URL}?token=${token}`;
+
+  // 4. Send via Resend
+  await resend.emails.send({
+    from: "Sebenza Hub <login@sebenzahub.co.za>",
+    to: email,
+    subject: "Your Sebenza Hub Magic Link",
+    html: `
+      <p>Click below to sign in:</p>
+      <a href="${magicLink}" style="color:#0070f3">${magicLink}</a>
+      <p>This link expires in 15 minutes.</p>
+    `,
+  });
+
+  res.json({ success: true });
+});
+```
+
+This fully handles generating & emailing the magic link.
+
+---
+
+# ✅ 3. Backend: Validate the magic link (login)
+
+Create a second route:
+
+```ts
+app.get("/auth/magic/verify", async (req, res) => {
+  const { token } = req.query;
+
+  const record = await prisma.magicLinkToken.findUnique({ where: { token: token as string } });
+
+  if (!record || record.expiresAt < new Date()) {
+    return res.status(401).send("Link expired or invalid.");
+  }
+
+  // Login or create user
+  let user = await prisma.user.findUnique({ where: { email: record.email } });
+  if (!user) {
+    user = await prisma.user.create({ data: { email: record.email } });
+  }
+
+  // Delete used token
+  await prisma.magicLinkToken.delete({ where: { token } });
+
+  // Create session cookie or JWT
+  const sessionToken = crypto.randomBytes(32).toString("hex");
+
+  // Store session in DB
+  await prisma.session.create({
+    data: {
+      userId: user.id,
+      token: sessionToken,
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 days
+    },
+  });
+
+  // Cookie for Vite/React frontend
+  res.cookie("session", sessionToken, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    path: "/",
+  });
+
+  res.redirect("/dashboard");
+});
+```
+
+This completes the login & redirects the user to the dashboard.
+
+---
+
+# ✅ 4. Frontend: Trigger the send route
+
+In your **React/Vite** login screen:
+
+```ts
+async function sendMagicLink(email) {
+  await fetch("https://api.sebenzahub.co.za/auth/magic/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  alert("Magic link sent! Check your email.");
+}
+```
+
+Works on dev, preview, staging, and production.
+
+---
+
+# ✅ 5. Your routing structure (VERY IMPORTANT)
+
+You *must* expose two URLs publicly:
+
+### 1. User requests magic link
+
+```
+POST https://api.sebenzahub.co.za/auth/magic/send
+```
+
+### 2. User clicks email link → verification route
+
+```
+GET https://sebenzahub.co.za/auth/magic?token=XXXX
+```
+
+That URL will be handled by your front-end → which triggers the backend verify route.
+
+Redirect flow:
+
+1. User clicks email link
+2. Frontend page reads `token`
+3. Frontend calls backend to verify
+4. Backend sets session cookie
+5. User redirects to dashboard
+
+This is standard for React/Vite setups.
+
+---
+
+# 🔥 Why Resend is perfect for magic links
+
+* It delivers fast (SES-quality)
+* Clean message logs
+* You can see if user email failed or bounced
+* Perfect for production debugging
+* Free tier covers thousands of magic link logins
+
+---
+
+# 🟢 What I recommend for you specifically
+
+Since you now separate Dev (Replit) and Production (Vercel):
+
+### Use this environment setup:
+
+#### Replit Dev
+
+```
+MAGIC_LINK_URL=http://localhost:5173/auth/magic
+```
+
+#### Vercel Prod
+
+```
+MAGIC_LINK_URL=https://sebenzahub.co.za/auth/magic
+```
+
+#### Vercel Staging
+
+```
+MAGIC_LINK_URL=https://staging.sebenzahub.co.za/auth/magic
+```
+
+#### Render Backend
+
+(clone the same env vars)
+
+Everything works everywhere.
+
+---
+
+# 💬 Want me to generate the Prisma model for magic link tokens + sessions?
+
+I can give you:
+
+* `magicLinkToken` model
+* `session` model
+* Full TypeScript backend
+* Frontend login page
+* Protected route middleware
+
+Just say:
+**“Give me the database models too.”**
