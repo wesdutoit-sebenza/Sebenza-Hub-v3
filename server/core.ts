@@ -3,6 +3,7 @@
  * This file has NO vite dependencies and is safe to bundle
  */
 
+import "./instrument";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import cookieParser from "cookie-parser";

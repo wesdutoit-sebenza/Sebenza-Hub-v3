@@ -1,0 +1,167 @@
+Alright Wes. I know exactly what this error is.
+It’s a **classic Sentry mis-import** error that happens when using **Vite** or **Next.js App Router** with the wrong Sentry import.
+
+Your error says:
+
+```
+Rollup failed to resolve import "@sentry/react"
+from "src/lib/sentry.ts"
+```
+
+This tells me **the wrong Sentry package is being imported**.
+
+Let me break it down cleanly.
+
+---
+
+# ❌ What went wrong
+
+You (or the Sentry wizard) added a file somewhere like:
+
+```
+src/lib/sentry.ts
+```
+
+And inside it, there is a line like:
+
+```ts
+import * as Sentry from "@sentry/react";
+```
+
+**BUT:**
+With **Next.js + Sentry v8**, the correct package is:
+
+```
+@sentry/nextjs
+```
+
+NOT:
+
+```
+@sentry/react
+```
+
+Vercel + Next.js uses **Next.js–specific wrappers**, not the React SDK.
+
+---
+
+# ✅ How to fix it
+
+## **Step 1 — Find the file causing the error**
+
+Go to:
+
+```
+/src/lib/sentry.ts
+```
+
+(or whatever file the error mentions)
+
+Look for:
+
+```ts
+import * as Sentry from "@sentry/react";
+```
+
+or:
+
+```ts
+import { init } from "@sentry/react";
+```
+
+---
+
+## **Step 2 — Replace it with the correct import**
+
+Change this:
+
+```ts
+import * as Sentry from "@sentry/react";
+```
+
+to this:
+
+```ts
+import * as Sentry from "@sentry/nextjs";
+```
+
+That’s the correct SDK for Next.js.
+
+---
+
+# 📌 IMPORTANT!!!
+
+### In Next.js 13/14 App Router, you **must NOT** write your own `sentry.ts` file.
+
+Sentry auto-creates:
+
+* `sentry.client.config.ts`
+* `sentry.server.config.ts`
+* `sentry.edge.config.ts` (sometimes)
+
+You should **not** create additional Sentry initialization files manually unless you know what you’re doing.
+
+If you created `src/lib/sentry.ts` after following a generic tutorial, delete it.
+Next.js already handles initialization automatically through the wizard-generated configs.
+
+---
+
+# 🟢 The safe fix (recommended)
+
+### **Delete the custom Sentry file** (`src/lib/sentry.ts`)
+
+Then rely only on the auto-generated files:
+
+```
+sentry.client.config.ts
+sentry.server.config.ts
+next.config.mjs  (wrapped with withSentryConfig)
+```
+
+This fixes 99% of these build errors.
+
+---
+
+# 🟦 Why the error happened
+
+Vercel uses **Vite** for parts of the build pipeline.
+Vite/Rollup cannot resolve `@sentry/react` because:
+
+* you are not running a plain React app
+* the Sentry wizard installed `@sentry/nextjs`, not `@sentry/react`
+* the import is invalid for your environment
+
+---
+
+# 🧪 Quick way to confirm
+
+Search your entire repo for “@sentry/react”:
+
+### **In Replit:**
+
+Press **Ctrl+Shift+F** and type:
+
+```
+@sentry/react
+```
+
+If anything appears → fix or delete.
+
+---
+
+# 🟩 After fixing, redeploy
+
+Vercel should now pass the build.
+
+---
+
+# If you want…
+
+Send me:
+
+* your `/src/lib/sentry.ts`
+* your `sentry.client.config.ts`
+* your `sentry.server.config.ts`
+* your `next.config.mjs`
+
+… and I’ll make sure your Sentry setup is 100% correct.
