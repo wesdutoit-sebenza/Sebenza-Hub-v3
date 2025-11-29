@@ -73,8 +73,21 @@ export async function getUncachableResendClient() {
 export async function sendMagicLinkEmail(email: string, token: string) {
   let baseUrl: string;
   
-  if (process.env.REPLIT_DEPLOYMENT) {
-    baseUrl = process.env.PUBLIC_URL || `https://sebenzahub.replit.app`;
+  // Priority order for determining the frontend URL:
+  // 1. FRONTEND_URL - explicit frontend URL (for Vercel/Render separate deployments)
+  // 2. PUBLIC_URL - generic public URL
+  // 3. REPLIT_DEPLOYMENT - Replit production
+  // 4. REPLIT_DEV_DOMAIN - Replit development
+  // 5. localhost fallback
+  if (process.env.FRONTEND_URL) {
+    baseUrl = process.env.FRONTEND_URL;
+  } else if (process.env.PUBLIC_URL) {
+    baseUrl = process.env.PUBLIC_URL;
+  } else if (process.env.NODE_ENV === 'production') {
+    // Production fallback to sebenzahub.co.za
+    baseUrl = 'https://sebenzahub.co.za';
+  } else if (process.env.REPLIT_DEPLOYMENT) {
+    baseUrl = `https://sebenzahub.replit.app`;
   } else if (process.env.REPLIT_DEV_DOMAIN) {
     baseUrl = `https://${process.env.REPLIT_DEV_DOMAIN}`;
   } else {
