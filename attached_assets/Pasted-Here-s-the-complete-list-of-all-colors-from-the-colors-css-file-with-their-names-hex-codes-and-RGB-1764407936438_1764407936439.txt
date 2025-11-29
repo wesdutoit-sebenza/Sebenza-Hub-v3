@@ -1,0 +1,43 @@
+Here's the complete list of all colors from the colors.css file with their names, hex codes, and RGB values:
+
+Brand Color Palette
+Color Name	Hex Code	RGB
+Charcoal 1	#2e2f31	RGB(46, 47, 49)
+Charcoal 2	#3a3b3d	RGB(58, 59, 61)
+Amber 1	#f4a300	RGB(244, 163, 0)
+Amber 2	#ffb43b	RGB(255, 180, 59)
+White	#ffffff	RGB(255, 255, 255)
+Slate 1	#5c6369	RGB(92, 99, 105)
+Slate 2	#70787e	RGB(112, 120, 126)
+Graphite	#4a4d50	RGB(74, 77, 80)
+Black Deep	#1f1f20	RGB(31, 31, 32)
+Objects & Associated Colors
+Object/Element	Color Used	Description
+Background/Shadow	Charcoal 1 (#2e2f31)	Main background color
+Charcoal Gradient	Charcoal 1 → Charcoal 2	Gradient background effect
+HUB Logo Text	Amber 1 (#f4a300)	Logo "HUB" word accent
+Sebenza Logo Text	White (#ffffff)	Logo "Sebenza" word
+Amber Gradient	Amber 1 → Amber 2	Accent gradient effect
+Small Spheres/Mids	Slate 1 (#5c6369)	Medium toned elements
+Slate Gradient	Slate 1 → Slate 2	Mid-tone gradient
+Transitions/Shading	Graphite (#4a4d50)	Transitional shading elements
+Depth Elements	Black Deep (#1f1f20)	Deep shadow/depth areas
+Backgrounds (bg-charcoal)	Charcoal 1 (#2e2f31)	Background helper class
+Backgrounds (bg-amber)	Amber 1 (#f4a300)	Amber background
+Backgrounds (bg-white)	White (#ffffff)	White background
+Backgrounds (bg-slate)	Slate 1 (#5c6369)	Slate background
+Backgrounds (bg-graphite)	Graphite (#4a4d50)	Graphite background
+Backgrounds (bg-deep)	Black Deep (#1f1f20)	Deep black background
+Text (amber)	Amber 1 (#f4a300)	Amber colored text
+Text (white)	White (#ffffff)	White colored text
+Text (charcoal)	Charcoal 2 (#3a3b3d)	Charcoal colored text
+Text (slate)	Slate 2 (#70787e)	Slate colored text
+Text (graphite)	Graphite (#4a4d50)	Graphite colored text
+Borders (amber)	Amber 1 (#f4a300)	Amber border
+Borders (slate)	Slate 2 (#70787e)	Slate border
+Borders (charcoal)	Charcoal 2 (#3a3b3d)	Charcoal border
+Brand Aliases
+Alias	Resolves To	Usage
+--bg-main	Charcoal 1 (#2e2f31)	Main page background
+--text-main	White (#ffffff)	Main text color
+--brand-accent	Amber 1 (#f4a300)	Primary accent/highlight color
